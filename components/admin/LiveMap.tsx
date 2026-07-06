@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { MapContainer, Marker, Popup, useMap } from "react-leaflet";
+import { useState } from "react";
+import { MapContainer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import { MapsTileLayer, type MapStyle } from "@/components/shared/MapsTileLayer";
 import { MapStyleToggle } from "@/components/shared/MapStyleToggle";
@@ -26,27 +26,12 @@ function iconFor(type: "participant" | "event" = "participant") {
   });
 }
 
-function FitMarkers({ markers }: { markers: MarkerData[] }) {
-  const map = useMap();
-
-  useEffect(() => {
-    if (markers.length === 0) return;
-    const bounds = L.latLngBounds(markers.map((m) => [m.lat, m.lng]));
-    if (!bounds.isValid()) {
-      map.setView([markers[0].lat, markers[0].lng], 14);
-      return;
-    }
-    map.fitBounds(bounds, { padding: [28, 28], maxZoom: 14 });
-  }, [map, markers]);
-
-  return null;
-}
-
 // Admin-only: receives already-decrypted coordinates from the /live API
 // response. Never used on any participant-facing surface.
 export function LiveMap({ markers }: { markers: MarkerData[] }) {
   const [mapStyle, setMapStyle] = useState<MapStyle>("dark");
   const center: [number, number] = markers.length > 0 ? [markers[0].lat, markers[0].lng] : [41.9, 12.5];
+  const zoom = markers.length > 1 ? 10 : 14;
 
   return (
     <div className="flex flex-col gap-2">
@@ -54,9 +39,13 @@ export function LiveMap({ markers }: { markers: MarkerData[] }) {
         <MapStyleToggle style={mapStyle} onChange={setMapStyle} />
       </div>
       <div className="overflow-hidden rounded-lg border border-surface-border" style={{ height: 320 }}>
-        <MapContainer center={center} zoom={markers.length > 0 ? 13 : 5} style={{ height: "100%", width: "100%" }}>
+        <MapContainer
+          center={center}
+          zoom={zoom}
+          scrollWheelZoom
+          style={{ height: "100%", width: "100%" }}
+        >
           <MapsTileLayer style={mapStyle} />
-          <FitMarkers markers={markers} />
           {markers.map((m) => (
             <Marker key={m.id} position={[m.lat, m.lng]} icon={iconFor(m.type)}>
               <Popup>{m.label}</Popup>

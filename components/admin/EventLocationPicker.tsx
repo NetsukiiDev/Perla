@@ -8,6 +8,12 @@ import { MapStyleToggle } from "@/components/shared/MapStyleToggle";
 import { parseGoogleMapsUrl, isGoogleShortUrl } from "@/lib/parse-maps-url";
 import { Search, MapPin } from "lucide-react";
 
+interface Suggestion {
+  label: string;
+  lat: number;
+  lng: number;
+}
+
 const DEFAULT_CENTER: [number, number] = [42.5, 12.5];
 
 const markerIcon = L.divIcon({
@@ -66,7 +72,83 @@ export function EventLocationPicker({ lat, lng, onChange }: EventLocationPickerP
   const [searchInput, setSearchInput] = useState("");
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [activeIdx, setActiveIdx] = useState(-1);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Debounced autocomplete
+  useEffect(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    const q = searchInput.trim();
+    if (!q || q.length < 3 || extractCoords(q) || isGoogleShortUrl(q)) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+    timerRef.current = setTimeout(async () => {
+      if (abortRef.current) abortRef.current.abort();
+      const ctrl = new AbortController();
+      abortRef.current = ctrl;
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&limit=6&q=${encodeURIComponent(q)}`,
+          { signal: ctrl.signal, headers: { "User-Agent": "PERLA/1.0" } },
+        );
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setSuggestions(
+            data.map((d: { display_name: string; lat: string; lon: string }) => ({
+              label: d.display_name,
+              lat: Number(d.lat),
+              lng: Number(d.lon),
+            })),
+          );
+          setShowSuggestions(data.length > 0);
+          setActiveIdx(-1);
+        }
+      } catch {
+        // ignore aborted requests
+      }
+    }, 300);
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [searchInput]);
+
+  function selectSuggestion(s: Suggestion) {
+    onChange(s.lat, s.lng);
+    setSearchInput(s.label.split(",")[0]);
+    setSuggestions([]);
+    setShowSuggestions(false);
+  }
+
+  function handleInputKeyDown(e: React.KeyboardEvent) {
+    if (!showSuggestions || suggestions.length === 0) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleSearch();
+      }
+      return;
+    }
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveIdx((prev) => (prev < suggestions.length - 1 ? prev + 1 : 0));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveIdx((prev) => (prev > 0 ? prev - 1 : suggestions.length - 1));
+    } else if (e.key === "Enter" && activeIdx >= 0) {
+      e.preventDefault();
+      selectSuggestion(suggestions[activeIdx]);
+    } else if (e.key === "Escape") {
+      setShowSuggestions(false);
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      handleSearch();
+    }
+  }
 
   const handleSearch = useCallback(async () => {
     const input = searchInput.trim();
@@ -131,13 +213,6 @@ export function EventLocationPicker({ lat, lng, onChange }: EventLocationPickerP
     setSearching(false);
   }, [searchInput, onChange]);
 
-  function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleSearch();
-    }
-  }
-
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
@@ -147,7 +222,9 @@ export function EventLocationPicker({ lat, lng, onChange }: EventLocationPickerP
             type="text"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            onKeyDown={handleKeyDown}
+            onKeyDown={handleInputKeyDown}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+            onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
             placeholder="Link Google Maps, coordinate (lat, lng) o nome luogo..."
             className="w-full rounded-lg border border-surface-border bg-background px-3 py-2 pr-9 text-sm text-foreground focus:border-foreground focus:outline-none"
           />
@@ -164,6 +241,21 @@ export function EventLocationPicker({ lat, lng, onChange }: EventLocationPickerP
               <Search size={16} />
             )}
           </button>
+
+          {showSuggestions && suggestions.length > 0 && (
+            <ul className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 overflow-y-auto rounded-lg border border-surface-border bg-surface text-sm shadow-lg">
+              {suggestions.map((s, i) => (
+                <li
+                  key={`${s.lat}-${s.lng}-${i}`}
+                  onMouseDown={() => selectSuggestion(s)}
+                  onMouseEnter={() => setActiveIdx(i)}
+                  className={`cursor-pointer px-3 py-2 ${i === activeIdx ? "bg-background text-foreground" : "text-muted hover:bg-background hover:text-foreground"}`}
+                >
+                  {s.label}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
         <MapStyleToggle style={mapStyle} onChange={setMapStyle} />
       </div>
