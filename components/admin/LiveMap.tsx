@@ -32,6 +32,10 @@ function FitMarkers({ markers }: { markers: MarkerData[] }) {
   useEffect(() => {
     if (markers.length === 0) return;
     const bounds = L.latLngBounds(markers.map((m) => [m.lat, m.lng]));
+    if (!bounds.isValid()) {
+      map.setView([markers[0].lat, markers[0].lng], 14);
+      return;
+    }
     map.fitBounds(bounds, { padding: [28, 28], maxZoom: 14 });
   }, [map, markers]);
 
