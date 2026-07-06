@@ -5,12 +5,16 @@
 //    mariadb:// and rejects mysql://
 // So we accept either scheme from the user and normalize per consumer.
 
+export function stripJdbcPrefix(url: string): string {
+  return url.replace(/^jdbc:/i, "");
+}
+
 export function toPrismaMysqlUrl(url: string): string {
-  return url.replace(/^mariadb:\/\//i, "mysql://");
+  return stripJdbcPrefix(url).replace(/^mariadb:\/\//i, "mysql://");
 }
 
 export function toMariadbDriverUrl(url: string): string {
-  return url.replace(/^mysql:\/\//i, "mariadb://");
+  return stripJdbcPrefix(url).replace(/^mysql:\/\//i, "mariadb://");
 }
 
 export interface ConnectionParts {

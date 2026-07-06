@@ -34,15 +34,23 @@ export async function POST(req: Request) {
   const { provider } = parsed.data;
 
   // Either a full string or individual fields; assemble + encode from fields.
-  const url =
-    parsed.data.url ??
-    buildConnectionUrl(provider, {
+  const rawUrl = parsed.data.url;
+  let url: string;
+  if (rawUrl) {
+    url = rawUrl
+      // Strip JDBC prefix (jdbc:mysql:// → mysql://, jdbc:postgresql:// → postgresql://, etc.)
+      .replace(/^jdbc:/i, "")
+      // Normalize mariadb:// → mysql:// for Prisma compatibility
+      .replace(/^mariadb:\/\//i, "mysql://");
+  } else {
+    url = buildConnectionUrl(provider, {
       host: parsed.data.host!,
       port: parsed.data.port,
       user: parsed.data.user!,
       password: parsed.data.password,
       database: parsed.data.database!,
     });
+  }
 
   try {
     await testConnection(provider, url);
