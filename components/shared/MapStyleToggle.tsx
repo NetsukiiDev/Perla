@@ -7,10 +7,9 @@ interface MapStyleToggleProps {
   onChange: (style: MapStyle) => void;
 }
 
-const LABELS: Record<MapStyle, { label: string; next: MapStyle; title: string }> = {
-  dark: { label: "Scuro", next: "satellite", title: "Attiva satellite" },
-  satellite: { label: "Satellite", next: "political", title: "Attiva politica" },
-  political: { label: "Politica", next: "dark", title: "Attiva scuro" },
+const LABELS: Record<MapStyle, { next: MapStyle; label: string; title: string }> = {
+  dark: { next: "satellite", label: "Satellite", title: "Attiva satellite con nomi" },
+  satellite: { next: "dark", label: "Scuro", title: "Attiva scuro" },
 };
 
 export function MapStyleToggle({ style, onChange }: MapStyleToggleProps) {
