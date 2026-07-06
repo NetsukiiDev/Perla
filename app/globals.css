@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+/* Always-dark, neutral palette. No light theme — this is intentional: the
+   product must look the same regardless of system preference. */
+:root {
+  --background: #0a0a0b;
+  --surface: #15151a;
+  --surface-border: #27272e;
+  --foreground: #e8e8ec;
+  --muted: #8b8b96;
+  --accent: #e8e8ec;
+  --accent-foreground: #0a0a0b;
+  --danger: #f4716c;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-border: var(--surface-border);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}

@@ -1,0 +1,291 @@
+// Prisma schema for the private event-access webapp.
+// Coordinates are stored encrypted (lib/crypto.ts). Invite codes keep a
+// hash for lookup plus an encrypted copy for admin display; tokens are
+// stored as hashes only. See README.md "Security invariants".
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+// Connection URL lives in prisma.config.ts (Prisma 7 no longer reads it
+// from the schema file). PrismaClient connects via a driver adapter chosen
+// at runtime (lib/prisma-adapter.ts) — @prisma/adapter-pg for PostgreSQL,
+// @prisma/adapter-mariadb for MySQL/MariaDB.
+//
+// The `provider` below is switched by scripts/prisma-provider.mjs based on
+// DATABASE_PROVIDER before `prisma generate`/`migrate` run — Prisma does
+// not allow env() in this field. Native types used across the schema
+// (@db.VarChar, @db.Text, Json) validate under both providers.
+datasource db {
+  provider = "mysql"
+}
+
+// ---------- ENUMS ----------
+
+enum AdminRole {
+  admin
+  staff
+}
+
+enum EventStatus {
+  draft
+  scheduled
+  active
+  closed
+  archived
+}
+
+// Participant-level display status is mostly DERIVED at read time (see
+// types/status.ts) from participant + invite_code + session state, but a
+// stored status is still kept so admin actions (block, delete) have a
+// single authoritative field to set.
+enum ParticipantStatus {
+  not_started
+  opened_site
+  started
+  in_progress
+  arrived
+  blocked
+  deleted
+}
+
+enum InviteCodeStatus {
+  created
+  valid
+  scheduled
+  started
+  in_progress
+  arrived
+  expired
+  revoked
+  blocked
+  deleted
+}
+
+enum SessionStatus {
+  active
+  blocked
+  expired
+  completed
+}
+
+enum AccessLogType {
+  code_verify_success
+  code_verify_invalid
+  code_verify_already_used
+  code_not_yet_available
+  code_not_available
+  site_opened
+  geolocation_denied
+  session_started
+  location_update
+  step_unlocked
+  arrived
+  routing_error
+  admin_login
+  admin_login_failed
+  admin_action
+}
+
+// ---------- MODELS ----------
+
+model AdminUser {
+  id           String    @id @default(cuid())
+  email        String    @unique @db.VarChar(255)
+  passwordHash String    @map("password_hash")
+  role         AdminRole @default(staff)
+
+  // Reserved for future TOTP 2FA support; unused for now.
+  totpSecret  String? @map("totp_secret")
+  totpEnabled Boolean @default(false) @map("totp_enabled")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("admin_users")
+}
+
+model Event {
+  id           String @id @default(cuid())
+  internalName String @map("internal_name") @db.VarChar(255)
+  region       String @db.VarChar(255)
+
+  // AES-256-GCM encrypted, see lib/crypto.ts encryptCoord/decryptCoord.
+  destinationLatEncrypted String @map("destination_lat_encrypted") @db.VarChar(255)
+  destinationLngEncrypted String @map("destination_lng_encrypted") @db.VarChar(255)
+
+  revealAt DateTime? @map("reveal_at")
+  startsAt DateTime  @map("starts_at")
+  endsAt   DateTime? @map("ends_at")
+
+  status EventStatus @default(draft)
+
+  stepsCount     Int @default(6) @map("steps_count")
+  unlockRadiusM  Int @default(100) @map("unlock_radius_m")
+
+  showTotalDistance Boolean @default(true) @map("show_total_distance")
+  showTotalDuration Boolean @default(true) @map("show_total_duration")
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  participants Participant[]
+  inviteCodes  InviteCode[]
+  accessLogs   AccessLog[]
+
+  @@index([status])
+  @@map("events")
+}
+
+model Participant {
+  id          String @id @default(cuid())
+  eventId     String @map("event_id")
+  displayName String? @map("display_name") @db.VarChar(255)
+  notes       String? @db.Text
+  status      ParticipantStatus @default(not_started)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  event       Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  inviteCodes InviteCode[]
+  sessions    Session[]
+  accessLogs  AccessLog[]
+
+  @@index([eventId])
+  @@map("participants")
+}
+
+model InviteCode {
+  id            String @id @default(cuid())
+  eventId       String @map("event_id")
+  participantId String @map("participant_id")
+
+  // SHA-256(+pepper) of the human-facing code, used for the verify lookup.
+  codeHash String @unique @map("code_hash")
+  // AES-GCM encrypted code for authenticated admin display. Nullable so
+  // existing hash-only rows remain readable; regenerate to populate it.
+  codeEncrypted String? @map("code_encrypted") @db.VarChar(255)
+
+
+  status      InviteCodeStatus @default(created)
+  maxSessions Int              @default(1) @map("max_sessions")
+
+  expiresAt   DateTime? @map("expires_at")
+  activatedAt DateTime? @map("activated_at")
+  completedAt DateTime? @map("completed_at")
+  revokedAt   DateTime? @map("revoked_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  event       Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  participant Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  sessions    Session[]
+  accessLogs  AccessLog[]
+
+  @@index([eventId])
+  @@index([participantId])
+  @@map("invite_codes")
+}
+
+model Session {
+  id            String @id @default(cuid())
+  inviteCodeId  String @map("invite_code_id")
+  participantId String @map("participant_id")
+
+  sessionTokenHash String @unique @map("session_token_hash")
+  deviceTokenHash  String @map("device_token_hash")
+  ipHash           String? @map("ip_hash")
+  ipAddressEncrypted String? @map("ip_address_encrypted") @db.VarChar(255)
+  ipIsp              String? @map("ip_isp") @db.VarChar(255)
+  userAgentHash    String? @map("user_agent_hash")
+
+  status      SessionStatus @default(active)
+  currentStep Int           @default(1) @map("current_step")
+
+  totalDistanceM Float? @map("total_distance_m")
+  totalDurationS Int?   @map("total_duration_s")
+
+  startedAt   DateTime  @default(now()) @map("started_at")
+  lastSeenAt  DateTime  @default(now()) @map("last_seen_at")
+  completedAt DateTime? @map("completed_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  inviteCode      InviteCode       @relation(fields: [inviteCodeId], references: [id], onDelete: Cascade)
+  participant     Participant      @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  routeSteps      RouteStep[]
+  locationUpdates LocationUpdate[]
+  accessLogs      AccessLog[]
+
+  @@index([inviteCodeId])
+  @@index([status])
+  @@map("sessions")
+}
+
+model RouteStep {
+  id         String @id @default(cuid())
+  sessionId  String @map("session_id")
+  stepNumber Int    @map("step_number")
+
+  latEncrypted String @map("lat_encrypted") @db.VarChar(255)
+  lngEncrypted String @map("lng_encrypted") @db.VarChar(255)
+  radiusM      Int    @map("radius_m")
+
+  unlockedAt DateTime? @map("unlocked_at")
+  reachedAt  DateTime? @map("reached_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, stepNumber])
+  @@index([sessionId])
+  @@map("route_steps")
+}
+
+model LocationUpdate {
+  id        String @id @default(cuid())
+  sessionId String @map("session_id")
+
+  latEncrypted String  @map("lat_encrypted") @db.VarChar(255)
+  lngEncrypted String  @map("lng_encrypted") @db.VarChar(255)
+  accuracyM    Float?  @map("accuracy_m")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  expiresAt DateTime @map("expires_at")
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([expiresAt])
+  @@map("location_updates")
+}
+
+model AccessLog {
+  id            String  @id @default(cuid())
+  eventId       String? @map("event_id")
+  participantId String? @map("participant_id")
+  inviteCodeId  String? @map("invite_code_id")
+  sessionId     String? @map("session_id")
+
+  type         AccessLogType
+  metadataJson Json? @map("metadata_json")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  event       Event?       @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  participant Participant? @relation(fields: [participantId], references: [id], onDelete: SetNull)
+  inviteCode  InviteCode?  @relation(fields: [inviteCodeId], references: [id], onDelete: SetNull)
+  session     Session?     @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  @@index([eventId])
+  @@index([type])
+  @@index([createdAt])
+  @@map("access_logs")
+}
