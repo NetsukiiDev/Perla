@@ -24,25 +24,23 @@ export function InlineMap({ lat, lng }: InlineMapProps) {
   const [mapStyle, setMapStyle] = useState<MapStyle>("dark");
 
   return (
-    <div className="flex flex-col gap-1.5">
-      <div className="flex justify-end">
+    <div className="relative overflow-hidden rounded-lg border border-surface-border" style={{ height: 180 }}>
+      <MapContainer
+        center={[lat, lng]}
+        zoom={15}
+        zoomControl={false}
+        attributionControl={false}
+        dragging={false}
+        scrollWheelZoom={false}
+        doubleClickZoom={false}
+        touchZoom={false}
+        style={{ height: "100%", width: "100%" }}
+      >
+        <MapsTileLayer style={mapStyle} />
+        <Marker position={[lat, lng]} icon={markerIcon} />
+      </MapContainer>
+      <div className="absolute right-2 top-2 z-[9999]">
         <MapStyleToggle style={mapStyle} onChange={setMapStyle} />
-      </div>
-      <div className="overflow-hidden rounded-lg border border-surface-border" style={{ height: 180 }}>
-        <MapContainer
-          center={[lat, lng]}
-          zoom={15}
-          zoomControl={false}
-          attributionControl={false}
-          dragging={false}
-          scrollWheelZoom={false}
-          doubleClickZoom={false}
-          touchZoom={false}
-          style={{ height: "100%", width: "100%" }}
-        >
-          <MapsTileLayer style={mapStyle} />
-          <Marker position={[lat, lng]} icon={markerIcon} />
-        </MapContainer>
       </div>
     </div>
   );

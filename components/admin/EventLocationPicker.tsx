@@ -112,7 +112,7 @@ export function EventLocationPicker({ lat, lng, onChange }: EventLocationPickerP
       } catch {
         // ignore aborted requests
       }
-    }, 300);
+    }, 100);
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
@@ -215,59 +215,7 @@ export function EventLocationPicker({ lat, lng, onChange }: EventLocationPickerP
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1">
-          <input
-            ref={searchInputRef}
-            type="text"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            onKeyDown={handleInputKeyDown}
-            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-            onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
-            placeholder="Link Google Maps, coordinate (lat, lng) o nome luogo..."
-            className="w-full rounded-lg border border-surface-border bg-background px-3 py-2 pr-9 text-sm text-foreground focus:border-foreground focus:outline-none"
-          />
-          <button
-            type="button"
-            onClick={handleSearch}
-            disabled={searching || !searchInput.trim()}
-            className="absolute right-1 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-muted hover:text-foreground disabled:opacity-40"
-            title="Cerca"
-          >
-            {searching ? (
-              <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-            ) : (
-              <Search size={16} />
-            )}
-          </button>
-
-          {showSuggestions && suggestions.length > 0 && (
-            <ul className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 overflow-y-auto rounded-lg border border-surface-border bg-surface text-sm shadow-lg">
-              {suggestions.map((s, i) => (
-                <li
-                  key={`${s.lat}-${s.lng}-${i}`}
-                  onMouseDown={() => selectSuggestion(s)}
-                  onMouseEnter={() => setActiveIdx(i)}
-                  className={`cursor-pointer px-3 py-2 ${i === activeIdx ? "bg-background text-foreground" : "text-muted hover:bg-background hover:text-foreground"}`}
-                >
-                  {s.label}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-        <MapStyleToggle style={mapStyle} onChange={setMapStyle} />
-      </div>
-
-      {searchError && (
-        <p className="flex items-center gap-1 text-xs text-danger">
-          <MapPin size={12} />
-          {searchError}
-        </p>
-      )}
-
-      <div className="overflow-hidden rounded-lg border border-surface-border" style={{ height: 320 }}>
+      <div className="relative overflow-hidden rounded-lg border border-surface-border" style={{ height: 320 }}>
         <MapContainer
           center={center}
           zoom={selected ? 13 : 5}
@@ -279,7 +227,59 @@ export function EventLocationPicker({ lat, lng, onChange }: EventLocationPickerP
           <MapClickHandler onChange={onChange} />
           {selectedLat !== null && selectedLng !== null && <Marker position={[selectedLat, selectedLng]} icon={markerIcon} />}
         </MapContainer>
+        <div className="absolute right-2 top-2 z-[9999]">
+          <MapStyleToggle style={mapStyle} onChange={setMapStyle} />
+        </div>
       </div>
+
+      <div className="relative">
+        <input
+          ref={searchInputRef}
+          type="text"
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          onKeyDown={handleInputKeyDown}
+          onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+          onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
+          placeholder="Link Google Maps, coordinate (lat, lng) o nome luogo..."
+          className="w-full rounded-lg border border-surface-border bg-background px-3 py-2 pr-9 text-sm text-foreground focus:border-foreground focus:outline-none"
+        />
+        <button
+          type="button"
+          onClick={handleSearch}
+          disabled={searching || !searchInput.trim()}
+          className="absolute right-1 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-muted hover:text-foreground disabled:opacity-40"
+          title="Cerca"
+        >
+          {searching ? (
+            <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+          ) : (
+            <Search size={16} />
+          )}
+        </button>
+
+        {showSuggestions && suggestions.length > 0 && (
+          <ul className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 overflow-y-auto rounded-lg border border-surface-border bg-surface text-sm shadow-lg">
+            {suggestions.map((s, i) => (
+              <li
+                key={`${s.lat}-${s.lng}-${i}`}
+                onMouseDown={() => selectSuggestion(s)}
+                onMouseEnter={() => setActiveIdx(i)}
+                className={`cursor-pointer px-3 py-2 ${i === activeIdx ? "bg-background text-foreground" : "text-muted hover:bg-background hover:text-foreground"}`}
+              >
+                {s.label}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {searchError && (
+        <p className="flex items-center gap-1 text-xs text-danger">
+          <MapPin size={12} />
+          {searchError}
+        </p>
+      )}
     </div>
   );
 }

@@ -34,24 +34,22 @@ export function LiveMap({ markers }: { markers: MarkerData[] }) {
   const zoom = markers.length > 1 ? 10 : 14;
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex justify-end">
+    <div className="relative overflow-hidden rounded-lg border border-surface-border" style={{ height: 320 }}>
+      <MapContainer
+        center={center}
+        zoom={zoom}
+        scrollWheelZoom
+        style={{ height: "100%", width: "100%" }}
+      >
+        <MapsTileLayer style={mapStyle} />
+        {markers.map((m) => (
+          <Marker key={m.id} position={[m.lat, m.lng]} icon={iconFor(m.type)}>
+            <Popup>{m.label}</Popup>
+          </Marker>
+        ))}
+      </MapContainer>
+      <div className="absolute right-2 top-2 z-[9999]">
         <MapStyleToggle style={mapStyle} onChange={setMapStyle} />
-      </div>
-      <div className="overflow-hidden rounded-lg border border-surface-border" style={{ height: 320 }}>
-        <MapContainer
-          center={center}
-          zoom={zoom}
-          scrollWheelZoom
-          style={{ height: "100%", width: "100%" }}
-        >
-          <MapsTileLayer style={mapStyle} />
-          {markers.map((m) => (
-            <Marker key={m.id} position={[m.lat, m.lng]} icon={iconFor(m.type)}>
-              <Popup>{m.label}</Popup>
-            </Marker>
-          ))}
-        </MapContainer>
       </div>
     </div>
   );
