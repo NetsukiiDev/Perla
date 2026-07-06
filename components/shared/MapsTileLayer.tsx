@@ -2,7 +2,7 @@
 
 import { TileLayer } from "react-leaflet";
 
-export type MapStyle = "dark" | "satellite";
+export type MapStyle = "dark" | "satellite" | "political";
 
 const TILES: Record<MapStyle, { url: string; attribution: string }> = {
   dark: {
@@ -12,6 +12,10 @@ const TILES: Record<MapStyle, { url: string; attribution: string }> = {
   satellite: {
     url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     attribution: "&copy; Esri, Maxar, Earthstar Geographics, and the GIS User Community",
+  },
+  political: {
+    url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+    attribution: "&copy; OpenStreetMap, &copy; CARTO",
   },
 };
 
