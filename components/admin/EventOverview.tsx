@@ -128,13 +128,23 @@ export function EventOverview({ eventId, event, stats }: EventOverviewProps) {
       text: `${event.internalName}\n${coords}\n${event.region}`,
       url: mapsHref,
     };
-    try {
-      await navigator.share(shareData);
-    } catch {
-      await navigator.clipboard.writeText(mapsHref);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+    if (navigator.share) {
+      try { await navigator.share(shareData); return; } catch { /* user cancelled */ }
     }
+    if (navigator.clipboard) {
+      try { await navigator.clipboard.writeText(mapsHref); } catch { /* fallback below */ }
+    }
+    // Fallback: copy via textarea selection
+    const ta = document.createElement("textarea");
+    ta.value = mapsHref;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }
 
   return (
@@ -153,16 +163,23 @@ export function EventOverview({ eventId, event, stats }: EventOverviewProps) {
           <div className="flex items-center justify-between gap-3">
             <SectionTitle>Destinazione</SectionTitle>
             <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={shareLocation}
-                className={iconButtonClass()}
-                title={copied ? "Copiato!" : "Condividi posizione"}
-                aria-label="Condividi posizione"
-              >
-                <Share2 size={16} aria-hidden="true" />
-                <span className="sr-only">Condividi</span>
-              </button>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={shareLocation}
+                  className={iconButtonClass()}
+                  title="Condividi posizione"
+                  aria-label="Condividi posizione"
+                >
+                  <Share2 size={16} aria-hidden="true" />
+                  <span className="sr-only">Condividi</span>
+                </button>
+                {copied && (
+                  <span className="absolute -top-1 right-0 whitespace-nowrap rounded-md bg-accent px-2 py-0.5 text-[10px] font-medium text-accent-foreground shadow animate-in fade-in slide-in-from-bottom-1">
+                    Copiato!
+                  </span>
+                )}
+              </div>
               <a
                 href={mapsHref}
                 target="_blank"
