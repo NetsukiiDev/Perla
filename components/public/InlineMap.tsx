@@ -1,7 +1,10 @@
 "use client";
 
-import { MapContainer, TileLayer, Marker } from "react-leaflet";
+import { useState } from "react";
+import { MapContainer, Marker } from "react-leaflet";
 import L from "leaflet";
+import { MapsTileLayer, type MapStyle } from "@/components/shared/MapsTileLayer";
+import { MapStyleToggle } from "@/components/shared/MapStyleToggle";
 
 const markerIcon = L.divIcon({
   className: "",
@@ -18,22 +21,29 @@ interface InlineMapProps {
 // Single marker only — the current step. Never receives or renders any
 // other waypoint.
 export function InlineMap({ lat, lng }: InlineMapProps) {
+  const [mapStyle, setMapStyle] = useState<MapStyle>("dark");
+
   return (
-    <div className="overflow-hidden rounded-lg border border-surface-border" style={{ height: 180 }}>
-      <MapContainer
-        center={[lat, lng]}
-        zoom={15}
-        zoomControl={false}
-        attributionControl={false}
-        dragging={false}
-        scrollWheelZoom={false}
-        doubleClickZoom={false}
-        touchZoom={false}
-        style={{ height: "100%", width: "100%" }}
-      >
-        <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
-        <Marker position={[lat, lng]} icon={markerIcon} />
-      </MapContainer>
+    <div className="flex flex-col gap-1.5">
+      <div className="flex justify-end">
+        <MapStyleToggle style={mapStyle} onChange={setMapStyle} />
+      </div>
+      <div className="overflow-hidden rounded-lg border border-surface-border" style={{ height: 180 }}>
+        <MapContainer
+          center={[lat, lng]}
+          zoom={15}
+          zoomControl={false}
+          attributionControl={false}
+          dragging={false}
+          scrollWheelZoom={false}
+          doubleClickZoom={false}
+          touchZoom={false}
+          style={{ height: "100%", width: "100%" }}
+        >
+          <MapsTileLayer style={mapStyle} />
+          <Marker position={[lat, lng]} icon={markerIcon} />
+        </MapContainer>
+      </div>
     </div>
   );
 }

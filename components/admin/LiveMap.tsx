@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
-import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
+import { useEffect, useState } from "react";
+import { MapContainer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
+import { MapsTileLayer, type MapStyle } from "@/components/shared/MapsTileLayer";
+import { MapStyleToggle } from "@/components/shared/MapStyleToggle";
 
 interface MarkerData {
   id: string;
@@ -39,22 +41,25 @@ function FitMarkers({ markers }: { markers: MarkerData[] }) {
 // Admin-only: receives already-decrypted coordinates from the /live API
 // response. Never used on any participant-facing surface.
 export function LiveMap({ markers }: { markers: MarkerData[] }) {
+  const [mapStyle, setMapStyle] = useState<MapStyle>("dark");
   const center: [number, number] = markers.length > 0 ? [markers[0].lat, markers[0].lng] : [41.9, 12.5];
 
   return (
-    <div className="overflow-hidden rounded-lg border border-surface-border" style={{ height: 320 }}>
-      <MapContainer center={center} zoom={markers.length > 0 ? 13 : 5} style={{ height: "100%", width: "100%" }}>
-        <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-          attribution="&copy; OpenStreetMap, &copy; CARTO"
-        />
-        <FitMarkers markers={markers} />
-        {markers.map((m) => (
-          <Marker key={m.id} position={[m.lat, m.lng]} icon={iconFor(m.type)}>
-            <Popup>{m.label}</Popup>
-          </Marker>
-        ))}
-      </MapContainer>
+    <div className="flex flex-col gap-2">
+      <div className="flex justify-end">
+        <MapStyleToggle style={mapStyle} onChange={setMapStyle} />
+      </div>
+      <div className="overflow-hidden rounded-lg border border-surface-border" style={{ height: 320 }}>
+        <MapContainer center={center} zoom={markers.length > 0 ? 13 : 5} style={{ height: "100%", width: "100%" }}>
+          <MapsTileLayer style={mapStyle} />
+          <FitMarkers markers={markers} />
+          {markers.map((m) => (
+            <Marker key={m.id} position={[m.lat, m.lng]} icon={iconFor(m.type)}>
+              <Popup>{m.label}</Popup>
+            </Marker>
+          ))}
+        </MapContainer>
+      </div>
     </div>
   );
 }

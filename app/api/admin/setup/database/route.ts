@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 import { rateLimit, rateLimitKey } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/request-context";
 import { setupDatabaseSchema } from "@/lib/validation/admin-setup";
-import { isSetupComplete, runtimeProvider, saveDatabaseConfig, clearSetupConfig } from "@/lib/config";
+import { isSetupComplete, runtimeProvider, saveDatabaseConfig } from "@/lib/config";
 import { DbInitError, pushSchema, testConnection } from "@/lib/db-init";
 import { buildConnectionUrl } from "@/lib/db-url";
 import { resetPrismaClient } from "@/lib/db";
@@ -61,7 +61,6 @@ export async function POST(req: Request) {
   }
 
   saveDatabaseConfig({ provider, url });
-  clearSetupConfig();
 
   // Sync the provider to .env so future restarts pick it up automatically.
   try {
