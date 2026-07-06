@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import {
@@ -14,6 +15,7 @@ import {
   Pencil,
   Radio,
   Route,
+  Share2,
   type LucideIcon,
 } from "lucide-react";
 import { iconButtonClass } from "./IconButton";
@@ -118,6 +120,22 @@ function InfoItem({
 export function EventOverview({ eventId, event, stats }: EventOverviewProps) {
   const mapsHref = `https://www.google.com/maps/search/?api=1&query=${event.destinationLat},${event.destinationLng}`;
   const coords = `${formatCoord(event.destinationLat)}, ${formatCoord(event.destinationLng)}`;
+  const [copied, setCopied] = useState(false);
+
+  async function shareLocation() {
+    const shareData = {
+      title: event.internalName,
+      text: `${event.internalName}\n${coords}\n${event.region}`,
+      url: mapsHref,
+    };
+    try {
+      await navigator.share(shareData);
+    } catch {
+      await navigator.clipboard.writeText(mapsHref);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  }
 
   return (
     <div className="flex flex-col gap-7">
@@ -135,6 +153,16 @@ export function EventOverview({ eventId, event, stats }: EventOverviewProps) {
           <div className="flex items-center justify-between gap-3">
             <SectionTitle>Destinazione</SectionTitle>
             <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={shareLocation}
+                className={iconButtonClass()}
+                title={copied ? "Copiato!" : "Condividi posizione"}
+                aria-label="Condividi posizione"
+              >
+                <Share2 size={16} aria-hidden="true" />
+                <span className="sr-only">Condividi</span>
+              </button>
               <a
                 href={mapsHref}
                 target="_blank"
