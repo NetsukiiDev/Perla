@@ -73,14 +73,18 @@ export function VercelSetupGuide({ state, missing, error: initialError }: Props)
     setTestMissing([]);
     setTestOk(false);
     try {
-      const res = await fetch("/api/admin/setup/vercel-test");
+      const res = await fetch("/api/admin/setup/vercel-test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ databaseUrl: dbUrl.trim() || undefined }),
+      });
       const data = await res.json().catch(() => null);
       if (res.ok && data?.ok) {
         setTestOk(true);
-        setTimeout(() => router.refresh(), 1200);
+        setTimeout(() => { window.location.href = "/admin/setup"; }, 1200);
       } else {
         if (Array.isArray(data?.missing) && data.missing.length > 0) setTestMissing(data.missing);
-        setTestError(data?.message ?? "Connessione fallita. Verifica le env vars.");
+        setTestError(data?.message ?? "Connessione fallita. Verifica le credenziali.");
       }
     } catch {
       setTestError("Impossibile contattare il server.");

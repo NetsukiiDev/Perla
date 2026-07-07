@@ -1,25 +1,32 @@
-// GET /api/admin/setup/vercel-test — verifica che il progetto sia pronto su
-// Vercel: prima che TUTTE le env vars richieste siano presenti (DATABASE_URL
-// + i secrets dell'app), poi che il database sia raggiungibile. Non crea
-// tabelle. Usato dalla guida di setup in modalità Vercel prima di sbloccare
-// la creazione dell'account amministratore.
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { missingEnvVars } from "@/lib/vercel-setup";
+// POST /api/admin/setup/vercel-test — verifica che il database sia
+// raggiungibile con la DATABASE_URL fornita (o quella di default
+// dall'ambiente). Non controlla gli altri segreti dell'app perché
+// vengono impostati su Vercel, non sul server locale. Non crea tabelle.
+import { NextRequest, NextResponse } from "next/server";
+import { PrismaClient } from "@/lib/generated/prisma/client";
 
 export const runtime = "nodejs";
 
-export async function GET() {
-  const missing = missingEnvVars();
-  if (missing.length > 0) {
+export async function POST(req: NextRequest) {
+  let url: string | undefined;
+  try {
+    const body = await req.json();
+    url = body?.databaseUrl || process.env.DATABASE_URL;
+  } catch {
+    url = process.env.DATABASE_URL;
+  }
+
+  if (!url) {
     return NextResponse.json(
-      { ok: false, code: "missing_env", missing, message: `Variabili mancanti: ${missing.join(", ")}` },
+      { ok: false, code: "missing_url", message: "DATABASE_URL non specificata." },
       { status: 400 },
     );
   }
 
   try {
-    await prisma.$queryRaw`SELECT 1`;
+    const client = new PrismaClient({ datasourceUrl: url } as any);
+    await client.$queryRaw`SELECT 1`;
+    await client.$disconnect();
     return NextResponse.json({ ok: true });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Connessione fallita";
