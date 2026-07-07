@@ -330,6 +330,152 @@ These rules are the heart of the project and must be preserved in every change:
 
 `/api/cron/retention` requires `Authorization: Bearer <CRON_SECRET>`. It deletes expired positions, positions from closed/archived events, and sessions still active after event closure. `vercel.json` schedules it once daily.
 
+### Deploy su Vercel
+
+#### Prerequisiti
+- Un database accessibile da internet (PostgreSQL, MariaDB/MySQL o MongoDB)
+- Il progetto è già pronto per Vercel — `vercel.json` e `vercel-build` in `package.json` sono configurati
+
+#### 1. Collegare il repository
+1. Vai su [vercel.com](https://vercel.com) → **Add New Project**
+2. Importa il repository `NetsukiiDev/Perla` (o il tuo fork)
+3. Framework auto-rilevato → **Next.js**
+4. **Build Command** — non serve sovrascriverlo, usa lo script `vercel-build` in `package.json`
+
+#### 2. Environment variables (obbligatorie)
+Imposta queste variabili nel dashboard Vercel (Settings → Environment Variables):
+
+| Variabile | Valore |
+|-----------|--------|
+| `SETUP_DISABLED` | `true` |
+| `DATABASE_PROVIDER` | `postgresql`, `mysql` o `mariadb` |
+| `DATABASE_URL` | Connection string (vedi sotto) |
+| `ENCRYPTION_KEY` | `openssl rand -base64 32` |
+| `HASH_PEPPER` | `openssl rand -hex 32` |
+| `ADMIN_SESSION_SECRET` | `openssl rand -hex 32` |
+| `PARTICIPANT_SESSION_SECRET` | `openssl rand -hex 32` |
+| `CRON_SECRET` | `openssl rand -hex 32` |
+| `ROUTE_PROVIDER` | `osrm` (default) |
+
+#### 3. Database
+Il wizard di setup non funziona su Vercel (filesystem read-only). Devi preparare il database manualmente:
+
+```bash
+# 1. Imposta le env var del database di produzione
+set DATABASE_PROVIDER=postgresql
+set DATABASE_URL=postgresql://...
+
+# 2. Genera il client Prisma
+npm run db:generate
+
+# 3. Crea le tabelle (puntando al DB di produzione)
+npx prisma db push
+
+# 4. Crea il primo admin (usa i valori che vuoi)
+npx tsx prisma/seed.ts
+```
+
+> **⚠️ MariaDB su Vercel**: il server MariaDB deve accettare connessioni TCP remote. Aggiungi gli [IP ranges di Vercel](https://vercel.com/docs/security/firewall#ip-range) al firewall del tuo database. Se usi un provider cloud (Aiven, PlanetScale), di solito è già abilitato.
+
+#### 4. Deploy
+1. **Production Branch**: `master`
+2. **Root Directory**: lascia vuoto (usa la root del progetto)
+3. Clicca **Deploy**
+
+Il deploy esegue automaticamente: `prisma-provider.mjs` → `prisma generate` → `next build`.
+
+#### 5. Dopo il deploy
+1. Vai a `https://<progetto>.vercel.app/admin/login`
+2. Accedi con le credenziali create con `seed.ts`
+3. Crea il primo evento
+
+#### Risoluzione problemi
+
+| Errore | Causa | Soluzione |
+|--------|-------|-----------|
+| `ECONNRESET` / `Connessione fallita` | Database non raggiungibile da Vercel | Apri il firewall o usa un DB cloud |
+| `ENOENT: schema.prisma` | File tracing mancante | Usa l'ultima `next.config.ts` (già configurata) |
+| `DATABASE_URL not set` | `SETUP_DISABLED=true` ma `DATABASE_URL` mancante | Imposta la variabile in Vercel |
+| `prisma generate` fallisce | Provider non corrispondente | Controlla `DATABASE_PROVIDER` |
+
+#### Limiti su Vercel
+- **Rate limiting in memoria** (`lib/rate-limit.ts`) — non condiviso tra istanze. Per produzione con molto traffico, sostituisci con Upstash Redis.
+- **Cron job** — `vercel.json` programma la retention alle 4:00 UTC. Il cron invia `Authorization: Bearer <CRON_SECRET>`.
+
+### Deploy on Vercel (English)
+
+#### Prerequisites
+- A database accessible from the internet (PostgreSQL, MariaDB/MySQL or MongoDB)
+- The project is already Vercel-ready — `vercel.json` and `vercel-build` in `package.json` are preconfigured
+
+#### 1. Connect the repository
+1. Go to [vercel.com](https://vercel.com) → **Add New Project**
+2. Import the `NetsukiiDev/Perla` repository (or your fork)
+3. Framework auto-detected → **Next.js**
+4. **Build Command** — no override needed; the `vercel-build` script in `package.json` is used automatically
+
+#### 2. Environment variables (required)
+Set these in the Vercel dashboard (Settings → Environment Variables):
+
+| Variable | Value |
+|----------|-------|
+| `SETUP_DISABLED` | `true` |
+| `DATABASE_PROVIDER` | `postgresql`, `mysql` or `mariadb` |
+| `DATABASE_URL` | Connection string (see below) |
+| `ENCRYPTION_KEY` | `openssl rand -base64 32` |
+| `HASH_PEPPER` | `openssl rand -hex 32` |
+| `ADMIN_SESSION_SECRET` | `openssl rand -hex 32` |
+| `PARTICIPANT_SESSION_SECRET` | `openssl rand -hex 32` |
+| `CRON_SECRET` | `openssl rand -hex 32` |
+| `ROUTE_PROVIDER` | `osrm` (default) |
+
+#### 3. Database
+The setup wizard does NOT work on Vercel (read-only filesystem). You must prepare the database manually:
+
+```bash
+# 1. Set production database env vars
+export DATABASE_PROVIDER=postgresql
+export DATABASE_URL=postgresql://...
+
+# 2. Generate Prisma client
+npm run db:generate
+
+# 3. Create tables (pointing to the production DB)
+npx prisma db push
+
+# 4. Create the first admin
+npx tsx prisma/seed.ts
+```
+
+> **⚠️ MariaDB on Vercel**: the MariaDB server must accept remote TCP connections. Add [Vercel IP ranges](https://vercel.com/docs/security/firewall#ip-range) to your database firewall. Cloud providers (Aiven, PlanetScale) usually allow this by default.
+
+#### 4. Deploy
+1. **Production Branch**: `master`
+2. **Root Directory**: leave blank (use project root)
+3. Click **Deploy**
+
+The build automatically runs: `prisma-provider.mjs` → `prisma generate` → `next build`.
+
+#### 5. After deploy
+1. Go to `https://<project>.vercel.app/admin/login`
+2. Login with the credentials created by `seed.ts`
+3. Create your first event
+
+#### Troubleshooting
+
+| Error | Cause | Fix |
+|-------|-------|-----|
+| `ECONNRESET` / connection failed | Database not reachable from Vercel | Open firewall or use a cloud DB |
+| `ENOENT: schema.prisma` | Missing file tracing | Use the latest `next.config.ts` (already configured) |
+| `DATABASE_URL not set` | `SETUP_DISABLED=true` but `DATABASE_URL` missing | Set the variable in Vercel |
+| `prisma generate` fails | Provider mismatch | Check `DATABASE_PROVIDER` |
+
+#### Limitations on Vercel
+- **In-memory rate limiting** (`lib/rate-limit.ts`) — not shared across instances. For high-traffic production, replace with Upstash Redis.
+- **Cron job** — `vercel.json` schedules retention at 4:00 UTC. The cron sends `Authorization: Bearer <CRON_SECRET>`.
+
+---
+
 ### Known limitations
 
 - **In-memory rate limiting:** works on single-instance deployments. For multi-instance/serverless, replace `lib/rate-limit.ts` with a shared store (Upstash Redis, etc.).

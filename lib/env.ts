@@ -29,6 +29,10 @@ export type Env = z.infer<typeof envSchema>;
 
 let cached: Env | null = null;
 
+// Vercel sets this env var in both build and runtime environments.
+// https://vercel.com/docs/projects/environment-variables/system-environment-variables
+export const isVercel = (): boolean => process.env.VERCEL === "1";
+
 export function getEnv(): Env {
   if (cached) return cached;
   const parsed = envSchema.safeParse(process.env);
