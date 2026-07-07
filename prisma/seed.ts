@@ -6,7 +6,8 @@ import bcrypt from "bcryptjs";
 import { PrismaClient } from "../lib/generated/prisma/client";
 import { createDriverAdapter } from "../lib/prisma-adapter";
 
-const prisma = new PrismaClient({ adapter: createDriverAdapter() } as any);
+const options = { adapter: createDriverAdapter() } as ConstructorParameters<typeof PrismaClient>[0];
+const prisma = new PrismaClient(options);
 
 async function main() {
   const email = process.env.SEED_ADMIN_EMAIL ?? "admin@example.com";

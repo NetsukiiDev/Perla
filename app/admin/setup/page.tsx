@@ -21,19 +21,12 @@ export default async function AdminSetupPage() {
       );
     }
 
+    // Keep redirect() and JSX out of the try: redirect() signals via a thrown
+    // error, so catching here would swallow it, and constructing JSX inside a
+    // try/catch can't actually catch render errors anyway.
+    let adminCount: number;
     try {
-      const adminCount = await prisma.adminUser.count();
-      if (adminCount > 0) {
-        redirect("/admin/login");
-      }
-      // DB raggiungibile — mostra solo form creazione admin
-      return (
-        <PageShell>
-          <h1 className="mb-1 text-center text-lg font-medium">Configurazione iniziale</h1>
-          <p className="mb-4 text-center text-sm text-muted">Crea il primo account amministratore.</p>
-          <SetupWizard initialStep="admin" currentProvider={runtimeProvider()} />
-        </PageShell>
-      );
+      adminCount = await prisma.adminUser.count();
     } catch {
       // DB non raggiungibile — mostra errore nella guida
       return (
@@ -42,6 +35,19 @@ export default async function AdminSetupPage() {
         </PageShell>
       );
     }
+
+    if (adminCount > 0) {
+      redirect("/admin/login");
+    }
+
+    // DB raggiungibile — mostra solo form creazione admin
+    return (
+      <PageShell>
+        <h1 className="mb-1 text-center text-lg font-medium">Configurazione iniziale</h1>
+        <p className="mb-4 text-center text-sm text-muted">Crea il primo account amministratore.</p>
+        <SetupWizard initialStep="admin" currentProvider={runtimeProvider()} />
+      </PageShell>
+    );
   }
 
   // ── Non-Vercel: wizard standard ────────────────────────────────────

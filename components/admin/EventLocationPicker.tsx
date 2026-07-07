@@ -83,12 +83,13 @@ export function EventLocationPicker({ lat, lng, onChange }: EventLocationPickerP
   useEffect(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
     const q = searchInput.trim();
-    if (!q || q.length < 3 || extractCoords(q) || isGoogleShortUrl(q)) {
-      setSuggestions([]);
-      setShowSuggestions(false);
-      return;
-    }
+    const skip = !q || q.length < 3 || Boolean(extractCoords(q)) || isGoogleShortUrl(q);
     timerRef.current = setTimeout(async () => {
+      if (skip) {
+        setSuggestions([]);
+        setShowSuggestions(false);
+        return;
+      }
       if (abortRef.current) abortRef.current.abort();
       const ctrl = new AbortController();
       abortRef.current = ctrl;
@@ -112,7 +113,7 @@ export function EventLocationPicker({ lat, lng, onChange }: EventLocationPickerP
       } catch {
         // ignore aborted requests
       }
-    }, 100);
+    }, skip ? 0 : 100);
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };

@@ -5,11 +5,14 @@ import { useRouter } from "next/navigation";
 import { CheckCircle2, ExternalLink, Loader2, TriangleAlert } from "lucide-react";
 
 interface Props {
+  // Whether DATABASE_URL is set (vs. reachable). Currently informational only —
+  // the guide renders the same steps either way — but kept so callers can
+  // signal intent and future copy can branch on it.
   dbConfigured: boolean;
   error: string | null;
 }
 
-export function VercelSetupGuide({ dbConfigured, error: initialError }: Props) {
+export function VercelSetupGuide({ error: initialError }: Props) {
   const router = useRouter();
   const [testing, setTesting] = useState(false);
   const [testError, setTestError] = useState<string | null>(initialError);

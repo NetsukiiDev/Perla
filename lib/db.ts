@@ -14,7 +14,10 @@ function getClient(): PrismaClient {
   if (globalForPrisma.prisma) return globalForPrisma.prisma;
   // Cached on globalThis in every environment (not just dev) so
   // resetPrismaClient() can swap the connection after setup.
-  const client = new PrismaClient({ adapter: createDriverAdapter() } as any);
+  // createDriverAdapter() is undefined for mongodb, which makes TS pick the
+  // accelerateUrl branch of the options union; cast to the real options type.
+  const options = { adapter: createDriverAdapter() } as ConstructorParameters<typeof PrismaClient>[0];
+  const client = new PrismaClient(options);
   globalForPrisma.prisma = client;
   return client;
 }

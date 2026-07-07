@@ -94,17 +94,14 @@ function syncEnvProvider(provider: string): void {
   const lines = content.split("\n");
   const out: string[] = [];
   let foundProvider = false;
-  let foundUrl = false;
 
   for (const line of lines) {
     if (/^DATABASE_PROVIDER=/i.test(line)) {
       out.push(`DATABASE_PROVIDER="${provider}"`);
       foundProvider = true;
-    } else if (/^DATABASE_URL=/i.test(line)) {
-      // Don't overwrite — the URL is in .data/config.json
-      foundUrl = true;
-      out.push(line);
     } else {
+      // DATABASE_URL and everything else pass through unchanged — the URL
+      // itself lives in .data/config.json, not .env.
       out.push(line);
     }
   }

@@ -44,6 +44,8 @@ export function AccessSharePanel({ code, accessUrl }: AccessSharePanelProps) {
       <div className="flex flex-col gap-3">
         <span className="text-xs uppercase tracking-wide text-muted">Codice QR link</span>
         <div className="flex items-center gap-4">
+          {/* Fixed-size QR from an internal endpoint — next/image gives no benefit here. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={qrLinkSrc} alt="Codice QR del link" className="h-28 w-28 rounded-lg bg-white p-2" />
           <div className="flex flex-wrap gap-2">
             <button
@@ -62,6 +64,8 @@ export function AccessSharePanel({ code, accessUrl }: AccessSharePanelProps) {
       <div className="flex flex-col gap-3">
         <span className="text-xs uppercase tracking-wide text-muted">Codice QR codice</span>
         <div className="flex items-center gap-4">
+          {/* Fixed-size QR from an internal endpoint — next/image gives no benefit here. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={qrCodeSrc} alt="Codice QR del codice" className="h-28 w-28 rounded-lg bg-white p-2" />
           <div className="flex flex-wrap gap-2">
             <button

@@ -15,8 +15,7 @@ try {
   // dotenv not available — env vars come from the platform (e.g. Vercel)
 }
 import { readFileSync, writeFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { dirname, join } from "node:path";
+import { join } from "node:path";
 
 const raw = (process.env.DATABASE_PROVIDER ?? "postgresql").toLowerCase();
 let schemaProvider =
