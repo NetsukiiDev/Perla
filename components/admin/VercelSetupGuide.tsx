@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { CheckCircle2, Download, ExternalLink, KeyRound, Loader2, RefreshCw, TriangleAlert } from "lucide-react";
 import { CopyButton } from "./CopyButton";
 import { GuideScreenshot } from "./GuideScreenshot";
@@ -58,7 +57,6 @@ const StepBadge = ({ n }: { n: number }) => (
 );
 
 export function VercelSetupGuide({ state, missing, error: initialError }: Props) {
-  const router = useRouter();
   const [testing, setTesting] = useState(false);
   const [testError, setTestError] = useState<string | null>(initialError ?? null);
   const [testMissing, setTestMissing] = useState<string[]>(state === "needs-env" ? missing : []);
