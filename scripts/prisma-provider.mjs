@@ -9,7 +9,11 @@
 //   DATABASE_PROVIDER=mongodb      -> provider "mongodb" (also strips @db.*)
 //
 // The runtime driver adapter is chosen separately in lib/prisma-adapter.ts.
-import "dotenv/config";
+try {
+  await import("dotenv/config");
+} catch {
+  // dotenv not available — env vars come from the platform (e.g. Vercel)
+}
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
