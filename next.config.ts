@@ -22,10 +22,10 @@ const nextConfig: NextConfig = {
       "./prisma.config.ts",
       "./scripts/prisma-provider.mjs",
       "./node_modules/prisma/**/*",
-      "./node_modules/@prisma/config/**/*",
-      "./node_modules/@prisma/engines/**/*",
-      "./node_modules/@prisma/fetch-engine/**/*",
-      "./node_modules/@prisma/get-platform/**/*",
+      // The Prisma CLI + config loader pull in a long, version-specific chain
+      // of small @prisma/* packages (debug, get-platform, dev, ...) — listing
+      // them individually is a whack-a-mole; include the whole scope instead.
+      "./node_modules/@prisma/**/*",
       "./node_modules/dotenv/**/*",
     ],
   },
