@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "vercel-build": "node scripts/prisma-provider.mjs && prisma generate && next build",
+    "vercel-build": "node scripts/prisma-provider.mjs && DATABASE_URL=postgresql://localhost:5432/dummy prisma generate && next build",
     "lmcode": "node scripts/lmcode-agent.mjs",
     "db:provider": "node scripts/prisma-provider.mjs",
     "db:generate": "node scripts/prisma-provider.mjs && prisma generate",
