@@ -3,6 +3,7 @@
 // Prisma CLI and loads native drivers) — not usable on the Edge runtime.
 import { spawn } from "node:child_process";
 import { join } from "node:path";
+import { tmpdir } from "node:os";
 import type { DbProvider } from "./config";
 import { toMariadbDriverUrl, toPrismaMysqlUrl } from "./db-url";
 
@@ -86,10 +87,15 @@ export async function pushSchema(provider: DbProvider, url: string): Promise<voi
   // mariadb driver's mariadb:// scheme would be rejected here.
   // MongoDB uses its own mongodb:// scheme directly.
   const prismaUrl = provider === "mysql" || provider === "mariadb" ? toPrismaMysqlUrl(url) : url;
+  // The app's own directory is read-only on serverless platforms (e.g. Vercel) —
+  // only /tmp is writable at runtime. Write the provider-patched schema there
+  // and point the CLI at it explicitly instead of mutating the repo's copy.
+  const schemaOutPath = join(tmpdir(), "schema.prisma");
   const env: NodeJS.ProcessEnv = {
     ...process.env,
     DATABASE_PROVIDER: provider,
     DATABASE_URL: prismaUrl,
+    PRISMA_SCHEMA_OUT: schemaOutPath,
   };
 
   const node = process.execPath;
@@ -100,6 +106,8 @@ export async function pushSchema(provider: DbProvider, url: string): Promise<voi
       join(process.cwd(), "node_modules", "prisma", "build", "index.js"),
       "db",
       "push",
+      "--schema",
+      schemaOutPath,
       "--url",
       prismaUrl,
       "--accept-data-loss",

@@ -19,11 +19,14 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/api/admin/setup/database": [
       "./prisma/schema.prisma",
+      "./prisma.config.ts",
       "./scripts/prisma-provider.mjs",
       "./node_modules/prisma/**/*",
+      "./node_modules/@prisma/config/**/*",
       "./node_modules/@prisma/engines/**/*",
       "./node_modules/@prisma/fetch-engine/**/*",
       "./node_modules/@prisma/get-platform/**/*",
+      "./node_modules/dotenv/**/*",
     ],
   },
 };

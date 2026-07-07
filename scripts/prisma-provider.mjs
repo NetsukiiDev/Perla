@@ -42,5 +42,11 @@ if (schemaProvider === "mongodb") {
   content = content.replace(/onDelete:\s*SetNull/g, "onDelete: NoAction");
 }
 
-writeFileSync(schemaPath, content);
-console.log(`Prisma datasource provider set to "${schemaProvider}" (DATABASE_PROVIDER=${raw}).`);
+// Serverless platforms (e.g. Vercel) deploy the app to a read-only filesystem —
+// only /tmp is writable at runtime. The setup wizard (lib/db-init.ts) points
+// this at a /tmp path via PRISMA_SCHEMA_OUT; every other caller (db:generate,
+// db:migrate, vercel-build, ...) runs where the repo itself is writable and
+// keeps mutating prisma/schema.prisma in place.
+const outputPath = process.env.PRISMA_SCHEMA_OUT || schemaPath;
+writeFileSync(outputPath, content);
+console.log(`Prisma datasource provider set to "${schemaProvider}" (DATABASE_PROVIDER=${raw}). Schema written to ${outputPath}.`);
