@@ -158,172 +158,166 @@ export function VercelSetupGuide({ state, missing, error: initialError }: Props)
 
       <div className="flex flex-col gap-5 rounded-lg border border-surface-border p-4">
         {/* Step 1 */}
-        <div className="flex gap-3">
+        <div className="flex flex-col gap-2">
           <StepBadge n={1} />
-          <div className="flex w-full flex-col gap-2">
-            <p className="font-medium text-foreground">Apri le Environment Variables</p>
-            <p className="text-muted">
-              Nel dashboard{" "}
-              <a href="https://vercel.com" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-blue-400 hover:text-blue-300">
-                vercel.com <ExternalLink size={12} />
-              </a>{" "}
-              apri il progetto → <strong>Settings → Environment Variables</strong>.
-            </p>
-            <GuideScreenshot
-              src="/setup/1-environment-variables.png"
-              alt="Vercel: Settings → Environment Variables"
-              caption="Settings → Environment Variables"
-            />
-          </div>
+          <p className="font-medium text-foreground">Apri le Environment Variables</p>
+          <p className="text-muted">
+            Nel dashboard{" "}
+            <a href="https://vercel.com" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-blue-400 hover:text-blue-300">
+              vercel.com <ExternalLink size={12} />
+            </a>{" "}
+            apri il progetto → <strong>Settings → Environment Variables</strong>.
+          </p>
+          <GuideScreenshot
+            src="/setup/1-environment-variables.png"
+            alt="Vercel: Settings → Environment Variables"
+            caption="Settings → Environment Variables"
+          />
         </div>
 
         {/* Step 2 */}
-        <div className="flex gap-3">
+        <div className="flex flex-col gap-2">
           <StepBadge n={2} />
-          <div className="flex w-full flex-col gap-3">
-            <p className="font-medium text-foreground">Compila le variabili</p>
-            <p className="text-muted">
-              Modo più rapido: <strong>compila e scarica il file .env qui sotto</strong>, poi su Vercel usa <strong>Import .env</strong> (o incolla il contenuto nel campo Key). In alternativa aggiungile una a una con <strong>Add Environment Variable</strong>.
+          <p className="font-medium text-foreground">Compila le variabili</p>
+          <p className="text-muted">
+            Modo più rapido: <strong>compila e scarica il file .env qui sotto</strong>, poi su Vercel usa <strong>Import .env</strong> (o incolla il contenuto nel campo Key). In alternativa aggiungile una a una con <strong>Add Environment Variable</strong>.
+          </p>
+
+          {/* .env builder + generator */}
+          <div className="flex flex-col gap-3 rounded-lg border border-surface-border bg-background p-3">
+            <p className="flex items-center gap-1.5 text-xs font-medium text-foreground">
+              <KeyRound size={14} aria-hidden="true" /> Componi il tuo file .env
             </p>
 
-            {/* .env builder + generator */}
-            <div className="flex flex-col gap-3 rounded-lg border border-surface-border bg-background p-3">
-              <p className="flex items-center gap-1.5 text-xs font-medium text-foreground">
-                <KeyRound size={14} aria-hidden="true" /> Componi il tuo file .env
-              </p>
+            <div className="flex flex-col gap-1">
+              <label className="text-[11px] uppercase tracking-wide text-muted">DATABASE_URL</label>
+              <input
+                value={dbUrl}
+                onChange={(e) => setDbUrl(e.target.value)}
+                placeholder="mysql://user:pass@host:3306/dbname"
+                className="w-full rounded-md border border-surface-border bg-surface px-2.5 py-1.5 font-mono text-[11px] text-foreground focus:border-foreground focus:outline-none"
+              />
+            </div>
 
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] uppercase tracking-wide text-muted">DATABASE_URL</label>
-                <input
-                  value={dbUrl}
-                  onChange={(e) => setDbUrl(e.target.value)}
-                  placeholder="mysql://user:pass@host:3306/dbname"
-                  className="w-full rounded-md border border-surface-border bg-surface px-2.5 py-1.5 font-mono text-[11px] text-foreground focus:border-foreground focus:outline-none"
-                />
-              </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[11px] uppercase tracking-wide text-muted">DATABASE_PROVIDER</label>
+              <select
+                value={dbProvider}
+                onChange={(e) => setDbProvider(e.target.value)}
+                className="w-full rounded-md border border-surface-border bg-surface px-2.5 py-1.5 text-[11px] text-foreground focus:border-foreground focus:outline-none"
+              >
+                {PROVIDERS.map((p) => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
+              </select>
+            </div>
 
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] uppercase tracking-wide text-muted">DATABASE_PROVIDER</label>
-                <select
-                  value={dbProvider}
-                  onChange={(e) => setDbProvider(e.target.value)}
-                  className="w-full rounded-md border border-surface-border bg-surface px-2.5 py-1.5 text-[11px] text-foreground focus:border-foreground focus:outline-none"
-                >
-                  {PROVIDERS.map((p) => (
-                    <option key={p} value={p}>{p}</option>
-                  ))}
-                </select>
-              </div>
+            <div className="flex flex-col gap-2 border-t border-surface-border pt-2">
+              <p className="text-[11px] text-muted">Segreti generati nel browser (nulla viene inviato).</p>
+              <button
+                type="button"
+                onClick={() => setSecrets(generateSecrets())}
+                className="inline-flex items-center justify-center gap-1.5 rounded-md border border-surface-border px-2.5 py-1 text-xs text-muted hover:text-foreground"
+              >
+                <RefreshCw size={12} aria-hidden="true" />
+                {secrets ? "Rigenera segreti" : "Genera segreti"}
+              </button>
+            </div>
 
-              <div className="flex items-center justify-between gap-2 border-t border-surface-border pt-2">
-                <p className="text-[11px] text-muted">Segreti generati nel browser (nulla viene inviato).</p>
-                <button
-                  type="button"
-                  onClick={() => setSecrets(generateSecrets())}
-                  className="inline-flex items-center gap-1.5 rounded-md border border-surface-border px-2.5 py-1 text-xs text-muted hover:text-foreground"
-                >
-                  <RefreshCw size={12} aria-hidden="true" />
-                  {secrets ? "Rigenera segreti" : "Genera segreti"}
-                </button>
-              </div>
-
-              {secrets && (
-                <div className="flex flex-col gap-1.5">
-                  {VARS.filter((v) => secrets[v.name]).map((v) => (
-                    <div key={v.name} className="flex items-center gap-2">
-                      <code className="w-52 shrink-0 text-[11px] text-muted">{v.name}</code>
+            {secrets && (
+              <div className="flex flex-col gap-2">
+                {VARS.filter((v) => secrets[v.name]).map((v) => (
+                  <div key={v.name} className="flex flex-col gap-0.5">
+                    <code className="text-[11px] text-muted">{v.name}</code>
+                    <div className="flex items-center gap-2">
                       <code className="flex-1 truncate rounded bg-surface px-2 py-1 font-mono text-[11px] text-foreground">{secrets[v.name]}</code>
                       <CopyButton value={secrets[v.name]} />
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <p className="text-[11px] text-amber-300/90">
+              <strong>ENCRYPTION_KEY</strong> e <strong>HASH_PEPPER</strong> vanno mantenuti stabili: cambiarli rende illeggibili i dati già salvati.
+            </p>
+
+            <div className="flex flex-col gap-2 border-t border-surface-border pt-2">
+              <button
+                type="button"
+                onClick={downloadEnv}
+                className="inline-flex w-full items-center justify-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground"
+              >
+                <Download size={13} aria-hidden="true" />
+                Scarica .env
+              </button>
+              <button
+                type="button"
+                onClick={copyEnv}
+                className="inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-surface-border px-3 py-1.5 text-xs text-muted hover:text-foreground"
+              >
+                Copia contenuto .env
+              </button>
+              {!dbUrl.trim() && (
+                <span className="text-center text-[11px] text-amber-300/80">Compila DATABASE_URL per un file completo.</span>
               )}
-
-              <p className="text-[11px] text-amber-300/90">
-                <strong>ENCRYPTION_KEY</strong> e <strong>HASH_PEPPER</strong> vanno mantenuti stabili: cambiarli rende illeggibili i dati già salvati.
-              </p>
-
-              <div className="flex flex-wrap items-center gap-2 border-t border-surface-border pt-2">
-                <button
-                  type="button"
-                  onClick={downloadEnv}
-                  className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground"
-                >
-                  <Download size={13} aria-hidden="true" />
-                  Scarica .env
-                </button>
-                <button
-                  type="button"
-                  onClick={copyEnv}
-                  className="inline-flex items-center gap-1.5 rounded-md border border-surface-border px-3 py-1.5 text-xs text-muted hover:text-foreground"
-                >
-                  Copia contenuto .env
-                </button>
-                {!dbUrl.trim() && (
-                  <span className="text-[11px] text-amber-300/80">Compila DATABASE_URL per un file completo.</span>
-                )}
-              </div>
             </div>
-
-            <details className="rounded-lg border border-surface-border">
-              <summary className="cursor-pointer px-3 py-2 text-xs text-muted hover:text-foreground">Elenco completo delle variabili</summary>
-              <div className="overflow-x-auto border-t border-surface-border">
-                <table className="w-full border-collapse text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-surface-border text-muted">
-                      <th className="px-3 py-2 font-medium">Nome</th>
-                      <th className="px-3 py-2 font-medium">Descrizione</th>
-                      <th className="px-3 py-2" />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {VARS.map((v) => (
-                      <tr key={v.name} className="border-b border-surface-border/60 last:border-0">
-                        <td className="px-3 py-2 align-top">
-                          <code className="text-[11px] text-foreground">{v.name}</code>
-                        </td>
-                        <td className="px-3 py-2 align-top text-muted">
-                          {v.hint}
-                          {v.example && <div className="mt-0.5 font-mono text-[10px] text-muted/70">es. {v.example}</div>}
-                        </td>
-                        <td className="px-3 py-2 align-top text-right">
-                          <CopyButton value={v.name} />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </details>
-
-            <GuideScreenshot
-              src="/setup/2-add-variable.png"
-              alt="Vercel: form Add Environment Variable / Import .env"
-              caption="Import .env oppure Add Environment Variable → nome, valore, ambienti → Save"
-            />
           </div>
+
+          <details className="rounded-lg border border-surface-border">
+            <summary className="cursor-pointer px-3 py-2 text-xs text-muted hover:text-foreground">Elenco completo delle variabili</summary>
+            <div className="overflow-x-auto border-t border-surface-border">
+              <table className="w-full border-collapse text-left text-xs">
+                <thead>
+                  <tr className="border-b border-surface-border text-muted">
+                    <th className="px-3 py-2 font-medium">Nome</th>
+                    <th className="px-3 py-2 font-medium">Descrizione</th>
+                    <th className="px-3 py-2" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {VARS.map((v) => (
+                    <tr key={v.name} className="border-b border-surface-border/60 last:border-0">
+                      <td className="px-3 py-2 align-top">
+                        <code className="text-[11px] text-foreground">{v.name}</code>
+                      </td>
+                      <td className="px-3 py-2 align-top text-muted">
+                        {v.hint}
+                        {v.example && <div className="mt-0.5 font-mono text-[10px] text-muted/70">es. {v.example}</div>}
+                      </td>
+                      <td className="px-3 py-2 align-top text-right">
+                        <CopyButton value={v.name} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </details>
+
+          <GuideScreenshot
+            src="/setup/2-add-variable.png"
+            alt="Vercel: form Add Environment Variable / Import .env"
+            caption="Import .env oppure Add Environment Variable → nome, valore, ambienti → Save"
+          />
         </div>
 
         {/* Step 3 */}
-        <div className="flex gap-3">
+        <div className="flex flex-col gap-2">
           <StepBadge n={3} />
-          <div className="flex w-full flex-col gap-2">
-            <p className="font-medium text-foreground">Rideploya il progetto</p>
-            <p className="text-muted">
-              Le env vars si applicano solo a un nuovo deploy: <strong>Deployments</strong> → ultimo deploy → menu <strong>⋯</strong> → <strong>Redeploy</strong>.
-            </p>
-          </div>
+          <p className="font-medium text-foreground">Rideploya il progetto</p>
+          <p className="text-muted">
+            Le env vars si applicano solo a un nuovo deploy: <strong>Deployments</strong> → ultimo deploy → menu <strong>⋯</strong> → <strong>Redeploy</strong>.
+          </p>
         </div>
 
         {/* Step 4 */}
-        <div className="flex gap-3">
+        <div className="flex flex-col gap-2">
           <StepBadge n={4} />
-          <div className="flex w-full flex-col gap-1">
-            <p className="font-medium text-foreground">Verifica e crea l&apos;amministratore</p>
-            <p className="text-muted">
-              Dopo il redeploy, torna qui e verifica: se tutto è a posto potrai creare l&apos;account admin.
-            </p>
-          </div>
+          <p className="font-medium text-foreground">Verifica e crea l&apos;amministratore</p>
+          <p className="text-muted">
+            Dopo il redeploy, torna qui e verifica: se tutto è a posto potrai creare l&apos;account admin.
+          </p>
         </div>
       </div>
 
