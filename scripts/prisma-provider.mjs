@@ -27,7 +27,7 @@ if (!schemaProvider) {
   process.exit(1);
 }
 
-const schemaPath = join(dirname(fileURLToPath(import.meta.url)), "..", "prisma", "schema.prisma");
+const schemaPath = join(process.cwd(), "prisma", "schema.prisma");
 let content = readFileSync(schemaPath, "utf8");
 
 // Replace only the provider inside the `datasource db { ... }` block.
