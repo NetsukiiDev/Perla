@@ -5,12 +5,14 @@
 // DB password in plaintext on disk). This file is the source of truth for
 // "is the site configured yet".
 //
-// Two modes:
+// Modes:
 //  - Wizard mode (default): DB config + setup state come from the config
 //    file. Until it's complete, the whole site funnels to /admin/setup.
 //  - Env mode (SETUP_DISABLED=true): the wizard is disabled and DB config
 //    comes from DATABASE_URL/DATABASE_PROVIDER env vars — use this for
 //    serverless/prod deployments with a read-only filesystem.
+//  - Vercel auto-detect: same as env mode, but detected automatically from
+//    process.env.VERCEL (no need to set SETUP_DISABLED).
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 
@@ -29,7 +31,7 @@ interface AppConfig {
 const CONFIG_PATH = join(process.cwd(), ".data", "config.json");
 
 function wizardDisabled(): boolean {
-  return process.env.SETUP_DISABLED === "true";
+  return process.env.SETUP_DISABLED === "true" || process.env.VERCEL === "1";
 }
 
 function readConfig(): AppConfig {
