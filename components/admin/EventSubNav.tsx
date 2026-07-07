@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { Activity, LayoutDashboard, Pencil, Users } from "lucide-react";
+import { Activity, LayoutDashboard, Pencil, Ticket, Users } from "lucide-react";
 
 const TABS = [
   { key: "overview", label: "Panoramica", icon: LayoutDashboard, href: (id: string) => `/admin/events/${id}` },
   { key: "edit", label: "Modifica", icon: Pencil, href: (id: string) => `/admin/events/${id}/edit` },
   { key: "participants", label: "Partecipanti", icon: Users, href: (id: string) => `/admin/events/${id}/participants` },
+  { key: "tickets", label: "Biglietti", icon: Ticket, href: (id: string) => `/admin/events/${id}/tickets` },
   { key: "live", label: "Live", icon: Activity, href: (id: string) => `/admin/events/${id}/live` },
 ] as const;
 

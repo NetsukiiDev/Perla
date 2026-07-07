@@ -6,7 +6,7 @@ import { getParticipantsForEvent } from "@/lib/admin-participant-view";
 import { AdminContainer } from "@/components/admin/AdminContainer";
 import { EventSubNav } from "@/components/admin/EventSubNav";
 import { EventInactiveNotice } from "@/components/admin/EventInactiveNotice";
-import { ParticipantsManager } from "@/components/admin/ParticipantsManager";
+import { TicketGenerator } from "@/components/admin/TicketGenerator";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +30,7 @@ function requestBaseUrl(headersList: Headers): string | null {
   return `https://${host}`;
 }
 
-export default async function ParticipantsPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function TicketsPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAdminPage();
 
   const { id } = await params;
@@ -44,21 +44,22 @@ export default async function ParticipantsPage({ params }: { params: Promise<{ i
   return (
     <AdminContainer>
       <h1 className="mb-2 text-xl font-semibold">{event.internalName}</h1>
-      <EventSubNav eventId={id} active="participants" />
+      <EventSubNav eventId={id} active="tickets" />
       <EventInactiveNotice status={event.status} />
-      <ParticipantsManager
+      <TicketGenerator
         eventId={id}
+        event={{
+          internalName: event.internalName,
+          region: event.region,
+          startsAt: event.startsAt.toISOString(),
+          endsAt: event.endsAt ? event.endsAt.toISOString() : null,
+        }}
         initialBaseUrl={baseUrl}
-        initialParticipants={participants.map((p) => ({
+        entries={participants.map((p) => ({
           id: p.id,
-          displayName: p.displayName,
-          code: p.code,
           codeId: p.codeId,
-          codeStatus: p.codeStatus,
-          displayStatus: p.displayStatus,
-          currentStep: p.currentStep,
-          stepsCount: p.stepsCount,
-          lastLocation: p.lastLocation,
+          code: p.code,
+          displayName: p.displayName,
         }))}
       />
     </AdminContainer>

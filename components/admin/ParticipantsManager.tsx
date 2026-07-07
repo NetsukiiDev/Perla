@@ -8,7 +8,6 @@ import { CheckSquare, ExternalLink, Link2, QrCode, RotateCcw, Trash2, UserPlus, 
 import { StatusBadge } from "./StatusBadge";
 import { CopyButton } from "./CopyButton";
 import { iconButtonClass } from "./IconButton";
-import { BulkQrGenerator, type QrSheetEntry } from "./BulkQrGenerator";
 import { codeAccessPath } from "@/lib/code-access-link";
 import { DISPLAY_STATUS_LABELS, type DisplayStatus } from "@/lib/status";
 
@@ -28,17 +27,10 @@ const inputClass = "rounded-lg border border-surface-border bg-background px-3 p
 
 export function ParticipantsManager({
   eventId,
-  event,
   initialBaseUrl,
   initialParticipants,
 }: {
   eventId: string;
-  event: {
-    internalName: string;
-    region: string;
-    startsAt: string;
-    endsAt: string | null;
-  };
   initialBaseUrl: string;
   initialParticipants: ParticipantRow[];
 }) {
@@ -67,14 +59,6 @@ export function ParticipantsManager({
   const selectedSet = new Set(activeSelectedCodeIds);
   const visibleCodeIds = filtered.flatMap((r) => (r.codeId ? [r.codeId] : []));
   const allVisibleSelected = visibleCodeIds.length > 0 && visibleCodeIds.every((id) => selectedSet.has(id));
-  const selectedEntries: QrSheetEntry[] = initialParticipants
-    .filter((r) => r.codeId && r.code && selectedSet.has(r.codeId))
-    .map((r) => ({
-      id: r.id,
-      codeId: r.codeId!,
-      code: r.code!,
-      displayName: r.displayName,
-    }));
 
   async function handleAdd(e: FormEvent) {
     e.preventDefault();
@@ -151,11 +135,6 @@ export function ParticipantsManager({
     }
   }
 
-  function handleBulkCreated(entries: QrSheetEntry[]) {
-    setSelectedCodeIds(entries.map((entry) => entry.codeId));
-    router.refresh();
-  }
-
   return (
     <div className="flex flex-col gap-6">
       <form onSubmit={handleAdd} className="flex flex-wrap items-end gap-3 rounded-lg border border-surface-border p-4">
@@ -206,14 +185,6 @@ export function ParticipantsManager({
           </button>
         </div>
       )}
-
-      <BulkQrGenerator
-        eventId={eventId}
-        event={event}
-        initialBaseUrl={initialBaseUrl}
-        selectedEntries={selectedEntries}
-        onCreated={handleBulkCreated}
-      />
 
       <div className="flex flex-wrap gap-3">
         <input

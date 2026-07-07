@@ -11,13 +11,17 @@ export async function GET(req: Request) {
     return Response.json({ error: "invalid_text" }, { status: 400 });
   }
 
+  const hexPattern = /^#[0-9a-fA-F]{6}$/;
+  const dark = url.searchParams.get("dark");
+  const light = url.searchParams.get("light");
+
   const svg = await QRCode.toString(text, {
     type: "svg",
     margin: 1,
     width: 220,
     color: {
-      dark: "#0a0a0b",
-      light: "#ffffff",
+      dark: dark && hexPattern.test(dark) ? dark : "#0a0a0b",
+      light: light && hexPattern.test(light) ? light : "#ffffff",
     },
   });
 
