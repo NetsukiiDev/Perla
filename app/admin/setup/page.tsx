@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { isDatabaseConfigured, isSetupComplete, runtimeProvider, clearSetupConfig } from "@/lib/config";
 import { prisma } from "@/lib/db";
 import { isVercel } from "@/lib/env";
+import { getVercelSetupState, missingEnvVars } from "@/lib/vercel-setup";
 import { PageShell } from "@/components/public/PageShell";
 import { SetupWizard } from "@/components/admin/SetupWizard";
 import { VercelSetupGuide } from "@/components/admin/VercelSetupGuide";
@@ -10,37 +11,37 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminSetupPage() {
   // ── Vercel: guida configurazione ───────────────────────────────────
+  // On Vercel the DB + secrets come from env vars, so instead of the wizard
+  // we show a config guide until everything is set and an admin exists.
   if (isVercel()) {
-    const dbUrlSet = Boolean(process.env.DATABASE_URL);
+    const state = await getVercelSetupState();
 
-    if (!dbUrlSet) {
-      return (
-        <PageShell>
-          <VercelSetupGuide dbConfigured={false} error={null} />
-        </PageShell>
-      );
-    }
-
-    // Keep redirect() and JSX out of the try: redirect() signals via a thrown
-    // error, so catching here would swallow it, and constructing JSX inside a
-    // try/catch can't actually catch render errors anyway.
-    let adminCount: number;
-    try {
-      adminCount = await prisma.adminUser.count();
-    } catch {
-      // DB non raggiungibile — mostra errore nella guida
-      return (
-        <PageShell>
-          <VercelSetupGuide dbConfigured={true} error="Database non raggiungibile. Verifica le credenziali nelle env vars di Vercel." />
-        </PageShell>
-      );
-    }
-
-    if (adminCount > 0) {
+    // Admin already exists → nothing to do here (redirect outside any try).
+    if (state === "ready") {
       redirect("/admin/login");
     }
 
-    // DB raggiungibile — mostra solo form creazione admin
+    if (state === "needs-env") {
+      return (
+        <PageShell>
+          <VercelSetupGuide state="needs-env" missing={missingEnvVars()} />
+        </PageShell>
+      );
+    }
+
+    if (state === "db-unreachable") {
+      return (
+        <PageShell>
+          <VercelSetupGuide
+            state="db-unreachable"
+            missing={[]}
+            error="Database non raggiungibile. Verifica le credenziali nelle env vars di Vercel."
+          />
+        </PageShell>
+      );
+    }
+
+    // state === "needs-admin": env pronte e DB raggiungibile, manca l'admin.
     return (
       <PageShell>
         <h1 className="mb-1 text-center text-lg font-medium">Configurazione iniziale</h1>

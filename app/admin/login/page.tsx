@@ -3,6 +3,8 @@ import { LoginForm } from "@/components/admin/LoginForm";
 import { PageShell } from "@/components/public/PageShell";
 import { getCurrentAdminUser } from "@/lib/admin-guard";
 import { isDatabaseConfigured, isSetupComplete, clearSetupConfig } from "@/lib/config";
+import { isVercel } from "@/lib/env";
+import { getVercelSetupState } from "@/lib/vercel-setup";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -21,6 +23,11 @@ function safeNextPath(value: string | undefined): string {
 }
 
 export default async function AdminLoginPage({ searchParams }: AdminLoginPageProps) {
+  // ── Vercel: no admin yet → send to the setup guide (env-driven mode) ─
+  if (isVercel() && (await getVercelSetupState()) !== "ready") {
+    redirect("/admin/setup");
+  }
+
   // ── Stale-state recovery ───────────────────────────────────────────
   // Config says setup is complete but no admin users exist (DB was reset).
   if (isSetupComplete() && isDatabaseConfigured()) {
