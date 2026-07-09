@@ -1,9 +1,10 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect */
 
 import { useCallback, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { ExternalLink, Link2, MapPin, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, ExternalLink, Link2, MapPin, Search } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { SessionActionsMenu } from "./SessionActionsMenu";
 import { CopyButton } from "./CopyButton";
@@ -54,6 +55,10 @@ export function LiveDashboard({ eventId }: { eventId: string }) {
   const [rows, setRows] = useState<LiveRow[] | null>(null);
   const [eventLocation, setEventLocation] = useState<EventLocation | null>(null);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(5);
+
+  useEffect(() => { setPage(0); }, [search]);
 
   const refresh = useCallback(() => {
     fetch(`/api/admin/events/${eventId}/live`)
@@ -83,6 +88,12 @@ export function LiveDashboard({ eventId }: { eventId: string }) {
         return code.includes(normalizedSearch) || username.includes(normalizedSearch);
       })
     : rows;
+
+  const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
+  const safePage = Math.min(page, totalPages - 1);
+  const paginatedRows = filteredRows.slice(safePage * pageSize, (safePage + 1) * pageSize);
+  const from = filteredRows.length === 0 ? 0 : safePage * pageSize + 1;
+  const to = Math.min((safePage + 1) * pageSize, filteredRows.length);
 
   const participantMarkers = filteredRows
     .filter((r): r is LiveRow & { lastLocation: { lat: number; lng: number } } => r.lastLocation !== null)
@@ -126,12 +137,20 @@ export function LiveDashboard({ eventId }: { eventId: string }) {
         <span className="text-xs text-muted">
           {filteredRows.length}/{rows.length} partecipanti
         </span>
+        <select
+          value={pageSize}
+          onChange={(e) => { setPageSize(Number(e.target.value)); setPage(0); }}
+          className="rounded-lg border border-surface-border bg-background px-2 py-1.5 text-xs text-foreground"
+        >
+          {[5, 10, 25, 50].map((n) => (
+            <option key={n} value={n}>{n} per pagina</option>
+          ))}
+        </select>
       </div>
 
       <div className="overflow-x-auto rounded-lg border border-surface-border">
-        <div className="max-h-96 overflow-y-auto">
         <table className="w-full text-left text-sm">
-          <thead className="sticky top-0 z-10 border-b border-surface-border bg-surface text-xs uppercase tracking-wide text-muted">
+          <thead className="border-b border-surface-border bg-surface text-xs uppercase tracking-wide text-muted">
             <tr>
               <th className="px-4 py-3">Codice</th>
               <th className="px-4 py-3">Stato</th>
@@ -142,7 +161,7 @@ export function LiveDashboard({ eventId }: { eventId: string }) {
             </tr>
           </thead>
           <tbody>
-            {filteredRows.map((r) => (
+            {paginatedRows.map((r) => (
               <tr key={r.participantId} className="border-b border-surface-border last:border-0 hover:bg-surface/50 transition-colors">
                 <td className="px-4 py-3">
                   {r.code ? (
@@ -228,8 +247,35 @@ export function LiveDashboard({ eventId }: { eventId: string }) {
             )}
           </tbody>
         </table>
-        </div>
       </div>
+
+      {filteredRows.length > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-xs text-muted">
+            Mostrati da {from} a {to} di {filteredRows.length} risultati
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={safePage === 0}
+              className="inline-flex items-center gap-1 rounded-lg border border-surface-border px-3 py-1.5 text-xs text-muted hover:text-foreground disabled:opacity-30"
+            >
+              <ChevronLeft size={14} aria-hidden="true" />
+              Precedente
+            </button>
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+              disabled={safePage >= totalPages - 1}
+              className="inline-flex items-center gap-1 rounded-lg border border-surface-border px-3 py-1.5 text-xs text-muted hover:text-foreground disabled:opacity-30"
+            >
+              Successiva
+              <ChevronRight size={14} aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
