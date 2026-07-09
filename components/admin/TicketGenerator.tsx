@@ -462,9 +462,10 @@ export function TicketGenerator({ eventId, event, initialBaseUrl, entries }: Tic
       setError(t.ticketGenerator.errors.popupBlocked);
       return;
     }
-    printWindow.document.open();
-    printWindow.document.write(buildPrintHtml());
-    printWindow.document.close();
+    const html = buildPrintHtml();
+    const blob = new Blob([html], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    printWindow.location.href = url;
   }
 
   return (
