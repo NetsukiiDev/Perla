@@ -596,4 +596,24 @@ export const it: Dictionary = {
     success: "Copiato negli appunti.",
     copyError: "Condivisione non riuscita.",
   },
+
+  announcements: {
+    nav: "Annunci",
+    composerTitle: "Invia un annuncio",
+    messageLabel: "Messaggio",
+    messagePlaceholder: "Scrivi un messaggio per tutti i partecipanti…",
+    imageLabel: "Immagine (facoltativa)",
+    changeImage: "Cambia immagine",
+    removeImage: "Rimuovi immagine",
+    send: "Invia",
+    sending: "Invio…",
+    recent: "Annunci recenti",
+    empty: "Nessun annuncio ancora.",
+    feedTitle: "Annunci",
+    errors: {
+      messageRequired: "Il messaggio è obbligatorio.",
+      imageTooLarge: "L'immagine è troppo grande (max 2 MB).",
+      generic: "Invio annuncio non riuscito.",
+    },
+  },
 };

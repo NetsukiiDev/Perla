@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useT } from "@/lib/i18n/context";
 import { EventInfoGrid } from "./EventInfoGrid";
 import { OpenLocationButton } from "./OpenLocationButton";
+import { AnnouncementsFeed } from "./AnnouncementsFeed";
 
 const InlineMap = dynamic(() => import("./InlineMap").then((m) => m.InlineMap), { ssr: false });
 
@@ -73,6 +74,8 @@ export function ParticipantStepView({
       </div>
 
       <InlineMap lat={lat} lng={lng} />
+
+      <AnnouncementsFeed />
 
       <EventInfoGrid region={region} startsAt={startsAt} endsAt={endsAt} />
 

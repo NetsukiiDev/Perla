@@ -5,7 +5,7 @@ import { EventSubNav } from "./EventSubNav";
 import { AdminContainer } from "./AdminContainer";
 import { useNavLayout } from "@/lib/use-nav-layout";
 
-type TabKey = "overview" | "edit" | "participants" | "tickets" | "live";
+type TabKey = "overview" | "edit" | "participants" | "tickets" | "live" | "announcements";
 
 export function PageWithSubNav({
   eventId,

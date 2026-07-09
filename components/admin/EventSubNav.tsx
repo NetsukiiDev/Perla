@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { Activity, LayoutDashboard, Pencil, Ticket, Users } from "lucide-react";
+import { Activity, LayoutDashboard, Pencil, Ticket, Users, Megaphone } from "lucide-react";
 import { useT } from "@/lib/i18n/context";
 
-type TabKey = "overview" | "edit" | "participants" | "tickets" | "live";
+type TabKey = "overview" | "edit" | "participants" | "tickets" | "live" | "announcements";
 
 export function EventSubNav({ eventId, active, vertical }: { eventId: string; active: TabKey; vertical?: boolean }) {
   const t = useT();
@@ -15,6 +15,7 @@ export function EventSubNav({ eventId, active, vertical }: { eventId: string; ac
     participants: t.events.subnav.participants,
     tickets: t.events.subnav.tickets,
     live: "Live",
+    announcements: t.announcements.nav,
   };
 
   const iconMap: Record<TabKey, typeof LayoutDashboard> = {
@@ -23,6 +24,7 @@ export function EventSubNav({ eventId, active, vertical }: { eventId: string; ac
     participants: Users,
     tickets: Ticket,
     live: Activity,
+    announcements: Megaphone,
   };
 
   const hrefMap: Record<TabKey, (id: string) => string> = {
@@ -31,6 +33,7 @@ export function EventSubNav({ eventId, active, vertical }: { eventId: string; ac
     participants: (id: string) => `/admin/events/${id}/participants`,
     tickets: (id: string) => `/admin/events/${id}/tickets`,
     live: (id: string) => `/admin/events/${id}/live`,
+    announcements: (id: string) => `/admin/events/${id}/announcements`,
   };
 
   if (vertical) {

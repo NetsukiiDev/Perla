@@ -317,4 +317,20 @@ export interface Dictionary {
     qrLink: string; qrCode: string; shareLink: string; shareCode: string;
     success: string; copyError: string;
   };
+
+  announcements: {
+    nav: string;
+    composerTitle: string;
+    messageLabel: string;
+    messagePlaceholder: string;
+    imageLabel: string;
+    changeImage: string;
+    removeImage: string;
+    send: string;
+    sending: string;
+    recent: string;
+    empty: string;
+    feedTitle: string;
+    errors: { messageRequired: string; imageTooLarge: string; generic: string };
+  };
 }

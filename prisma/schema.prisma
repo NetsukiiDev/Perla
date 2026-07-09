@@ -140,9 +140,27 @@ model Event {
   participants Participant[]
   inviteCodes  InviteCode[]
   accessLogs   AccessLog[]
+  announcements Announcement[]
 
   @@index([status])
   @@map("events")
+}
+
+// Broadcast messages an admin sends to all participants of an event. Images
+// are stored as raw bytes (LongBlob) and served via a dedicated route so the
+// participant feed stays JSON-light.
+model Announcement {
+  id        String   @id @default(cuid())
+  eventId   String   @map("event_id")
+  message   String   @db.VarChar(2000)
+  imageData Bytes?   @map("image_data")
+  imageType String?  @map("image_type") @db.VarChar(64)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@map("announcements")
 }
 
 model Participant {

@@ -596,4 +596,24 @@ export const en: Dictionary = {
     success: "Copied to clipboard.",
     copyError: "Share failed.",
   },
+
+  announcements: {
+    nav: "Announcements",
+    composerTitle: "Send an announcement",
+    messageLabel: "Message",
+    messagePlaceholder: "Write a message for all participants…",
+    imageLabel: "Image (optional)",
+    changeImage: "Change image",
+    removeImage: "Remove image",
+    send: "Send",
+    sending: "Sending…",
+    recent: "Recent announcements",
+    empty: "No announcements yet.",
+    feedTitle: "Announcements",
+    errors: {
+      messageRequired: "Message is required.",
+      imageTooLarge: "Image is too large (max 2 MB).",
+      generic: "Failed to send announcement.",
+    },
+  },
 };
