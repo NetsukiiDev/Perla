@@ -58,6 +58,13 @@ function escapeHtml(value: string): string {
     .replace(/'/g, "&#39;");
 }
 
+// For values interpolated into the print window's <style> block. Strips
+// characters that could break out of a CSS value / the style element
+// (e.g. "</style>…") — CSS values never legitimately contain these.
+function cssSafe(value: string | number): string {
+  return String(value).replace(/[<>{}\\]/g, "");
+}
+
 function hexToRgba(hex: string, opacityPercent: number): string {
   const safe = HEX_PATTERN.test(hex) ? hex : "#ffffff";
   const r = parseInt(safe.slice(1, 3), 16);
@@ -345,7 +352,7 @@ export function TicketGenerator({ eventId, event, initialBaseUrl, entries }: Tic
 
   function buildPrintHtml(): string {
     const origin = window.location.origin;
-    const fontLink = activeGoogleFont ? `<link rel="stylesheet" href="${googleFontUrl(activeGoogleFont)}" />` : "";
+    const fontLink = activeGoogleFont ? `<link rel="stylesheet" href="${escapeHtml(googleFontUrl(activeGoogleFont))}" />` : "";
 
     const cards = selectedEntries
       .map((entry) => {
@@ -375,7 +382,7 @@ export function TicketGenerator({ eventId, event, initialBaseUrl, entries }: Tic
           <title>${escapeHtml(event.internalName)} - ${escapeHtml(t.ticketGenerator.printTitle)}</title>
           ${fontLink}
           <style>
-            @page { size: A4 ${pageOrientation}; margin: ${PAGE_MARGIN_MM}mm; }
+            @page { size: A4 ${cssSafe(pageOrientation)}; margin: ${PAGE_MARGIN_MM}mm; }
             * { box-sizing: border-box; }
             body { margin: 0; background: #f3f4f6; font-family: Arial, Helvetica, sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .toolbar { position: sticky; top: 0; z-index: 2; display: flex; justify-content: space-between; gap: 12px; padding: 12px 16px; background: #111827; color: #fff; font-size: 13px; }
@@ -392,30 +399,30 @@ export function TicketGenerator({ eventId, event, initialBaseUrl, entries }: Tic
               break-inside: avoid;
               width: ${cardWidthMm}mm;
               height: ${cardHeightMm}mm;
-              background: ${bgColor};
+              background: ${cssSafe(bgColor)};
               border-radius: ${cornerRadiusMm}mm;
               padding: ${paddingMm}mm;
               margin: 0 auto;
             }
             .bg-image {
               position: absolute; inset: 0;
-              background-image: url(${bgImage ? `'${bgImage}'` : "none"});
-              background-size: ${bgImageFit};
+              background-image: ${bgImage ? `url('${cssSafe(bgImage).replace(/['")]/g, "")}')` : "none"};
+              background-size: ${cssSafe(bgImageFit)};
               background-position: center;
               background-repeat: no-repeat;
             }
             .bg-dim { position: absolute; inset: 0; background: rgba(0,0,0,${bgDim / 100}); }
             .qr-block { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1mm; flex-shrink: 0; width: ${halfWidthMm}mm; }
-            .qr-box { display: flex; align-items: center; justify-content: center; width: ${qrSizeMm}mm; height: ${qrSizeMm}mm; background: ${qrBoxColor}; border-radius: 2mm; padding: 3%; }
+            .qr-box { display: flex; align-items: center; justify-content: center; width: ${qrSizeMm}mm; height: ${qrSizeMm}mm; background: ${cssSafe(qrBoxColor)}; border-radius: 2mm; padding: 3%; }
             .qr { width: 100%; height: 100%; }
-            .code { font-family: "Courier New", monospace; font-size: 2.6mm; letter-spacing: 0.1em; color: ${textColor}; }
-            .divider { width: ${DIVIDER_WIDTH_MM}mm; align-self: stretch; background: ${dividerRgba}; }
+            .code { font-family: "Courier New", monospace; font-size: 2.6mm; letter-spacing: 0.1em; color: ${cssSafe(textColor)}; }
+            .divider { width: ${DIVIDER_WIDTH_MM}mm; align-self: stretch; background: ${cssSafe(dividerRgba)}; }
             .text-block { position: relative; display: flex; flex-shrink: 0; width: ${halfWidthMm}mm; align-items: center; overflow: hidden; }
             .ticket-text {
               white-space: pre-line;
-              color: ${textColor};
-              font-family: ${fontFamily.replace(/"/g, "'")};
-              font-weight: ${fontWeight};
+              color: ${cssSafe(textColor)};
+              font-family: ${cssSafe(fontFamily).replace(/"/g, "'")};
+              font-weight: ${cssSafe(fontWeight)};
               font-size: ${computedFontSizeMm}mm;
               line-height: ${lineHeight};
               letter-spacing: ${letterSpacing}em;
