@@ -4,7 +4,7 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CheckSquare, ExternalLink, Link2, QrCode, RotateCcw, Trash2, UserPlus, X } from "lucide-react";
+import { CheckSquare, ExternalLink, Link2, MapPin, QrCode, RotateCcw, Trash2, UserPlus, X } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { CopyButton } from "./CopyButton";
 import { iconButtonClass } from "./IconButton";
@@ -153,7 +153,7 @@ export function ParticipantsManager({
       <form onSubmit={handleAdd} className="flex flex-wrap items-end gap-3 rounded-lg border border-surface-border p-4">
         <div className="flex flex-col gap-1">
           <label className="text-xs uppercase tracking-wide text-muted">{t.participants.manager.username}</label>
-          <input value={name} onChange={(e) => setName(e.target.value)} className={inputClass} placeholder={t.participants.manager.usernamePlaceholder} />
+          <input autoFocus value={name} onChange={(e) => setName(e.target.value)} className={inputClass} placeholder={t.participants.manager.usernamePlaceholder} />
         </div>
         <button
           type="submit"
@@ -191,7 +191,7 @@ export function ParticipantsManager({
         </div>
       )}
 
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <input
           placeholder={t.participants.manager.searchPlaceholder}
           value={search}
@@ -206,6 +206,9 @@ export function ParticipantsManager({
             </option>
           ))}
         </select>
+        <span className="text-xs text-muted">
+          {filtered.length}/{initialParticipants.length} {t.participants.manager.participants}
+        </span>
       </div>
 
       {activeSelectedCodeIds.length > 0 && (
@@ -228,8 +231,9 @@ export function ParticipantsManager({
       {bulkError && <p className="text-sm text-danger">{bulkError}</p>}
 
       <div className="overflow-x-auto rounded-lg border border-surface-border">
+        <div className="max-h-96 overflow-y-auto">
         <table className="w-full text-left text-sm">
-          <thead className="border-b border-surface-border bg-surface text-xs uppercase tracking-wide text-muted">
+          <thead className="sticky top-0 z-10 border-b border-surface-border bg-surface text-xs uppercase tracking-wide text-muted">
             <tr>
               <th className="w-10 px-4 py-3">
                 <input
@@ -250,7 +254,7 @@ export function ParticipantsManager({
           </thead>
           <tbody>
             {filtered.map((r) => (
-              <tr key={r.id} className="border-b border-surface-border last:border-0">
+              <tr key={r.id} className="border-b border-surface-border last:border-0 hover:bg-surface/50 transition-colors">
                 <td className="px-4 py-3">
                   <input
                     type="checkbox"
@@ -289,16 +293,21 @@ export function ParticipantsManager({
                         <Link2 size={16} aria-hidden="true" />
                         <span className="sr-only">{t.participants.detail.access.openLink}</span>
                       </a>
+                      {r.lastLocation && (
+                        <span className="text-emerald-400" title={`${r.lastLocation.lat}, ${r.lastLocation.lng}`}>
+                          <MapPin size={14} aria-hidden="true" />
+                        </span>
+                      )}
                     </span>
                   ) : (
-                    <span className="text-muted">{t.participants.manager.na}</span>
+                    <span className="text-muted italic">{t.participants.manager.na}</span>
                   )}
                 </td>
-                <td className="px-4 py-3 text-muted">{r.displayName ?? t.participants.manager.na}</td>
+                <td className="px-4 py-3 text-muted">{r.displayName ?? <span className="italic">{t.participants.manager.na}</span>}</td>
                 <td className="px-4 py-3">
                   <StatusBadge value={r.displayStatus} label={displayLabels[r.displayStatus]} />
                 </td>
-                <td className="px-4 py-3 text-muted">{r.currentStep ? `${r.currentStep}/${r.stepsCount}` : t.participants.manager.na}</td>
+                <td className="px-4 py-3 text-muted">{r.currentStep ? `${r.currentStep}/${r.stepsCount}` : <span className="italic">{t.participants.manager.na}</span>}</td>
                 <td className="px-4 py-3 text-right">
                   <div className="flex justify-end gap-2">
                     {r.codeId && (
@@ -342,13 +351,14 @@ export function ParticipantsManager({
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-6 text-center text-muted">
-                  {t.participants.manager.empty}
+                <td colSpan={6} className="px-4 py-8 text-center text-muted">
+                  <p>{initialParticipants.length === 0 ? t.participants.manager.empty : t.participants.manager.noResults}</p>
                 </td>
               </tr>
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {qrPreview && (

@@ -106,9 +106,9 @@ export interface Dictionary {
     manager: {
       generate: string; generated: string; username: string; usernamePlaceholder: string;
       showQR: string; hideCode: string; searchPlaceholder: string; allStatuses: string;
-      selectedCount: string; deleteSelected: string;
+      selectedCount: string; deleteSelected: string; participants: string;
       table: { code: string; username: string; status: string; step: string };
-      empty: string; na: string;
+      empty: string; noResults: string; na: string;
       qrModal: { title: string; close: string };
       confirmDelete: string; confirmBulkDelete: string;
       errors: { deleteFailed: string; bulkDeleteFailed: string };
