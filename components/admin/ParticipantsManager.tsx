@@ -175,28 +175,8 @@ export function ParticipantsManager({
               <div className="mt-1 flex items-center gap-3">
                 <span className="font-mono text-2xl tracking-widest">{revealed.code}</span>
                 <CopyButton value={revealed.code} />
-                <CopyButton
-                  value={accessUrlFor(revealed.code)}
-                  className="inline-flex h-9 items-center gap-2 rounded-lg border border-surface-border px-3 text-xs text-muted hover:text-foreground"
-                />
-                <button
-                  type="button"
-                  title={t.participants.manager.showQR}
-                  aria-label={t.participants.manager.showQR}
-                  onClick={() => setQrPreview({ code: revealed.code, displayName: revealed.name || null })}
-                  className={iconButtonClass()}
-                >
-                  <QrCode size={16} aria-hidden="true" />
-                  <span className="sr-only">{t.participants.manager.showQR}</span>
-                </button>
               </div>
             </div>
-            {/* Fixed-size QR from an internal endpoint — next/image gives no benefit here. */}
-            <img
-              src={`/api/admin/qr?text=${encodeURIComponent(accessUrlFor(revealed.code))}`}
-              alt={`QR ${revealed.code}`}
-              className="h-24 w-24 rounded-lg bg-white p-2"
-            />
           </div>
           <button
             type="button"
