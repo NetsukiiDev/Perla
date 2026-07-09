@@ -1,0 +1,28 @@
+name: Bug Report
+description: Report a bug
+labels: [bug]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      placeholder: |
+        1. Go to ...
+        2. Click ...
+        3. See error
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: e.g. 0.1.2
