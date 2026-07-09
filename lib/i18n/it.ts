@@ -7,6 +7,7 @@ export const it: Dictionary = {
     account: "Account",
     settings: "Impostazioni",
     logout: "Esci",
+    menu: "Menu",
   },
 
   settings: {

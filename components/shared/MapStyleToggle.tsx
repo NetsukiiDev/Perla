@@ -22,7 +22,7 @@ export function MapStyleToggle({ style, onChange }: MapStyleToggleProps) {
     <button
       type="button"
       onClick={() => onChange(next)}
-      className="rounded-md border border-surface-border bg-background/80 px-2 py-0.5 text-[11px] text-muted hover:text-foreground backdrop-blur-sm"
+      className="rounded-md border border-surface-border bg-background/80 px-2.5 py-1 text-xs text-muted hover:text-foreground backdrop-blur-sm"
       title={title}
     >
       {label}

@@ -117,6 +117,11 @@ export function projectActiveSession(params: {
     return { kind: "not_available" };
   }
 
+  // The destination step (last step) always reflects the live event position,
+  // so admin edits to the event destination propagate to participants without
+  // needing to re-snapshot every session's RouteStep row.
+  const isDestinationStep = session.currentStep === event.stepsCount;
+
   return {
     kind: "in_progress",
     region: event.region,
@@ -124,8 +129,8 @@ export function projectActiveSession(params: {
     endsAt: event.endsAt ? event.endsAt.toISOString() : null,
     stepIndex: session.currentStep,
     stepsCount: event.stepsCount,
-    lat: decryptCoord(currentStep.latEncrypted),
-    lng: decryptCoord(currentStep.lngEncrypted),
+    lat: isDestinationStep ? decryptCoord(event.destinationLatEncrypted) : decryptCoord(currentStep.latEncrypted),
+    lng: isDestinationStep ? decryptCoord(event.destinationLngEncrypted) : decryptCoord(currentStep.lngEncrypted),
     totalDistanceM: event.showTotalDistance ? (session.totalDistanceM ?? undefined) : undefined,
     totalDurationS: event.showTotalDuration ? (session.totalDurationS ?? undefined) : undefined,
     stepDistanceM:

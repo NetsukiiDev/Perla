@@ -69,7 +69,7 @@ export function ParticipantStepView({
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-1 text-center">
-        <h1 className="text-2xl font-semibold">{t.participantFlow.stepView.positionOf.replace("{step}", String(stepIndex)).replace("{total}", String(stepsCount))}</h1>
+        <h1 className="text-xl font-semibold sm:text-2xl">{t.participantFlow.stepView.positionOf.replace("{step}", String(stepIndex)).replace("{total}", String(stepsCount))}</h1>
       </div>
 
       <InlineMap lat={lat} lng={lng} />

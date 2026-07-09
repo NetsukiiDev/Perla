@@ -7,7 +7,7 @@ type IconButtonVariant = "neutral" | "primary" | "danger";
 
 export function iconButtonClass(variant: IconButtonVariant = "neutral"): string {
   const base =
-    "inline-flex h-9 w-9 items-center justify-center rounded-lg border text-sm transition-colors disabled:opacity-50";
+    "inline-flex h-10 w-10 items-center justify-center rounded-lg border text-sm transition-colors disabled:opacity-50";
   if (variant === "primary") {
     return `${base} border-accent bg-accent text-accent-foreground hover:opacity-90`;
   }

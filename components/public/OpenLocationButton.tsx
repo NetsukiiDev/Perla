@@ -19,7 +19,7 @@ export function OpenLocationButton({ lat, lng }: OpenLocationButtonProps) {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="block w-full rounded-lg bg-accent px-4 py-3 text-center font-medium text-accent-foreground"
+      className="block w-full rounded-lg bg-accent px-4 py-3.5 text-center text-base font-medium text-accent-foreground"
     >
       {t.participantFlow.openLocation}
     </a>

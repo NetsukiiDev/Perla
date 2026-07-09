@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "leaflet/dist/leaflet.css";
 import "./globals.css";
@@ -20,6 +20,13 @@ export const metadata: Metadata = {
   title: "Accesso",
   description: "",
   robots: { index: false, follow: false },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#0a0a0b",
 };
 
 export default async function RootLayout({

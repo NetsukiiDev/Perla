@@ -22,9 +22,9 @@ export function PageWithSubNav({
 
   if (navLayout === "sidebar") {
     return (
-      <div className="mx-auto w-full max-w-5xl px-4 py-8">
-        <div className="flex gap-6">
-          <aside className="w-48 shrink-0">
+      <div className="mx-auto w-full max-w-5xl pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] pt-8 pb-[max(2rem,env(safe-area-inset-bottom))]">
+        <div className="flex flex-col gap-4 md:flex-row md:gap-6">
+          <aside className="w-full md:w-48 md:shrink-0">
             <EventSubNav eventId={eventId} active={activeTab} vertical />
           </aside>
           <div className="min-w-0 flex-1">

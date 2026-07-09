@@ -24,7 +24,7 @@ export function InlineMap({ lat, lng }: InlineMapProps) {
   const [mapStyle, setMapStyle] = useState<MapStyle>("dark");
 
   return (
-    <div className="relative overflow-hidden rounded-lg border border-surface-border" style={{ height: 180 }}>
+    <div className="relative overflow-hidden rounded-lg border border-surface-border h-[44vh] max-h-80 sm:h-[200px]">
       <MapContainer
         center={[lat, lng]}
         zoom={15}
@@ -34,7 +34,7 @@ export function InlineMap({ lat, lng }: InlineMapProps) {
         scrollWheelZoom={false}
         doubleClickZoom={false}
         touchZoom={false}
-        style={{ height: "100%", width: "100%" }}
+        style={{ height: "100%", width: "100%", touchAction: "pan-y" }}
       >
         <MapsTileLayer style={mapStyle} />
         <Marker position={[lat, lng]} icon={markerIcon} />

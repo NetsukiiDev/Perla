@@ -5,6 +5,7 @@ export interface Dictionary {
     account: string;
     settings: string;
     logout: string;
+    menu: string;
   };
 
   settings: {
