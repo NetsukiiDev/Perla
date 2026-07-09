@@ -4,6 +4,83 @@ Condivisione di posizioni in tempo reale, sicura, anonima e tracciabile solo dag
 
 Real-time, secure, anonymous location sharing — trackable only by organizers. Participants receive a one-time code to access a multi-stop route with geolocation. Sensitive data (coordinates, IP) is end-to-end encrypted.
 
+<p align="center">
+  <img alt="Next.js" src="https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white">
+  <img alt="React" src="https://img.shields.io/badge/React-19-20232a?logo=react&logoColor=61dafb">
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5-3178c6?logo=typescript&logoColor=white">
+  <img alt="Prisma" src="https://img.shields.io/badge/Prisma-7-2d3748?logo=prisma&logoColor=white">
+  <img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind-4-38bdf8?logo=tailwindcss&logoColor=white">
+  <img alt="Leaflet" src="https://img.shields.io/badge/Leaflet-maps-199900?logo=leaflet&logoColor=white">
+  <br>
+  <img alt="Database" src="https://img.shields.io/badge/DB-PostgreSQL%20%C2%B7%20MySQL%20%C2%B7%20MariaDB%20%C2%B7%20MongoDB-336791">
+  <img alt="i18n" src="https://img.shields.io/badge/i18n-Italiano%20%C2%B7%20English-blue">
+  <img alt="Encryption" src="https://img.shields.io/badge/crypto-AES--256--GCM-success">
+  <img alt="License" src="https://img.shields.io/badge/license-Proprietary-lightgrey">
+</p>
+
+---
+
+## ✨ Funzionalità · Features
+
+| | Italiano | English |
+|---|---|---|
+| 🔐 | Destinazione **cifrata** e tappe intermedie: il partecipante vede solo la tappa corrente | **Encrypted** destination & waypoints: the participant only ever sees the current stop |
+| 🎟️ | Codici **monouso** legati al dispositivo **+ codici pubblici** riusabili da più persone | **One-time** device-bound codes **+ public codes** reusable by many people |
+| 📡 | **Dashboard live**: posizione, tappa e stato di ogni partecipante in tempo reale | **Live dashboard**: each participant's position, stop and status in real time |
+| 🛣️ | Stima **autostrada + pedaggio** sul percorso (gratuita, per evento) | **Highway + toll** estimate on the route (free, per-event) |
+| 🌍 | Interfaccia **bilingue** Italiano / English con selettore lingua | **Bilingual** Italian / English UI with a language switcher |
+| 🖥️ | **Impostazioni**, versionamento e controllo aggiornamenti | **Settings**, versioning and update checks |
+| 🗄️ | 4 database (PostgreSQL · MySQL · MariaDB · MongoDB) + wizard di setup | 4 databases (PostgreSQL · MySQL · MariaDB · MongoDB) + setup wizard |
+| ☁️ | Pronto per **Vercel** con guida integrata e generatore `.env` | **Vercel**-ready with an in-app guide and `.env` generator |
+
+## 🏗️ Architettura · Architecture
+
+```mermaid
+flowchart TB
+  P["Partecipante<br/>(browser mobile)"]
+  A["Organizzatore<br/>(dashboard admin)"]
+
+  subgraph app ["PERLA - Next.js (App Router)"]
+    direction TB
+    PF["Flusso partecipante /c"]
+    PROJ["public-projection<br/>(unico punto pubblico)"]
+    GUARD["admin-guard"]
+    API["API routes"]
+  end
+
+  DB[("Database cifrato<br/>PostgreSQL / MySQL<br/>MariaDB / MongoDB")]
+  ROUTE["Route provider<br/>OSRM / ORS / Google"]
+
+  P -->|"codice monouso / pubblico"| PF
+  PF --> PROJ
+  PROJ -.->|"solo tappa corrente"| P
+  A --> GUARD --> API
+  API --> DB
+  PROJ --> DB
+  API -->|"calcola percorso"| ROUTE
+```
+
+### Flusso partecipante · Participant flow
+
+```mermaid
+sequenceDiagram
+  actor U as Partecipante
+  participant W as PERLA
+  participant DB as DB cifrato
+  U->>W: Inserisce il codice
+  W->>DB: Verifica hash (SHA-256 + pepper)
+  W-->>U: Richiesta consenso geolocalizzazione
+  U->>W: Posizione GPS
+  W->>W: Calcola percorso → N tappe (cifrate AES-256)
+  W->>DB: Crea sessione + tappe
+  W-->>U: Tappa 1 di N sulla mappa
+  loop Per ogni tappa
+    U->>W: Raggiunge il punto
+    W-->>U: Sblocca la tappa successiva
+  end
+  W-->>U: Percorso completato ✅
+```
+
 ---
 
 - [Italiano](#italiano)
@@ -49,6 +126,7 @@ Casi d'uso tipici: cacce al tesoro, rally, escursioni guidate, eventi a sorpresa
 - **Routing:** OSRM (default), openrouteservice, Google Routes
 - **Auth admin:** Cookie firmato JWT (jose/HS256), password bcrypt
 - **Criptografia:** AES-256-GCM per coordinate, SHA-256 + pepper per codici
+- **i18n:** Italiano / English (cookie `locale` + dizionari tipizzati)
 - **Rate limiting:** In-memory
 
 ### Setup rapido
@@ -127,9 +205,10 @@ Tutti i provider condividono l'interfaccia `RouteProvider` (`lib/route-provider/
 │   ├── admin/
 │   │   ├── setup/page.tsx          # Wizard di setup
 │   │   ├── login/page.tsx          # Login admin
-│   │   ├── events/                 # Gestione eventi
+│   │   ├── events/                 # Gestione eventi (+ codici pubblici, pedaggio)
 │   │   ├── users/                  # Gestione utenti admin
-│   │   └── account/                # Profilo admin
+│   │   ├── account/                # Profilo admin
+│   │   └── settings/               # Impostazioni (lingua, versione, aggiornamenti)
 │   └── api/                        # Route API
 │       ├── code/                   # Risoluzione codice partecipante
 │       ├── session/                # Sessione partecipante
@@ -144,6 +223,9 @@ Tutti i provider condividono l'interfaccia `RouteProvider` (`lib/route-provider/
 │   ├── config.ts                   # Config runtime (.data/config.json)
 │   ├── prisma-adapter.ts           # Selezione adapter runtime
 │   ├── db-init.ts                  # Test connessione DB
+│   ├── toll-estimate.ts            # Stima autostrada + pedaggio (euristica)
+│   ├── version.ts                  # Versione + info build/commit
+│   ├── i18n/                       # Dizionari IT/EN, provider e loader lingua
 │   └── route-provider/             # Provider routing
 │       ├── types.ts                # Interfaccia comune
 │       ├── osrm.ts
@@ -202,6 +284,7 @@ Typical use cases: treasure hunts, rallies, guided tours, surprise events, relay
 - **Routing:** OSRM (default), openrouteservice, Google Routes
 - **Admin auth:** Signed JWT cookie (jose/HS256), bcrypt passwords
 - **Encryption:** AES-256-GCM for coordinates, SHA-256 + pepper for codes
+- **i18n:** Italian / English (locale cookie + typed dictionaries)
 - **Rate limiting:** In-memory
 
 ### Quick start
@@ -280,9 +363,10 @@ All providers share the `RouteProvider` interface (`lib/route-provider/types.ts`
 │   ├── admin/
 │   │   ├── setup/page.tsx          # Setup wizard
 │   │   ├── login/page.tsx          # Admin login
-│   │   ├── events/                 # Event management
+│   │   ├── events/                 # Event management (+ public codes, toll)
 │   │   ├── users/                  # Admin user management
-│   │   └── account/                # Admin profile
+│   │   ├── account/                # Admin profile
+│   │   └── settings/               # Settings (language, version, updates)
 │   └── api/                        # API routes
 │       ├── code/                   # Participant code resolution
 │       ├── session/                # Participant session
@@ -297,6 +381,9 @@ All providers share the `RouteProvider` interface (`lib/route-provider/types.ts`
 │   ├── config.ts                   # Runtime config (.data/config.json)
 │   ├── prisma-adapter.ts           # Runtime adapter selection
 │   ├── db-init.ts                  # DB connection test
+│   ├── toll-estimate.ts            # Highway + toll estimate (heuristic)
+│   ├── version.ts                  # Version + build/commit info
+│   ├── i18n/                       # IT/EN dictionaries, provider & loader
 │   └── route-provider/             # Route providers
 │       ├── types.ts                # Common interface
 │       ├── osrm.ts
