@@ -34,7 +34,14 @@ export interface Dictionary {
       sendingTest: string;
       testSent: string;
       notConfigured: string;
-      errors: { saveFailed: string; testFailed: string; testSent: string; invalid: string };
+      errors: { saveFailed: string; testFailed: string; testSent: string; invalid: string; testError: string };
+    };
+    logs: {
+      section: string;
+      description: string;
+      empty: string;
+      more: string;
+      table: { type: string; time: string };
     };
   };
 
@@ -88,7 +95,7 @@ export interface Dictionary {
       created: string; hide: string; show: string;
       table: { code: string; uses: string; status: string };
       statusActive: string; statusRevoked: string;
-      actions: { revoke: string; delete: string; openLink: string; qr: string };
+      actions: { revoke: string; delete: string; openLink: string; qr: string; activate: string };
       errors: { createFailed: string };
       confirm: { revoke: string; delete: string };
     };

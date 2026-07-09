@@ -1,36 +1,36 @@
 # Internationalization (i18n)
 
-PERLA è **bilingue Italiano / English**. La lingua si sceglie da **Impostazioni** (`/admin/settings`) e vale sia per l'area admin sia per il flusso partecipante.
+PERLA is **bilingual Italian / English**. The language is chosen from **Settings** (`/admin/settings`) and applies to both the admin area and the participant flow.
 
-## Come funziona
+## How it works
 
-| Pezzo | File |
+| Piece | File |
 |---|---|
-| Config (locale, cookie) | `lib/i18n/config.ts` |
-| Dizionari | `lib/i18n/it.ts`, `lib/i18n/en.ts` |
-| Tipo `Dictionary` | `lib/i18n/types.ts` |
-| Loader server | `lib/i18n/server.ts` (`getLocale`, `getDictionary`) |
-| Provider client | `lib/i18n/context.tsx` (`I18nProvider`, `useT`, `useLocale`) |
-| Endpoint | `POST /api/settings/locale` (imposta il cookie `locale`) |
+| Config (locales, cookie) | `lib/i18n/config.ts` |
+| Dictionaries | `lib/i18n/it.ts`, `lib/i18n/en.ts` |
+| `Dictionary` type | `lib/i18n/types.ts` |
+| Server loader | `lib/i18n/server.ts` (`getLocale`, `getDictionary`) |
+| Client provider | `lib/i18n/context.tsx` (`I18nProvider`, `useT`, `useLocale`) |
+| Endpoint | `POST /api/settings/locale` (sets the `locale` cookie) |
 
-- La lingua è persistita nel cookie **`locale`** (`it` | `en`, default `it`).
-- Il **root layout** legge il cookie, imposta `<html lang>` e avvolge l'app in `I18nProvider` (copre admin **e** flusso partecipante).
-- I **componenti client** usano `useT()`; le **route/pagine server** usano `getDictionary(await getLocale())`.
+- The language is persisted in the **`locale`** cookie (`it` | `en`, default `it`).
+- The **root layout** reads the cookie, sets `<html lang>`, and wraps the app in `I18nProvider` (covers admin **and** the participant flow).
+- **Client components** use `useT()`; **server routes/pages** use `getDictionary(await getLocale())`.
 
-## Aggiungere/modificare stringhe
+## Add / edit strings
 
-1. Aggiungi la chiave nel dizionario italiano `lib/i18n/it.ts`.
-2. Aggiorna il tipo `Dictionary` in `lib/i18n/types.ts`.
-3. Aggiungi la traduzione corrispondente in `lib/i18n/en.ts`.
+1. Add the key to the Italian dictionary `lib/i18n/it.ts`.
+2. Update the `Dictionary` type in `lib/i18n/types.ts`.
+3. Add the matching translation in `lib/i18n/en.ts`.
 
-Il tipo `Dictionary` garantisce a compile-time che **ogni lingua abbia tutte le chiavi**: se ne manca una, `tsc` fallisce.
+The `Dictionary` type guarantees at compile time that **every locale has every key** — if one is missing, `tsc` fails.
 
-## Interpolazione
+## Interpolation
 
-Segnaposto come `{version}`, `{count}`, `{time}` vengono sostituiti con `String.replace("{chiave}", valore)`. Assicurati che il segnaposto sia presente in **entrambe** le lingue.
+Placeholders like `{version}`, `{count}`, `{time}` are replaced via `String.replace("{key}", value)`. Make sure the placeholder exists in **both** languages.
 
-## Aggiungere una nuova lingua
+## Add a new language
 
-1. Aggiungi il codice a `LOCALES` in `lib/i18n/config.ts`.
-2. Crea `lib/i18n/<locale>.ts` che soddisfa il tipo `Dictionary`.
-3. Registralo nel loader `lib/i18n/index.ts`.
+1. Add the code to `LOCALES` in `lib/i18n/config.ts`.
+2. Create `lib/i18n/<locale>.ts` satisfying the `Dictionary` type.
+3. Register it in the loader `lib/i18n/index.ts`.

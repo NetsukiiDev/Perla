@@ -1,17 +1,17 @@
 # Deploy on Vercel
 
-Il progetto è **pronto per Vercel** (`vercel.json` + script `vercel-build`). Il wizard di setup **non** funziona su Vercel (filesystem read-only): la configurazione avviene via **Environment Variables**, con una **guida integrata** in `/admin/setup`.
+The project is **Vercel-ready** (`vercel.json` + `vercel-build` script). The setup wizard does **not** work on Vercel (read-only filesystem): configuration happens via **Environment Variables**, with an **in-app guide** at `/admin/setup`.
 
-## 1. Collega il repository
+## 1. Connect the repository
 
-1. [vercel.com](https://vercel.com) → **Add New Project** → importa `NetsukiiDev/Perla` (o il tuo fork).
-2. Framework auto-rilevato → **Next.js**. Nessun override della build necessario.
+1. [vercel.com](https://vercel.com) → **Add New Project** → import `NetsukiiDev/Perla` (or your fork).
+2. Framework auto-detected → **Next.js**. No build override needed.
 
 ## 2. Environment Variables
 
-Imposta almeno queste (vedi [Configuration](Configuration) per i dettagli):
+Set at least these (see [Configuration](Configuration) for details):
 
-| Variabile | Valore |
+| Variable | Value |
 |---|---|
 | `SETUP_DISABLED` | `true` |
 | `DATABASE_PROVIDER` | `postgresql` \| `mysql` \| `mariadb` |
@@ -23,29 +23,29 @@ Imposta almeno queste (vedi [Configuration](Configuration) per i dettagli):
 | `CRON_SECRET` | `openssl rand -hex 32` |
 | `ROUTE_PROVIDER` | `osrm` |
 
-> 💡 La guida in `/admin/setup` include un **generatore/esportatore `.env`**: puoi scaricare o copiare un file pronto e usare **Import .env** su Vercel.
+> 💡 The `/admin/setup` guide includes an **`.env` generator/exporter**: you can download or copy a ready file and use **Import .env** on Vercel.
 
-## 3. Prepara il database
+## 3. Prepare the database
 
-Dalla tua macchina, puntando al DB di produzione:
+From your machine, pointing at the production DB:
 
 ```bash
 export DATABASE_PROVIDER=postgresql
 export DATABASE_URL=postgresql://...
 npm run db:generate
 npx prisma db push
-npx tsx prisma/seed.ts   # crea il primo admin
+npx tsx prisma/seed.ts   # create the first admin
 ```
 
-> ⚠️ **MariaDB/MySQL**: il DB deve accettare connessioni TCP remote. Aggiungi gli [IP range di Vercel](https://vercel.com/docs/security/firewall#ip-range) al firewall, oppure usa un DB cloud.
+> ⚠️ **MariaDB/MySQL**: the DB must accept remote TCP connections. Add the [Vercel IP ranges](https://vercel.com/docs/security/firewall#ip-range) to your firewall, or use a cloud DB.
 
-## 4. Deploy e verifica
+## 4. Deploy & verify
 
 1. **Production Branch**: `master` → **Deploy**.
-2. Apri `https://<progetto>.vercel.app/admin/setup` → **Verifica connessione** → crea l'admin.
+2. Open `https://<project>.vercel.app/admin/setup` → **Verify connection** → create the admin.
 
-Il build esegue: `prisma-provider.mjs` → `prisma generate` → `next build`.
+The build runs: `prisma-provider.mjs` → `prisma generate` → `next build`.
 
-## Problemi comuni
+## Common problems
 
-Vedi [Troubleshooting](Troubleshooting).
+See [Troubleshooting](Troubleshooting).

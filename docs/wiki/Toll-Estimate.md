@@ -1,27 +1,27 @@
 # Toll & Highway Estimate
 
-PERLA può mostrare al partecipante se il percorso **prevede autostrada** e una **stima del pedaggio**, attivabile **per singolo evento**.
+PERLA can show the participant whether the route **uses a highway** and an **estimated toll**, enabled **per event**.
 
-## Attivazione
+## Enable it
 
-Nel form dell'evento, abilita **"Mostra autostrada e pedaggio stimato"**. Il dato viene calcolato all'avvio della sessione (dal punto di partenza del partecipante alla destinazione) e mostrato nella vista tappa.
+In the event form, turn on **"Show highway and estimated toll"**. The value is computed when the session starts (from the participant's starting point to the destination) and shown in the stop view.
 
-## Come viene calcolato
+## How it's computed
 
-Approccio **gratuito e senza chiavi API** (`lib/toll-estimate.ts`):
+A **free, no-API-key** approach (`lib/toll-estimate.ts`):
 
-1. Il provider **OSRM** restituisce gli *step* del percorso con i riferimenti stradali (`ref`, es. `A1`, `A14`, `A1var`).
-2. Vengono sommati i chilometri sui tratti autostradali (escludendo alcune "A" gratuite note: GRA, tangenziali di Milano, ecc.).
-3. Il pedaggio è stimato come `km autostrada × tariffa`.
+1. The **OSRM** provider returns the route steps with road references (`ref`, e.g. `A1`, `A14`, `A1var`).
+2. Kilometers on tolled motorway segments are summed (excluding a few known toll-free "A" roads: Rome GRA, Milan ring roads, etc.).
+3. The toll is estimated as `highway km × tariff`.
 
-> ⚠️ È una **stima approssimata**: nessuna fonte gratuita fornisce il pedaggio esatto. La tariffa media è configurabile con `TOLL_ESTIMATE_EUR_PER_KM` (default `0.08` €/km).
+> ⚠️ It's an **approximation**: no free source gives the exact toll. The average tariff is configurable via `TOLL_ESTIMATE_EUR_PER_KM` (default `0.08` €/km).
 
-## Esempio
+## Example
 
-Firenze → Bologna (via A1): ~84 km di autostrada → **~€6,7** stimati (reale ~€7–8).
+Florence → Bologna (via A1): ~84 km of motorway → **~€6.7** estimated (real ~€7–8).
 
-## Limiti
+## Limitations
 
-- Funziona con il provider **OSRM** (default). Gli altri provider non popolano il pedaggio.
-- L'euristica può sbagliare su raccordi/tangenziali con ref "A" ma senza pedaggio, o sottostimare tratti di montagna.
-- Il valore è calcolato una sola volta all'avvio (come distanza/tempo), non ricalcolato durante il percorso.
+- Works with the **OSRM** provider (default). Other providers don't populate the toll.
+- The heuristic can misclassify free ring roads/link roads with an "A" ref, or underestimate mountain sections.
+- Computed once at session start (like distance/time), not recomputed during the route.

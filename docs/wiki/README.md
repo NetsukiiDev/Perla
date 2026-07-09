@@ -1,25 +1,25 @@
-# docs/wiki — sorgenti della GitHub Wiki
+# docs/wiki — GitHub Wiki sources
 
-Queste pagine Markdown sono i **sorgenti versionati** della [Wiki di PERLA](https://github.com/NetsukiiDev/Perla/wiki). Tenerle nel repo permette review nelle PR e pubblicazione riproducibile.
+These Markdown pages are the **versioned sources** of the [PERLA Wiki](https://github.com/NetsukiiDev/Perla/wiki). Keeping them in the repo allows review in PRs and reproducible publishing.
 
-## Perché non sono già pubblicate?
+## Why aren't they already published?
 
-Una wiki GitHub **non ha un repository git finché non si crea la prima pagina** dalla UI web. Non è quindi possibile inizializzarla via `git push`.
+A GitHub wiki **has no git repository until the first page is created** through the web UI, so it can't be initialized via `git push`.
 
-## Pubblicare la wiki (una tantum + poi automatico)
+## Publish the wiki (one-time, then automatic)
 
-1. **Solo la prima volta** — apri <https://github.com/NetsukiiDev/Perla/wiki> → **Create the first page** → salva (qualsiasi contenuto).
-2. Poi, ad ogni aggiornamento, esegui dalla root del progetto:
+1. **First time only** — open <https://github.com/NetsukiiDev/Perla/wiki> → **Create the first page** → Save (any content).
+2. Then, on every update, run from the project root:
 
    ```bash
    bash scripts/publish-wiki.sh
    ```
 
-   Lo script clona il repo `*.wiki.git`, copia questi file e fa push.
+   The script clones the `*.wiki.git` repo, copies these files and pushes.
 
-## Pagine
+## Pages
 
-| File | Pagina wiki |
+| File | Wiki page |
 |---|---|
 | `Home.md` | Home |
 | `Getting-Started.md` | Getting Started |
@@ -32,4 +32,4 @@ Una wiki GitHub **non ha un repository git finché non si crea la prima pagina**
 | `Deploy-on-Vercel.md` | Deploy on Vercel |
 | `Security.md` | Security |
 | `Troubleshooting.md` | Troubleshooting |
-| `_Sidebar.md` | Barra laterale di navigazione |
+| `_Sidebar.md` | Navigation sidebar |

@@ -1,21 +1,21 @@
 # Versioning & Updates
 
-La pagina **Impostazioni** (`/admin/settings`) mostra la **versione corrente**, controlla se sono disponibili **aggiornamenti** e riporta alcune **info di build**.
+The **Settings** page (`/admin/settings`) shows the **current version**, checks whether **updates** are available, and reports some **build info**.
 
-## Fonte della versione
+## Version source
 
-- La versione è **una sola**: il campo `version` di `package.json` (esposto da `lib/version.ts`).
-- Il `CHANGELOG.md` documenta le modifiche seguendo [SemVer](https://semver.org/lang/it/).
+- There is a **single** version: the `version` field of `package.json` (exposed by `lib/version.ts`).
+- `CHANGELOG.md` documents changes following [SemVer](https://semver.org/).
 
-## Controllo aggiornamenti
+## Update check
 
-L'endpoint `GET /api/admin/version` (solo admin):
+The `GET /api/admin/version` endpoint (admin only):
 
-1. Legge la versione locale.
-2. Interroga l'**API GitHub** per l'ultima *release* (fallback: ultimo *tag*) del repo `NetsukiiDev/Perla`.
-3. Confronta con SemVer e restituisce `updateAvailable`.
+1. Reads the local version.
+2. Queries the **GitHub API** for the latest *release* (fallback: latest *tag*) of `NetsukiiDev/Perla`.
+3. Compares with SemVer and returns `updateAvailable`.
 
-Risposta tipica:
+Typical response:
 
 ```json
 {
@@ -29,13 +29,13 @@ Risposta tipica:
 }
 ```
 
-Per far comparire "aggiornamento disponibile", pubblica una nuova **release/tag** su GitHub (es. `v0.2.0`) con versione superiore a quella in `package.json`.
+To surface "update available", publish a new **release/tag** on GitHub (e.g. `v0.2.0`) with a version higher than the one in `package.json`.
 
-## Info build
+## Build info
 
-- **Ambiente**: `vercel` in produzione su Vercel, altrimenti `NODE_ENV`.
-- **Commit**: da `VERCEL_GIT_COMMIT_SHA` (iniettato da Vercel) quando disponibile.
+- **Environment**: `vercel` in production on Vercel, otherwise `NODE_ENV`.
+- **Commit**: from `VERCEL_GIT_COMMIT_SHA` (injected by Vercel) when available.
 
-## Nota
+## Note
 
-Se il controllo mostra *"Impossibile verificare"* in locale, è tipicamente una **VPN/antivirus che intercetta il TLS** e impedisce la verifica del certificato GitHub. Non è un bug: su Vercel (senza intercettazione TLS) funziona regolarmente. Il degrado è gestito con grazia.
+If the check shows *"Unable to check for updates"* locally, it's usually a **VPN/antivirus intercepting TLS** that prevents verifying GitHub's certificate. It's not a bug: on Vercel (no TLS interception) it works normally, and the failure degrades gracefully.

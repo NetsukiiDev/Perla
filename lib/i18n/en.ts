@@ -58,7 +58,15 @@ export const en: Dictionary = {
         testFailed: "Test email failed. Check the SMTP settings.",
         testSent: "Test email sent successfully.",
         invalid: "Fill in host, port and sender email.",
+        testError: "SMTP error: {error}",
       },
+    },
+    logs: {
+      section: "Site Log",
+      description: "Recent access and activity log.",
+      empty: "No log entries available.",
+      more: "{count} more entries…",
+      table: { type: "Type", time: "Date/Time" },
     },
   },
 
@@ -206,7 +214,7 @@ export const en: Dictionary = {
       table: { code: "Code", uses: "Uses", status: "Status" },
       statusActive: "Active · no expiry",
       statusRevoked: "Revoked",
-      actions: { revoke: "Revoke", delete: "Delete", openLink: "Open access link", qr: "QR" },
+      actions: { revoke: "Revoke", delete: "Delete", openLink: "Open access link", qr: "QR", activate: "Activate" },
       errors: { createFailed: "Unable to create the public code." },
       confirm: {
         revoke: "Revoke this public code? New accesses will be blocked.",

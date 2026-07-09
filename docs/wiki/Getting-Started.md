@@ -1,11 +1,11 @@
 # Getting Started
 
-## Requisiti
+## Requirements
 
 - **Node.js** 20+
-- Un database: **PostgreSQL**, **MySQL**, **MariaDB** o **MongoDB**
+- A database: **PostgreSQL**, **MySQL**, **MariaDB** or **MongoDB**
 
-## Installazione
+## Install
 
 ```bash
 git clone https://github.com/NetsukiiDev/Perla.git
@@ -16,32 +16,32 @@ npm run db:generate
 npm run dev
 ```
 
-Apri **http://localhost:3000**.
+Open **http://localhost:3000**.
 
-## Primo avvio — wizard di setup
+## First run — setup wizard
 
-Finché il sito **non è configurato**, ogni pagina reindirizza a **`/admin/setup`**, un wizard in due passi:
+Until the site **is configured**, every page redirects to **`/admin/setup`**, a two-step wizard:
 
-1. **Database** — scegli il provider e inserisci i dati di connessione (manuale o stringa). Il sistema testa la connessione, crea lo schema (`prisma db push`) e salva la configurazione in `.data/config.json`.
-2. **Amministratore** — crea il primo account admin e vieni autenticato automaticamente.
+1. **Database** — pick a provider and enter connection details (manual fields or a connection string). The system tests the connection, creates the schema (`prisma db push`) and saves the config to `.data/config.json`.
+2. **Administrator** — create the first admin account and get signed in automatically.
 
-Completato il setup, la homepage torna a mostrare solo il campo codice.
+Once complete, the homepage goes back to showing only the code input field.
 
-> Su **Vercel** (filesystem read-only) il wizard è sostituito da una guida integrata: vedi [Deploy on Vercel](Deploy-on-Vercel).
+> On **Vercel** (read-only filesystem) the wizard is replaced by an in-app guide — see [Deploy on Vercel](Deploy-on-Vercel).
 
-## Comandi utili
+## Useful commands
 
-| Comando | Cosa fa |
+| Command | What it does |
 |---|---|
-| `npm run dev` | Server di sviluppo |
-| `npm run build` | Build di produzione |
-| `npm run db:generate` | Genera il client Prisma per il provider attivo |
-| `npm run db:push` | Applica lo schema al database |
-| `npm run db:seed` | Crea il primo admin (deploy senza wizard) |
+| `npm run dev` | Development server |
+| `npm run build` | Production build |
+| `npm run db:generate` | Generate the Prisma client for the active provider |
+| `npm run db:push` | Apply the schema to the database |
+| `npm run db:seed` | Create the first admin (deploy without the wizard) |
 | `npm run lint` | ESLint |
 
-## Prossimi passi
+## Next steps
 
-- [Configuration](Configuration) — tutte le variabili d'ambiente
-- [Architecture](Architecture) — come funziona internamente
-- Crea il tuo primo evento da **/admin/events**
+- [Configuration](Configuration) — all environment variables
+- [Architecture](Architecture) — how it works internally
+- Create your first event from **/admin/events**

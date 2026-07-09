@@ -70,7 +70,7 @@ export async function POST(req: Request) {
 
   await writeAccessLog({
     type: AccessLogType.password_reset_request,
-    metadata: { userId: user.id, sent },
+    metadata: { userId: user.id, sent: sent.ok },
   });
 
   return NextResponse.json({ ok: true });

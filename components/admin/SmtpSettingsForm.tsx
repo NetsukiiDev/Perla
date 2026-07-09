@@ -127,7 +127,11 @@ export function SmtpSettingsForm() {
         body: JSON.stringify({}),
       });
       if (res.ok) setTestDone(true);
-      else setError(t.settings.smtp.errors.testFailed);
+      else {
+        const body = await res.json().catch(() => null);
+        const detail = body?.detail;
+        setError(detail ? t.settings.smtp.errors.testError.replace("{error}", detail) : t.settings.smtp.errors.testFailed);
+      }
     } catch {
       setError(t.settings.smtp.errors.testFailed);
     } finally {

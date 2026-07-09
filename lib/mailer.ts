@@ -68,12 +68,17 @@ export function smtpFromAddress(cfg: SmtpConfig): string {
   return cfg.fromEmail;
 }
 
-// Sends a single email using the configured SMTP server. Returns false when
-// SMTP is not usable (disabled, not configured, or a transient send error).
-export async function sendMail(input: SendMailInput): Promise<boolean> {
+export interface SendMailResult {
+  ok: boolean;
+  error?: string;
+}
+
+// Sends a single email using the configured SMTP server. Returns { ok: false }
+// when SMTP is not usable (disabled, not configured, or a transient send error).
+export async function sendMail(input: SendMailInput): Promise<SendMailResult> {
   const transport = await buildSmtpTransport();
   const cfg = await getSmtpConfig();
-  if (!transport || !cfg) return false;
+  if (!transport || !cfg) return { ok: false, error: "SMTP not configured or disabled" };
 
   try {
     await transport.sendMail({
@@ -83,9 +88,10 @@ export async function sendMail(input: SendMailInput): Promise<boolean> {
       text: input.text,
       html: input.html,
     });
-    return true;
+    return { ok: true };
   } catch (err) {
-    console.error("SMTP send failed", err);
-    return false;
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("SMTP send failed", message);
+    return { ok: false, error: message };
   }
 }

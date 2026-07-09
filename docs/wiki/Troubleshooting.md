@@ -2,33 +2,33 @@
 
 ## Deploy / Database
 
-| Sintomo | Causa | Soluzione |
+| Symptom | Cause | Fix |
 |---|---|---|
-| `ECONNRESET` / "Connessione fallita" | DB non raggiungibile da Vercel | Apri il firewall (IP Vercel) o usa un DB cloud |
-| `ENOENT: schema.prisma` | File tracing mancante | Usa l'ultima `next.config.ts` (già configurata) |
-| `DATABASE_URL not set` | `SETUP_DISABLED=true` ma `DATABASE_URL` mancante | Imposta la variabile su Vercel |
-| `prisma generate` fallisce | Provider non corrispondente | Controlla `DATABASE_PROVIDER` |
+| `ECONNRESET` / "connection failed" | DB not reachable from Vercel | Open the firewall (Vercel IPs) or use a cloud DB |
+| `ENOENT: schema.prisma` | Missing file tracing | Use the latest `next.config.ts` (already configured) |
+| `DATABASE_URL not set` | `SETUP_DISABLED=true` but `DATABASE_URL` missing | Set the variable on Vercel |
+| `prisma generate` fails | Provider mismatch | Check `DATABASE_PROVIDER` |
 
 ## Login / Setup
 
-| Sintomo | Causa | Soluzione |
+| Symptom | Cause | Fix |
 |---|---|---|
-| Errore `ADMIN_SESSION_SECRET is not set` al login | Segreti mancanti nel `.env` | Genera e aggiungi i 5 segreti (vedi [Configuration](Configuration)) |
-| Il sito reindirizza sempre a `/admin/setup` | Setup non completato | Completa il wizard, o su Vercel imposta le env + `SETUP_DISABLED=true` |
-| "Questo codice è già stato utilizzato" | Codice monouso già consumato da un altro dispositivo | Rigenera il codice, oppure usa un [codice pubblico](Public-Codes) |
+| `ADMIN_SESSION_SECRET is not set` at login | Secrets missing from `.env` | Generate and add the 5 secrets (see [Configuration](Configuration)) |
+| Site always redirects to `/admin/setup` | Setup not completed | Finish the wizard, or on Vercel set env vars + `SETUP_DISABLED=true` |
+| "This code has already been used" | One-time code consumed by another device | Regenerate the code, or use a [public code](Public-Codes) |
 
-## Impostazioni / Aggiornamenti
+## Settings / Updates
 
-| Sintomo | Causa | Soluzione |
+| Symptom | Cause | Fix |
 |---|---|---|
-| "Impossibile verificare gli aggiornamenti" in locale | VPN/antivirus che intercetta il TLS (`UNABLE_TO_VERIFY_LEAF_SIGNATURE`) | Non è un bug: funziona su Vercel. Disattiva l'intercettazione TLS se vuoi testarlo in locale |
-| La lingua non cambia | Cookie `locale` non impostato | Cambia lingua da **Impostazioni**; verifica che i cookie non siano bloccati |
+| "Unable to check for updates" locally | VPN/antivirus intercepting TLS (`UNABLE_TO_VERIFY_LEAF_SIGNATURE`) | Not a bug: works on Vercel. Disable TLS interception to test locally |
+| Language doesn't change | `locale` cookie not set | Change language from **Settings**; make sure cookies aren't blocked |
 
-## Routing / Percorso
+## Routing / Route
 
-| Sintomo | Causa | Soluzione |
+| Symptom | Cause | Fix |
 |---|---|---|
-| "Nessun percorso trovato" | Coordinate non stradabili o OSRM irraggiungibile | Verifica le coordinate; imposta un `OSRM_BASE_URL` self-hosted |
-| Pedaggio non mostrato | Provider ≠ OSRM, o toggle disattivato | Usa OSRM e abilita "Mostra autostrada e pedaggio" nell'evento |
+| "No route found" | Non-routable coordinates or OSRM unreachable | Check the coordinates; set a self-hosted `OSRM_BASE_URL` |
+| Toll not shown | Provider ≠ OSRM, or toggle disabled | Use OSRM and enable "Show highway and toll" on the event |
 
-Se il problema persiste, apri una [issue](https://github.com/NetsukiiDev/Perla/issues).
+If the problem persists, open an [issue](https://github.com/NetsukiiDev/Perla/issues).

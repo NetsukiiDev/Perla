@@ -6,6 +6,7 @@ import { Check, Download, ExternalLink, Globe, Loader2, Mail, RefreshCw, Triangl
 import { useLocale, useT } from "@/lib/i18n/context";
 import { LOCALES, type Locale } from "@/lib/i18n/config";
 import { SmtpSettingsForm } from "@/components/admin/SmtpSettingsForm";
+import { SiteLogSection } from "@/components/admin/SiteLogSection";
 
 interface VersionInfo {
   name: string;
@@ -170,6 +171,8 @@ export function SettingsPanel() {
         </div>
         <SmtpSettingsForm />
       </section>
+
+      <SiteLogSection />
 
       <section className="flex flex-col gap-3 border-t border-surface-border pt-6">
         <h2 className="text-sm font-semibold">{t.settings.info.section}</h2>

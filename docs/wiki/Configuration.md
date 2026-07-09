@@ -1,39 +1,39 @@
 # Configuration
 
-## Variabili d'ambiente
+## Environment variables
 
-### Obbligatorie
+### Required
 
-| Variabile | Scopo |
+| Variable | Purpose |
 |---|---|
-| `DATABASE_URL` | Stringa di connessione al database |
+| `DATABASE_URL` | Database connection string |
 | `DATABASE_PROVIDER` | `postgresql` \| `mysql` \| `mariadb` \| `mongodb` (default `postgresql`) |
-| `ENCRYPTION_KEY` | Chiave AES-256 (**base64, 32 byte**) per le coordinate cifrate |
-| `HASH_PEPPER` | Pepper per l'hash lookup dei codici (**hex, 32 byte**) |
-| `ADMIN_SESSION_SECRET` | Firma del cookie di sessione admin (**hex, 32 byte**) |
-| `PARTICIPANT_SESSION_SECRET` | Firma del cookie di sessione partecipante (**hex, 32 byte**) |
-| `CRON_SECRET` | Bearer token per `/api/cron/retention` (**hex, 32 byte**) |
+| `ENCRYPTION_KEY` | AES-256 key (**base64, 32 bytes**) for encrypted coordinates |
+| `HASH_PEPPER` | Pepper for code hash lookup (**hex, 32 bytes**) |
+| `ADMIN_SESSION_SECRET` | Admin session cookie signing secret (**hex, 32 bytes**) |
+| `PARTICIPANT_SESSION_SECRET` | Participant session cookie signing secret (**hex, 32 bytes**) |
+| `CRON_SECRET` | Bearer token for `/api/cron/retention` (**hex, 32 bytes**) |
 
-Genera i segreti:
+Generate the secrets:
 
 ```bash
 openssl rand -base64 32   # ENCRYPTION_KEY
-openssl rand -hex 32      # gli altri segreti
+openssl rand -hex 32      # the other secrets
 ```
 
-> ⚠️ `ENCRYPTION_KEY` e `HASH_PEPPER` vanno **mantenuti stabili**: cambiarli rende illeggibili i dati già cifrati/hashati.
+> ⚠️ Keep `ENCRYPTION_KEY` and `HASH_PEPPER` **stable**: changing them makes already-encrypted/hashed data unreadable.
 
-### Opzionali
+### Optional
 
-| Variabile | Default | Scopo |
+| Variable | Default | Purpose |
 |---|---|---|
 | `ROUTE_PROVIDER` | `osrm` | `osrm` \| `openrouteservice` \| `google-routes` |
-| `OSRM_BASE_URL` / `OSRM_PROFILE` | server pubblico / `driving` | Endpoint OSRM |
-| `OPENROUTESERVICE_API_KEY` / `*_BASE_URL` / `*_PROFILE` | — | Config openrouteservice |
-| `GOOGLE_ROUTES_API_KEY` / `*_BASE_URL` / `*_TRAVEL_MODE` | — | Config Google Routes |
-| `TOLL_ESTIMATE_EUR_PER_KM` | `0.08` | Tariffa media per la [stima pedaggio](Toll-Estimate) |
-| `LOCATION_RETENTION_HOURS` | `24` | TTL delle posizioni temporanee |
-| `SETUP_DISABLED` | — | `"true"` per bypassare il wizard (serverless/prod) |
+| `OSRM_BASE_URL` / `OSRM_PROFILE` | public server / `driving` | OSRM endpoint |
+| `OPENROUTESERVICE_API_KEY` / `*_BASE_URL` / `*_PROFILE` | — | openrouteservice config |
+| `GOOGLE_ROUTES_API_KEY` / `*_BASE_URL` / `*_TRAVEL_MODE` | — | Google Routes config |
+| `TOLL_ESTIMATE_EUR_PER_KM` | `0.08` | Average tariff for the [toll estimate](Toll-Estimate) |
+| `LOCATION_RETENTION_HOURS` | `24` | TTL for temporary positions |
+| `SETUP_DISABLED` | — | `"true"` to bypass the wizard (serverless/prod) |
 
 ## Database
 
@@ -42,17 +42,17 @@ openssl rand -hex 32      # gli altri segreti
 | PostgreSQL | `postgresql` | `@prisma/adapter-pg` |
 | MySQL | `mysql` | `@prisma/adapter-mariadb` |
 | MariaDB | `mariadb` | `@prisma/adapter-mariadb` |
-| MongoDB | `mongodb` | Nessuno (driver nativo) |
+| MongoDB | `mongodb` | None (native driver) |
 
-Cambiare provider dopo l'avvio:
+Switch provider after first run:
 
 ```bash
 DATABASE_PROVIDER=mariadb npm run db:generate
 DATABASE_PROVIDER=mariadb npm run db:push
 ```
 
-Lo script `scripts/prisma-provider.mjs` adatta lo schema Prisma al provider scelto (per MongoDB rimuove `@db.*` e converte `onDelete: SetNull` → `NoAction`).
+`scripts/prisma-provider.mjs` adapts the Prisma schema to the chosen provider (for MongoDB it strips `@db.*` and converts `onDelete: SetNull` → `NoAction`).
 
-## Provider di routing
+## Routing providers
 
-Tutti i provider implementano la stessa interfaccia `RouteProvider` (`lib/route-provider/types.ts`). La suddivisione in tappe lavora sulla **polyline reale** e forza l'ultima tappa a coincidere con la destinazione cifrata. Solo OSRM popola anche i dati per la [stima pedaggio](Toll-Estimate).
+All providers implement the same `RouteProvider` interface (`lib/route-provider/types.ts`). Waypoint splitting works on the **real polyline** and forces the last stop to match the encrypted destination. Only OSRM also populates data for the [toll estimate](Toll-Estimate).

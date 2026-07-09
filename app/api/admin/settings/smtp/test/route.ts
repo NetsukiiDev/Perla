@@ -22,15 +22,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "invalid" }, { status: 400 });
   }
 
-  const ok = await sendMail({
+  const result = await sendMail({
     to,
     subject: `[Perla] ${t.settings.smtp.testSent}`,
     text: t.settings.smtp.testSent,
     html: `<p>${t.settings.smtp.testSent}</p>`,
   });
 
-  if (!ok) {
-    return NextResponse.json({ error: "test_failed" }, { status: 502 });
+  if (!result.ok) {
+    return NextResponse.json({ error: "test_failed", detail: result.error ?? null }, { status: 502 });
   }
   return NextResponse.json({ ok: true });
 }

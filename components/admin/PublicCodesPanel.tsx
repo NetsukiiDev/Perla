@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Ban, ExternalLink, Globe, QrCode, Trash2, X } from "lucide-react";
+import { ExternalLink, Globe, QrCode, Trash2, X } from "lucide-react";
 import { CopyButton } from "./CopyButton";
 import { iconButtonClass } from "./IconButton";
 import { codeAccessPath } from "@/lib/code-access-link";
@@ -61,12 +61,13 @@ export function PublicCodesPanel({
     }
   }
 
-  async function revoke(id: string) {
-    if (!window.confirm(t.codes.public.confirm.revoke)) return;
+  async function toggleActive(id: string, currentStatus: string) {
+    const turningOff = currentStatus !== "revoked";
+    if (turningOff && !window.confirm(t.codes.public.confirm.revoke)) return;
     await fetch(`/api/admin/codes/${id}/status`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ active: false }),
+      body: JSON.stringify({ active: turningOff ? false : true }),
     });
     router.refresh();
   }
@@ -154,6 +155,16 @@ export function PublicCodesPanel({
                       <span className="flex items-center gap-2">
                         <span className="font-mono tracking-widest">{c.code}</span>
                         <CopyButton value={c.code} />
+                        <button
+                          type="button"
+                          title={t.codes.public.actions.qr}
+                          aria-label={t.codes.public.actions.qr}
+                          onClick={() => setQrCode(c.code)}
+                          className={iconButtonClass()}
+                        >
+                          <QrCode size={16} aria-hidden="true" />
+                          <span className="sr-only">{t.codes.public.actions.qr}</span>
+                        </button>
                         <a
                           href={accessUrlFor(c.code)}
                           target="_blank"
@@ -182,30 +193,25 @@ export function PublicCodesPanel({
                   </td>
                   <td className="px-4 py-2 text-right">
                     <div className="flex justify-end gap-2">
-                      {c.code && (
-                        <button
-                          type="button"
-                          title={t.codes.public.actions.qr}
-                          aria-label={t.codes.public.actions.qr}
-                          onClick={() => setQrCode(c.code)}
-                          className={iconButtonClass()}
-                        >
-                          <QrCode size={16} aria-hidden="true" />
-                          <span className="sr-only">{t.codes.public.actions.qr}</span>
-                        </button>
-                      )}
-                      {c.status !== "revoked" && (
-                        <button
-                          type="button"
-                          title={t.codes.public.actions.revoke}
-                          aria-label={t.codes.public.actions.revoke}
-                          onClick={() => void revoke(c.id)}
-                          className={iconButtonClass()}
-                        >
-                          <Ban size={16} aria-hidden="true" />
-                          <span className="sr-only">{t.codes.public.actions.revoke}</span>
-                        </button>
-                      )}
+                      <button
+                        type="button"
+                        title={c.status === "revoked" ? t.codes.public.actions.activate : t.codes.public.actions.revoke}
+                        aria-label={c.status === "revoked" ? t.codes.public.actions.activate : t.codes.public.actions.revoke}
+                        onClick={() => void toggleActive(c.id, c.status)}
+                        className={`inline-flex h-8 w-14 items-center rounded-full border px-1 transition-colors ${
+                          c.status === "revoked"
+                            ? "border-surface-border bg-surface text-muted"
+                            : "border-emerald-500/40 bg-emerald-500/20 text-emerald-400"
+                        }`}
+                      >
+                        <span
+                          className={`h-5 w-5 rounded-full transition-transform ${
+                            c.status === "revoked"
+                              ? "translate-x-0 bg-muted"
+                              : "translate-x-6 bg-emerald-400"
+                          }`}
+                        />
+                      </button>
                       <button
                         type="button"
                         title={t.codes.public.actions.delete}

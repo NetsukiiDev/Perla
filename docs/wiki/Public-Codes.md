@@ -1,33 +1,33 @@
 # Public Codes
 
-Oltre ai codici **monouso** (uno per partecipante, legati al dispositivo), PERLA supporta i **codici pubblici**: un unico codice riusabile da **più persone**, **senza scadenza**, con un **tetto massimo** di utilizzi.
+Besides **one-time** codes (one per participant, device-bound), PERLA supports **public codes**: a single code reusable by **many people**, with **no expiry** and a **maximum usage cap**.
 
-## Come funziona
+## How it works
 
-- Ogni persona/dispositivo che usa il codice pubblico diventa un partecipante **"Ospite"** separato, tracciato singolarmente nella dashboard live.
-- Il codice **non si consuma**: resta valido finché non lo revochi o raggiungi il tetto massimo.
-- Ogni dispositivo resta legato alla propria sessione (una persona non può passare la caccia a metà a un altro dispositivo).
+- Each person/device that uses the public code becomes a separate **"Guest"** participant, tracked individually on the live dashboard.
+- The code is **never consumed**: it stays valid until you revoke it or the usage cap is reached.
+- Each device stays bound to its own session (a person can't hand off a half-finished hunt to another device).
 
-## Crearne uno
+## Create one
 
-Dalla pagina **Partecipanti** di un evento → riquadro **"Codici pubblici"**:
+From an event's **Participants** page → **"Public codes"** panel:
 
-1. Imposta gli **Utilizzi massimi** (es. `100`).
-2. Clicca **Crea codice pubblico**.
-3. Condividi il codice o il link/QR.
+1. Set the **maximum uses** (e.g. `100`).
+2. Click **Create public code**.
+3. Share the code, link or QR.
 
-La tabella mostra per ogni codice: **utilizzi (usati / max)**, stato (*Attivo · senza scadenza* / *Revocato*), e le azioni **revoca** ed **elimina**.
+The table shows, per code: **uses (used / max)**, status (*Active · no expiry* / *Revoked*), and the **revoke** and **delete** actions.
 
-## Sotto il cofano
+## Under the hood
 
-| Elemento | Dettaglio |
+| Item | Detail |
 |---|---|
-| Schema | `InviteCode.isPublic = true`, `participantId = null`, `maxSessions` = tetto |
+| Schema | `InviteCode.isPublic = true`, `participantId = null`, `maxSessions` = cap |
 | Endpoint | `POST /api/admin/codes/public` |
-| Avvio sessione | `app/api/session/start` crea un partecipante "Ospite" per dispositivo, senza consumare il codice |
-| Risoluzione | `lib/code-resolution.ts` risolve **per dispositivo**: mai "già usato" per gli altri, cap applicato ai nuovi |
+| Session start | `app/api/session/start` creates a "Guest" participant per device, without consuming the code |
+| Resolution | `lib/code-resolution.ts` resolves **per device**: never "already used" for others, cap enforced for new devices |
 
-## Note
+## Notes
 
-- I partecipanti "Ospite" compaiono nella lista partecipanti e nella dashboard live come righe separate.
-- Revocare il codice blocca i **nuovi** accessi; le sessioni già avviate restano.
+- "Guest" participants appear in the participants list and live dashboard as separate rows.
+- Revoking a code blocks **new** entries; sessions already started remain.
