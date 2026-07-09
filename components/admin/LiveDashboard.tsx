@@ -10,7 +10,8 @@ import { CopyButton } from "./CopyButton";
 import { CodeStatusToggle } from "./CodeStatusToggle";
 import { iconButtonClass } from "./IconButton";
 import { codeAccessPath } from "@/lib/code-access-link";
-import { DISPLAY_STATUS_LABELS, inviteCodeStatusLabel, type DisplayStatus } from "@/lib/status";
+import { getDisplayStatusLabels, inviteCodeStatusLabel, type DisplayStatus } from "@/lib/status";
+import { useT } from "@/lib/i18n/context";
 
 const LiveMap = dynamic(() => import("./LiveMap").then((m) => m.LiveMap), { ssr: false });
 
@@ -48,6 +49,8 @@ function formatCoords(value: { lat: number; lng: number } | null): string {
 }
 
 export function LiveDashboard({ eventId }: { eventId: string }) {
+  const t = useT();
+  const labels = getDisplayStatusLabels(t);
   const [rows, setRows] = useState<LiveRow[] | null>(null);
   const [eventLocation, setEventLocation] = useState<EventLocation | null>(null);
   const [search, setSearch] = useState("");
@@ -175,7 +178,7 @@ export function LiveDashboard({ eventId }: { eventId: string }) {
                   )}
                 </td>
                 <td className="px-4 py-3">
-                  <StatusBadge value={r.displayStatus} label={DISPLAY_STATUS_LABELS[r.displayStatus] ?? r.displayStatus} />
+                  <StatusBadge value={r.displayStatus} label={labels[r.displayStatus] ?? r.displayStatus} />
                 </td>
                 <td className="px-4 py-3 text-muted">{r.currentStep ? `${r.currentStep} di ${r.stepsCount}` : "N/D"}</td>
                 <td className="px-4 py-3">
@@ -190,7 +193,7 @@ export function LiveDashboard({ eventId }: { eventId: string }) {
                   {r.codeId ? (
                     <div className="flex flex-col items-start gap-1">
                       <CodeStatusToggle codeId={r.codeId} codeStatus={r.codeStatus} compact onChanged={refresh} />
-                      <span className="text-xs text-muted">{inviteCodeStatusLabel(r.codeStatus)}</span>
+                      <span className="text-xs text-muted">{inviteCodeStatusLabel(r.codeStatus, t)}</span>
                     </div>
                   ) : (
                     <span className="text-muted">N/D</span>

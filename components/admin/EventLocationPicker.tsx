@@ -7,6 +7,7 @@ import { MapsTileLayer, type MapStyle } from "@/components/shared/MapsTileLayer"
 import { MapStyleToggle } from "@/components/shared/MapStyleToggle";
 import { parseGoogleMapsUrl, isGoogleShortUrl } from "@/lib/parse-maps-url";
 import { Search, MapPin } from "lucide-react";
+import { useT } from "@/lib/i18n/context";
 
 interface Suggestion {
   label: string;
@@ -63,6 +64,7 @@ function extractCoords(input: string): { lat: number; lng: number } | null {
 }
 
 export function EventLocationPicker({ lat, lng, onChange }: EventLocationPickerProps) {
+  const t = useT();
   const selected = hasPosition(lat, lng);
   const selectedLat = selected ? (lat as number) : null;
   const selectedLng = selected ? (lng as number) : null;
@@ -188,7 +190,7 @@ export function EventLocationPicker({ lat, lng, onChange }: EventLocationPickerP
           lookupUrl = data.resolvedUrl;
         }
       } catch {
-        setSearchError("Impossibile risolvere il link.");
+        setSearchError(t.events.locationPicker.errors.resolve);
         setSearching(false);
         return;
       }
@@ -205,14 +207,14 @@ export function EventLocationPicker({ lat, lng, onChange }: EventLocationPickerP
         onChange(Number(data[0].lat), Number(data[0].lon));
         setSearchInput("");
       } else {
-        setSearchError("Nessuna posizione trovata. Prova con latitudine, longitudine.");
+        setSearchError(t.events.locationPicker.errors.notFound);
       }
     } catch {
-      setSearchError("Ricerca fallita. Riprova.");
+      setSearchError(t.events.locationPicker.errors.failed);
     }
 
     setSearching(false);
-  }, [searchInput, onChange]);
+  }, [searchInput, onChange, t]);
 
   return (
     <div className="flex flex-col gap-2">
@@ -242,7 +244,7 @@ export function EventLocationPicker({ lat, lng, onChange }: EventLocationPickerP
           onKeyDown={handleInputKeyDown}
           onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
           onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
-          placeholder="Link Google Maps, coordinate (lat, lng) o nome luogo..."
+          placeholder={t.events.locationPicker.placeholder}
           className="w-full rounded-lg border border-surface-border bg-background px-3 py-2 pr-9 text-sm text-foreground focus:border-foreground focus:outline-none"
         />
         <button
@@ -250,7 +252,7 @@ export function EventLocationPicker({ lat, lng, onChange }: EventLocationPickerP
           onClick={handleSearch}
           disabled={searching || !searchInput.trim()}
           className="absolute right-1 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-muted hover:text-foreground disabled:opacity-40"
-          title="Cerca"
+          title={t.events.locationPicker.search}
         >
           {searching ? (
             <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />

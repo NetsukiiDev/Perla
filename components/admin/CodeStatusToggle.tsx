@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ToggleLeft, ToggleRight } from "lucide-react";
+import { useT } from "@/lib/i18n/context";
 
 const INACTIVE_CODE_STATUSES = new Set(["revoked", "blocked", "deleted", "expired"]);
 
@@ -22,10 +23,11 @@ export function CodeStatusToggle({
   compact?: boolean;
   onChanged: () => void;
 }) {
+  const t = useT();
   const [pending, setPending] = useState(false);
   const active = isCodeActive(codeStatus);
-  const label = active ? "Attivato" : "Disattivato";
-  const nextLabel = active ? "Disattiva codice" : "Attiva codice";
+  const label = active ? t.codes.statusToggle.active : t.codes.statusToggle.inactive;
+  const nextLabel = active ? t.codes.statusToggle.deactivate : t.codes.statusToggle.activate;
   const Icon = active ? ToggleRight : ToggleLeft;
 
   async function toggle() {

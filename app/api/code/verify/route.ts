@@ -5,7 +5,8 @@
 import { NextResponse } from "next/server";
 import { writeAccessLog } from "@/lib/access-log";
 import { evaluateInviteCodeState } from "@/lib/code-resolution";
-import { DEFAULTS, ERROR_MESSAGES } from "@/lib/constants";
+import { DEFAULTS, getErrorMessages } from "@/lib/constants";
+import { getLocale, getDictionary } from "@/lib/i18n/server";
 import { prisma } from "@/lib/db";
 import { AccessLogType } from "@/lib/generated/prisma/client";
 import { hashCodeWithPepper, normalizeCode } from "@/lib/hash";
@@ -56,17 +57,20 @@ function successResponse(req: Request, codeReq: CodeVerifyRequest) {
 }
 
 export async function POST(req: Request) {
+  const locale = await getLocale();
+  const t = getDictionary(locale);
+  const E = getErrorMessages(t);
   const codeReq = await readCodeVerifyRequest(req);
 
   const ip = getClientIp(req);
   const limit = rateLimit(rateLimitKey(ip, "code-verify"), { windowMs: 5 * 60_000, max: 10 });
   if (!limit.allowed) {
-    return failureResponse(req, codeReq, "rate_limited", ERROR_MESSAGES.INVALID_CODE, 429);
+    return failureResponse(req, codeReq, "rate_limited", E.INVALID_CODE, 429);
   }
 
   const parsed = codeVerifySchema.safeParse(codeReq.body);
   if (!parsed.success) {
-    return failureResponse(req, codeReq, "invalid", ERROR_MESSAGES.INVALID_CODE, 400);
+    return failureResponse(req, codeReq, "invalid", E.INVALID_CODE, 400);
   }
 
   const normalizedCode = normalizeCode(parsed.data.code);
@@ -79,7 +83,7 @@ export async function POST(req: Request) {
 
   if (!inviteCode) {
     await writeAccessLog({ type: AccessLogType.code_verify_invalid });
-    return failureResponse(req, codeReq, "invalid", ERROR_MESSAGES.INVALID_CODE);
+    return failureResponse(req, codeReq, "invalid", E.INVALID_CODE);
   }
 
   await getOrCreateDeviceToken();
@@ -91,7 +95,7 @@ export async function POST(req: Request) {
     inviteCodeId: inviteCode.id,
   });
 
-  const state = await evaluateInviteCodeState(inviteCode, inviteCode.event, normalizedCode);
+  const state = await evaluateInviteCodeState(inviteCode, inviteCode.event, t, normalizedCode);
 
   if (state.kind === "not_available") {
     await writeAccessLog({
@@ -100,7 +104,7 @@ export async function POST(req: Request) {
       participantId: inviteCode.participantId,
       inviteCodeId: inviteCode.id,
     });
-    return failureResponse(req, codeReq, "not_available", ERROR_MESSAGES.CODE_NOT_AVAILABLE);
+    return failureResponse(req, codeReq, "not_available", E.CODE_NOT_AVAILABLE);
   }
 
   if (state.kind === "already_used") {
@@ -110,7 +114,7 @@ export async function POST(req: Request) {
       participantId: inviteCode.participantId,
       inviteCodeId: inviteCode.id,
     });
-    return failureResponse(req, codeReq, "already_used", ERROR_MESSAGES.ALREADY_USED);
+    return failureResponse(req, codeReq, "already_used", E.ALREADY_USED);
   }
 
   if (state.kind === "not_yet_available") {

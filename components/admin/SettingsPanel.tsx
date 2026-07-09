@@ -37,9 +37,24 @@ export function SettingsPanel() {
     }
   }, []);
 
+  // Load on mount without a synchronous setState in the effect body: state is
+  // updated only after the fetch resolves. `loadingVersion` already starts true.
   useEffect(() => {
-    void loadVersion();
-  }, [loadVersion]);
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/admin/version");
+        if (!cancelled && res.ok) setInfo(await res.json());
+      } catch {
+        /* ignore — UI shows N/A */
+      } finally {
+        if (!cancelled) setLoadingVersion(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   async function changeLocale(next: Locale) {
     if (next === locale) return;

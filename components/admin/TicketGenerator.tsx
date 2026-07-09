@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent 
 import { useRouter } from "next/navigation";
 import { CheckSquare, FilePlus2, ImageOff, Loader2, Printer, Ticket, Upload } from "lucide-react";
 import { codeAccessPath } from "@/lib/code-access-link";
+import { useT } from "@/lib/i18n/context";
 
 export interface TicketEntry {
   id: string;
@@ -71,6 +72,7 @@ function googleFontUrl(spec: string): string {
 
 export function TicketGenerator({ eventId, event, initialBaseUrl, entries }: TicketGeneratorProps) {
   const router = useRouter();
+  const t = useT();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Selection / creation
@@ -220,7 +222,7 @@ export function TicketGenerator({ eventId, event, initialBaseUrl, entries }: Tic
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) {
-        setError("Non sono riuscito a creare i codici in massa.");
+        setError(t.ticketGenerator.errors.createFailed);
         return;
       }
       setSelectedCodeIds((data.participants as TicketEntry[]).map((p) => p.codeId as string));
@@ -312,7 +314,7 @@ export function TicketGenerator({ eventId, event, initialBaseUrl, entries }: Tic
             wordBreak: "break-word",
           }}
         >
-          {displayText || "IL TUO TESTO QUI"}
+          {displayText || t.ticketGenerator.previewFallback}
         </div>
       </div>
     );
@@ -370,7 +372,7 @@ export function TicketGenerator({ eventId, event, initialBaseUrl, entries }: Tic
       <html lang="it">
         <head>
           <meta charset="utf-8" />
-          <title>${escapeHtml(event.internalName)} - Biglietti</title>
+          <title>${escapeHtml(event.internalName)} - ${escapeHtml(t.ticketGenerator.printTitle)}</title>
           ${fontLink}
           <style>
             @page { size: A4 ${pageOrientation}; margin: ${PAGE_MARGIN_MM}mm; }
@@ -429,8 +431,8 @@ export function TicketGenerator({ eventId, event, initialBaseUrl, entries }: Tic
         </head>
         <body>
           <div class="toolbar">
-            <span>${selectedEntries.length} biglietti - A4</span>
-            <button onclick="window.print()">Stampa</button>
+            <span>${t.ticketGenerator.printInfo.replace("{count}", String(selectedEntries.length))}</span>
+            <button onclick="window.print()">${t.ticketGenerator.print}</button>
           </div>
           <main class="sheet">
             <section class="grid">${cards}</section>
@@ -445,12 +447,12 @@ export function TicketGenerator({ eventId, event, initialBaseUrl, entries }: Tic
   function printSheet() {
     if (selectedEntries.length === 0) return;
     if (qrTarget === "link" && !normalizedBaseUrl(baseUrl)) {
-      setError("Imposta il link base prima di stampare QR con link.");
+      setError(t.ticketGenerator.errors.baseUrlMissing);
       return;
     }
     const printWindow = window.open("", "_blank", "width=980,height=1200");
     if (!printWindow) {
-      setError("Popup bloccato: abilita le finestre popup per stampare i biglietti.");
+      setError(t.ticketGenerator.errors.popupBlocked);
       return;
     }
     printWindow.document.open();
@@ -465,10 +467,10 @@ export function TicketGenerator({ eventId, event, initialBaseUrl, entries }: Tic
           <div>
             <h2 className="flex items-center gap-2 text-sm font-semibold">
               <Ticket size={17} aria-hidden="true" />
-              Generatore biglietti
+              {t.ticketGenerator.title}
             </h2>
             <p className="mt-1 text-xs text-muted">
-              Personalizza il biglietto (QR + testo/immagine) e stampalo per i partecipanti selezionati.
+              {t.ticketGenerator.description}
             </p>
           </div>
           <button
@@ -478,17 +480,17 @@ export function TicketGenerator({ eventId, event, initialBaseUrl, entries }: Tic
             className="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3 text-sm font-medium text-accent-foreground disabled:opacity-50"
           >
             <Printer size={16} aria-hidden="true" />
-            Stampa {selectedEntries.length > 0 ? `(${selectedEntries.length})` : ""}
+            {t.ticketGenerator.print}{selectedEntries.length > 0 ? ` (${selectedEntries.length})` : ""}
           </button>
         </div>
 
         <form onSubmit={createBulk} className="grid gap-3 md:grid-cols-[130px_minmax(0,1fr)_auto]">
           <label className="flex flex-col gap-1">
-            <span className="text-xs uppercase tracking-wide text-muted">Quantita</span>
+            <span className="text-xs uppercase tracking-wide text-muted">{t.ticketGenerator.quantity}</span>
             <input type="number" min={1} max={200} value={count} onChange={(e) => setCount(Number(e.target.value))} className={inputClass} />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs uppercase tracking-wide text-muted">Prefisso username</span>
+            <span className="text-xs uppercase tracking-wide text-muted">{t.ticketGenerator.usernamePrefix}</span>
             <input value={displayNamePrefix} onChange={(e) => setDisplayNamePrefix(e.target.value)} className={inputClass} />
           </label>
           <button
@@ -497,18 +499,18 @@ export function TicketGenerator({ eventId, event, initialBaseUrl, entries }: Tic
             className="inline-flex h-10 items-center justify-center gap-2 self-end rounded-lg border border-surface-border px-4 text-sm text-muted hover:text-foreground disabled:opacity-50"
           >
             {creating ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <FilePlus2 size={16} aria-hidden="true" />}
-            Crea nuovi codici
+            {t.ticketGenerator.createCodes}
           </button>
         </form>
 
         <div className="flex flex-wrap items-center gap-3 text-sm">
           <label className="inline-flex items-center gap-2">
             <input type="checkbox" checked={allSelected} onChange={(e) => toggleAll(e.target.checked)} className={checkboxClass} />
-            Seleziona tutti ({usableEntries.length})
+            {t.ticketGenerator.selectAll} ({usableEntries.length})
           </label>
           {activeSelectedCodeIds.length > 0 && (
             <span className="inline-flex items-center gap-1 text-muted">
-              <CheckSquare size={14} aria-hidden="true" /> {activeSelectedCodeIds.length} selezionati
+              <CheckSquare size={14} aria-hidden="true" /> {t.ticketGenerator.selectedCount.replace("{count}", String(activeSelectedCodeIds.length))}
             </span>
           )}
         </div>
@@ -527,12 +529,12 @@ export function TicketGenerator({ eventId, event, initialBaseUrl, entries }: Tic
                     />
                   </td>
                   <td className="px-3 py-2 font-mono tracking-widest">{entry.code}</td>
-                  <td className="px-3 py-2 text-muted">{entry.displayName ?? "N/D"}</td>
+                  <td className="px-3 py-2 text-muted">{entry.displayName ?? t.ticketGenerator.na}</td>
                 </tr>
               ))}
               {usableEntries.length === 0 && (
                 <tr>
-                  <td className="px-3 py-4 text-center text-muted">Nessun codice disponibile. Creane di nuovi qui sopra.</td>
+                  <td className="px-3 py-4 text-center text-muted">                  {t.ticketGenerator.empty}</td>
                 </tr>
               )}
             </tbody>
@@ -543,14 +545,14 @@ export function TicketGenerator({ eventId, event, initialBaseUrl, entries }: Tic
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
         <section className="flex flex-col gap-4 rounded-lg border border-surface-border p-4">
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-muted">Testo</h3>
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-muted">{t.ticketGenerator.text}</h3>
           <label className="flex flex-col gap-1">
-            <span className="text-xs uppercase tracking-wide text-muted">Contenuto (a capo = nuova riga)</span>
+            <span className="text-xs uppercase tracking-wide text-muted">{t.ticketGenerator.content}</span>
             <textarea value={text} onChange={(e) => setText(e.target.value)} rows={3} className={inputClass} />
           </label>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="flex flex-col gap-1">
-              <span className="text-xs uppercase tracking-wide text-muted">Font</span>
+              <span className="text-xs uppercase tracking-wide text-muted">{t.ticketGenerator.font}</span>
               <select value={fontChoice} onChange={(e) => setFontChoice(e.target.value)} className={inputClass}>
                 {FONT_OPTIONS.map((f) => (
                   <option key={f.value} value={f.value}>
@@ -561,12 +563,12 @@ export function TicketGenerator({ eventId, event, initialBaseUrl, entries }: Tic
             </label>
             {fontChoice === "__custom__" && (
               <label className="flex flex-col gap-1">
-                <span className="text-xs uppercase tracking-wide text-muted">Nome font Google Fonts</span>
+                <span className="text-xs uppercase tracking-wide text-muted">{t.ticketGenerator.font}</span>
                 <input value={customFontName} onChange={(e) => setCustomFontName(e.target.value)} placeholder="es. Anton" className={inputClass} />
               </label>
             )}
             <label className="flex flex-col gap-1">
-              <span className="text-xs uppercase tracking-wide text-muted">Peso</span>
+              <span className="text-xs uppercase tracking-wide text-muted">{t.ticketGenerator.weight}</span>
               <select value={fontWeight} onChange={(e) => setFontWeight(Number(e.target.value))} className={inputClass}>
                 {[400, 500, 600, 700, 800, 900].map((w) => (
                   <option key={w} value={w}>
@@ -576,27 +578,27 @@ export function TicketGenerator({ eventId, event, initialBaseUrl, entries }: Tic
               </select>
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs uppercase tracking-wide text-muted">Allineamento</span>
+              <span className="text-xs uppercase tracking-wide text-muted">{t.ticketGenerator.alignment}</span>
               <select value={textAlign} onChange={(e) => setTextAlign(e.target.value as typeof textAlign)} className={inputClass}>
-                <option value="left">Sinistra</option>
-                <option value="center">Centro</option>
-                <option value="right">Destra</option>
+                <option value="left">{t.ticketGenerator.alignLeft}</option>
+                <option value="center">{t.ticketGenerator.alignCenter}</option>
+                <option value="right">{t.ticketGenerator.alignRight}</option>
               </select>
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs uppercase tracking-wide text-muted">Colore testo</span>
+              <span className="text-xs uppercase tracking-wide text-muted">{t.ticketGenerator.textColor}</span>
               <input type="color" value={textColor} onChange={(e) => setTextColor(e.target.value)} className="h-10 rounded-lg border border-surface-border bg-background p-1" />
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs uppercase tracking-wide text-muted">Spaziatura lettere (em)</span>
+              <span className="text-xs uppercase tracking-wide text-muted">{t.ticketGenerator.letterSpacing}</span>
               <input type="number" step={0.01} value={letterSpacing} onChange={(e) => setLetterSpacing(Number(e.target.value))} className={inputClass} />
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs uppercase tracking-wide text-muted">Altezza riga</span>
+              <span className="text-xs uppercase tracking-wide text-muted">{t.ticketGenerator.lineHeight}</span>
               <input type="number" step={0.05} min={0.7} max={1.6} value={lineHeight} onChange={(e) => setLineHeight(Number(e.target.value))} className={inputClass} />
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs uppercase tracking-wide text-muted">Dimensione (mm)</span>
+              <span className="text-xs uppercase tracking-wide text-muted">{t.ticketGenerator.fontSize}</span>
               <input
                 type="number"
                 min={2}
@@ -611,29 +613,29 @@ export function TicketGenerator({ eventId, event, initialBaseUrl, entries }: Tic
           <div className="flex flex-wrap gap-x-4 gap-y-2">
             <label className="inline-flex items-center gap-2 text-sm text-muted">
               <input type="checkbox" checked={uppercaseText} onChange={(e) => setUppercaseText(e.target.checked)} className={checkboxClass} />
-              Maiuscolo
+              {t.ticketGenerator.uppercase}
             </label>
             <label className="inline-flex items-center gap-2 text-sm text-muted">
               <input type="checkbox" checked={autoFitFont} onChange={(e) => setAutoFitFont(e.target.checked)} className={checkboxClass} />
-              Adatta dimensione automaticamente
+              {t.ticketGenerator.autoFit}
             </label>
           </div>
 
-          <h3 className="mt-2 text-xs font-semibold uppercase tracking-wide text-muted">Sfondo</h3>
+          <h3 className="mt-2 text-xs font-semibold uppercase tracking-wide text-muted">{t.ticketGenerator.background}</h3>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="flex flex-col gap-1">
-              <span className="text-xs uppercase tracking-wide text-muted">Colore sfondo</span>
+              <span className="text-xs uppercase tracking-wide text-muted">{t.ticketGenerator.bgColor}</span>
               <input type="color" value={bgColor} onChange={(e) => setBgColor(e.target.value)} className="h-10 rounded-lg border border-surface-border bg-background p-1" />
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs uppercase tracking-wide text-muted">Adattamento immagine</span>
+              <span className="text-xs uppercase tracking-wide text-muted">{t.ticketGenerator.imageFit}</span>
               <select value={bgImageFit} onChange={(e) => setBgImageFit(e.target.value as typeof bgImageFit)} className={inputClass} disabled={!bgImage}>
-                <option value="cover">Riempi (cover)</option>
-                <option value="contain">Contieni (contain)</option>
+                <option value="cover">{t.ticketGenerator.fitCover}</option>
+                <option value="contain">{t.ticketGenerator.fitContain}</option>
               </select>
             </label>
             <label className="flex flex-col gap-1 sm:col-span-2">
-              <span className="text-xs uppercase tracking-wide text-muted">Oscuramento immagine ({bgDim}%)</span>
+              <span className="text-xs uppercase tracking-wide text-muted">{t.ticketGenerator.imageDarken} ({bgDim}%)</span>
               <input type="range" min={0} max={90} value={bgDim} onChange={(e) => setBgDim(Number(e.target.value))} disabled={!bgImage} />
             </label>
           </div>
@@ -645,7 +647,7 @@ export function TicketGenerator({ eventId, event, initialBaseUrl, entries }: Tic
               className="inline-flex h-9 items-center gap-2 rounded-lg border border-surface-border px-3 text-sm text-muted hover:text-foreground"
             >
               <Upload size={16} aria-hidden="true" />
-              Carica immagine
+              {t.ticketGenerator.uploadImage}
             </button>
             {bgImage && (
               <button
@@ -654,117 +656,117 @@ export function TicketGenerator({ eventId, event, initialBaseUrl, entries }: Tic
                 className="inline-flex h-9 items-center gap-2 rounded-lg border border-surface-border px-3 text-sm text-muted hover:text-foreground"
               >
                 <ImageOff size={16} aria-hidden="true" />
-                Rimuovi immagine
+                {t.ticketGenerator.removeImage}
               </button>
             )}
           </div>
 
-          <h3 className="mt-2 text-xs font-semibold uppercase tracking-wide text-muted">QR code</h3>
+          <h3 className="mt-2 text-xs font-semibold uppercase tracking-wide text-muted">{t.ticketGenerator.qrCode}</h3>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="flex flex-col gap-1">
-              <span className="text-xs uppercase tracking-wide text-muted">Contenuto QR</span>
+              <span className="text-xs uppercase tracking-wide text-muted">{t.ticketGenerator.qrContent}</span>
               <select value={qrTarget} onChange={(e) => setQrTarget(e.target.value as typeof qrTarget)} className={inputClass}>
-                <option value="link">Link accesso</option>
-                <option value="code">Solo codice</option>
+                <option value="link">{t.ticketGenerator.qrLink}</option>
+                <option value="code">{t.ticketGenerator.qrCodeOnly}</option>
               </select>
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs uppercase tracking-wide text-muted">Posizione QR</span>
+              <span className="text-xs uppercase tracking-wide text-muted">{t.ticketGenerator.qrPosition}</span>
               <select value={qrPosition} onChange={(e) => setQrPosition(e.target.value as typeof qrPosition)} className={inputClass}>
-                <option value="left">Sinistra</option>
-                <option value="right">Destra</option>
+                <option value="left">{t.ticketGenerator.positionLeft}</option>
+                <option value="right">{t.ticketGenerator.positionRight}</option>
               </select>
             </label>
             {qrTarget === "link" && (
               <label className="flex flex-col gap-1 sm:col-span-2">
-                <span className="text-xs uppercase tracking-wide text-muted">Link base</span>
+                <span className="text-xs uppercase tracking-wide text-muted">{t.ticketGenerator.baseUrl}</span>
                 <input value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} className={inputClass} />
               </label>
             )}
             <label className="flex flex-col gap-1">
-              <span className="text-xs uppercase tracking-wide text-muted">Colore riquadro QR</span>
+              <span className="text-xs uppercase tracking-wide text-muted">{t.ticketGenerator.qrBgColor}</span>
               <input type="color" value={qrBoxColor} onChange={(e) => setQrBoxColor(e.target.value)} className="h-10 rounded-lg border border-surface-border bg-background p-1" />
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs uppercase tracking-wide text-muted">Colore moduli QR</span>
+              <span className="text-xs uppercase tracking-wide text-muted">{t.ticketGenerator.qrColor}</span>
               <input type="color" value={qrModuleColor} onChange={(e) => setQrModuleColor(e.target.value)} className="h-10 rounded-lg border border-surface-border bg-background p-1" />
             </label>
           </div>
           <label className="inline-flex items-center gap-2 text-sm text-muted">
             <input type="checkbox" checked={showCodeUnderQr} onChange={(e) => setShowCodeUnderQr(e.target.checked)} className={checkboxClass} />
-            Mostra codice sotto il QR
+            {t.ticketGenerator.showCodeBelow}
           </label>
 
-          <h3 className="mt-2 text-xs font-semibold uppercase tracking-wide text-muted">Divisore e layout</h3>
+          <h3 className="mt-2 text-xs font-semibold uppercase tracking-wide text-muted">{t.ticketGenerator.divider}</h3>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="inline-flex items-center gap-2 text-sm text-muted">
               <input type="checkbox" checked={showDivider} onChange={(e) => setShowDivider(e.target.checked)} className={checkboxClass} />
-              Mostra linea divisoria
+              {t.ticketGenerator.showDivider}
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs uppercase tracking-wide text-muted">Colore / opacita divisore ({dividerOpacity}%)</span>
+              <span className="text-xs uppercase tracking-wide text-muted">{t.ticketGenerator.dividerColor} ({dividerOpacity}%)</span>
               <div className="flex items-center gap-2">
                 <input type="color" value={dividerColor} onChange={(e) => setDividerColor(e.target.value)} className="h-10 w-14 rounded-lg border border-surface-border bg-background p-1" disabled={!showDivider} />
                 <input type="range" min={0} max={100} value={dividerOpacity} onChange={(e) => setDividerOpacity(Number(e.target.value))} disabled={!showDivider} className="flex-1" />
               </div>
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs uppercase tracking-wide text-muted">Larghezza biglietto (mm)</span>
+              <span className="text-xs uppercase tracking-wide text-muted">{t.ticketGenerator.cardWidth}</span>
               <input type="number" min={40} max={200} value={cardWidthMm} onChange={(e) => setCardWidthMm(Number(e.target.value))} className={inputClass} />
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs uppercase tracking-wide text-muted">Altezza biglietto (mm)</span>
+              <span className="text-xs uppercase tracking-wide text-muted">{t.ticketGenerator.cardHeight}</span>
               <input type="number" min={25} max={150} value={cardHeightMm} onChange={(e) => setCardHeightMm(Number(e.target.value))} className={inputClass} />
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs uppercase tracking-wide text-muted">Padding interno (mm)</span>
+              <span className="text-xs uppercase tracking-wide text-muted">{t.ticketGenerator.cardPadding}</span>
               <input type="number" min={0} max={20} value={paddingMm} onChange={(e) => setPaddingMm(Number(e.target.value))} className={inputClass} />
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs uppercase tracking-wide text-muted">Raggio angoli (mm)</span>
+              <span className="text-xs uppercase tracking-wide text-muted">{t.ticketGenerator.cardRadius}</span>
               <input type="number" min={0} max={20} value={cornerRadiusMm} onChange={(e) => setCornerRadiusMm(Number(e.target.value))} className={inputClass} />
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs uppercase tracking-wide text-muted">Orientamento pagina</span>
+              <span className="text-xs uppercase tracking-wide text-muted">{t.ticketGenerator.pageOrientation}</span>
               <select value={pageOrientation} onChange={(e) => setPageOrientation(e.target.value as typeof pageOrientation)} className={inputClass}>
-                <option value="portrait">Verticale</option>
-                <option value="landscape">Orizzontale</option>
+                <option value="portrait">{t.ticketGenerator.portrait}</option>
+                <option value="landscape">{t.ticketGenerator.landscape}</option>
               </select>
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs uppercase tracking-wide text-muted">Colonne foglio A4</span>
+              <span className="text-xs uppercase tracking-wide text-muted">{t.ticketGenerator.columns}</span>
               <select value={columns} onChange={(e) => setColumns(Number(e.target.value))} className={inputClass}>
-                <option value={1}>1 colonna</option>
-                <option value={2}>2 colonne</option>
-                <option value={3}>3 colonne</option>
-                <option value={4}>4 colonne</option>
+                <option value={1}>{t.ticketGenerator.column1}</option>
+                <option value={2}>{t.ticketGenerator.column2}</option>
+                <option value={3}>{t.ticketGenerator.column3}</option>
+                <option value={4}>{t.ticketGenerator.column4}</option>
               </select>
               {effectiveColumns < columns && (
                 <span className="text-xs text-danger">
-                  Con {cardWidthMm}mm di larghezza ne entrano solo {effectiveColumns} per riga.
+                  {t.ticketGenerator.columnWarning.replace("{width}", String(cardWidthMm)).replace("{cols}", String(effectiveColumns))}
                 </span>
               )}
             </label>
             <p className="text-xs text-muted sm:col-span-2">
-              Con le impostazioni attuali entrano {effectiveColumns * maxRowsPerPage} biglietti per pagina ({effectiveColumns} x {maxRowsPerPage}).
+              {t.ticketGenerator.rowInfo.replace("{total}", String(effectiveColumns * maxRowsPerPage)).replace("{cols}", String(effectiveColumns)).replace("{rows}", String(maxRowsPerPage))}
             </p>
             <button
               type="button"
               onClick={fitNineOnLandscapePage}
               className="inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-surface-border px-3 text-sm text-muted hover:text-foreground sm:col-span-2"
             >
-              Adatta per 9 biglietti a pagina (griglia 3x3, orizzontale)
+              {t.ticketGenerator.preset3x3}
             </button>
           </div>
         </section>
 
         <section className="flex flex-col gap-3 rounded-lg border border-surface-border p-4">
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-muted">Anteprima</h3>
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-muted">{t.ticketGenerator.preview}</h3>
           <div className="flex justify-center overflow-x-auto rounded-lg bg-neutral-200 p-4">
             {renderPreviewCard(selectedEntries[0] ?? null, "preview")}
           </div>
           <p className="text-xs text-muted">
-            L&apos;anteprima usa il primo biglietto selezionato (o un segnaposto). La stampa genera un biglietto per ogni codice selezionato.
+            {t.ticketGenerator.previewInfo}
           </p>
         </section>
       </div>

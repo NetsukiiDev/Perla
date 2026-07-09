@@ -6,14 +6,7 @@ import { Activity, Eye, Pencil, Trash2, Users } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { ConfirmButton } from "./ConfirmButton";
 import { iconButtonClass } from "./IconButton";
-
-const STATUS_LABELS: Record<string, string> = {
-  draft: "Bozza",
-  scheduled: "Programmato",
-  active: "Attivo",
-  closed: "Chiuso",
-  archived: "Archiviato",
-};
+import { useT } from "@/lib/i18n/context";
 
 interface EventRow {
   id: string;
@@ -25,6 +18,7 @@ interface EventRow {
 
 export function EventsTable({ events }: { events: EventRow[] }) {
   const router = useRouter();
+  const t = useT();
 
   async function handleDelete(id: string) {
     await fetch(`/api/admin/events/${id}`, { method: "DELETE" });
@@ -32,7 +26,7 @@ export function EventsTable({ events }: { events: EventRow[] }) {
   }
 
   if (events.length === 0) {
-    return <p className="text-sm text-muted">Nessun evento creato.</p>;
+    return <p className="text-sm text-muted">{t.events.empty}</p>;
   }
 
   return (
@@ -40,10 +34,10 @@ export function EventsTable({ events }: { events: EventRow[] }) {
       <table className="w-full text-left text-sm">
         <thead className="border-b border-surface-border bg-surface text-xs uppercase tracking-wide text-muted">
           <tr>
-            <th className="px-4 py-3">Nome interno</th>
-            <th className="px-4 py-3">Regione</th>
-            <th className="px-4 py-3">Stato</th>
-            <th className="px-4 py-3">Inizio</th>
+            <th className="px-4 py-3">{t.events.table.name}</th>
+            <th className="px-4 py-3">{t.events.table.region}</th>
+            <th className="px-4 py-3">{t.events.table.status}</th>
+            <th className="px-4 py-3">{t.events.table.start}</th>
             <th className="px-4 py-3" />
           </tr>
         </thead>
@@ -57,28 +51,28 @@ export function EventsTable({ events }: { events: EventRow[] }) {
               </td>
               <td className="px-4 py-3">{event.region}</td>
               <td className="px-4 py-3">
-                <StatusBadge value={event.status} label={STATUS_LABELS[event.status] ?? event.status} />
+                <StatusBadge value={event.status} label={t.events.statusOptions[event.status as keyof typeof t.events.statusOptions] ?? event.status} />
               </td>
               <td className="px-4 py-3 text-muted">{new Date(event.startsAt).toLocaleString("it-IT")}</td>
               <td className="px-4 py-3 text-right">
                 <div className="flex justify-end gap-2">
                   <Link
                     href={`/admin/events/${event.id}`}
-                    title="Panoramica"
-                    aria-label="Panoramica"
+                    title={t.events.subnav.overview}
+                    aria-label={t.events.subnav.overview}
                     className={iconButtonClass()}
                   >
                     <Eye size={16} aria-hidden="true" />
-                    <span className="sr-only">Panoramica</span>
+                    <span className="sr-only">{t.events.subnav.overview}</span>
                   </Link>
                   <Link
                     href={`/admin/events/${event.id}/participants`}
-                    title="Partecipanti"
-                    aria-label="Partecipanti"
+                    title={t.events.subnav.participants}
+                    aria-label={t.events.subnav.participants}
                     className={iconButtonClass()}
                   >
                     <Users size={16} aria-hidden="true" />
-                    <span className="sr-only">Partecipanti</span>
+                    <span className="sr-only">{t.events.subnav.participants}</span>
                   </Link>
                   <Link
                     href={`/admin/events/${event.id}/live`}
@@ -91,20 +85,20 @@ export function EventsTable({ events }: { events: EventRow[] }) {
                   </Link>
                   <Link
                     href={`/admin/events/${event.id}/edit`}
-                    title="Modifica"
-                    aria-label="Modifica"
+                    title={t.common.edit}
+                    aria-label={t.common.edit}
                     className={iconButtonClass()}
                   >
                     <Pencil size={16} aria-hidden="true" />
-                    <span className="sr-only">Modifica</span>
+                    <span className="sr-only">{t.common.edit}</span>
                   </Link>
                   <ConfirmButton
-                    confirmMessage={`Eliminare definitivamente l'evento "${event.internalName}"? Questa azione non può essere annullata.`}
+                    confirmMessage={t.events.form.confirmDelete.replace("{name}", event.internalName)}
                     onConfirm={() => handleDelete(event.id)}
                     icon={Trash2}
-                    label="Elimina"
+                    label={t.common.delete}
                   >
-                    Elimina
+                    {t.common.delete}
                   </ConfirmButton>
                 </div>
               </td>

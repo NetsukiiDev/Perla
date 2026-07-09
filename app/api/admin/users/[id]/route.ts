@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { requireAdminUser } from "@/lib/admin-guard";
 import { updateUserSchema } from "@/lib/validation/admin-users";
 import { hashPassword } from "@/lib/hash";
+import { getLocale, getDictionary } from "@/lib/i18n/server";
 import { writeAccessLog } from "@/lib/access-log";
 import { AccessLogType } from "@/lib/generated/prisma/client";
 
@@ -18,8 +19,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if ("response" in auth) return auth.response;
   const { id } = await params;
 
+  const locale = await getLocale();
+  const t = getDictionary(locale);
   const body = await req.json().catch(() => null);
-  const parsed = updateUserSchema.safeParse(body);
+  const parsed = updateUserSchema(t).safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: "invalid", issues: parsed.error.issues }, { status: 400 });
   }

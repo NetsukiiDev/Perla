@@ -6,6 +6,7 @@ import { Ban, ExternalLink, Globe, Trash2, X } from "lucide-react";
 import { CopyButton } from "./CopyButton";
 import { iconButtonClass } from "./IconButton";
 import { codeAccessPath } from "@/lib/code-access-link";
+import { useT } from "@/lib/i18n/context";
 
 export interface PublicCodeRow {
   id: string;
@@ -27,6 +28,7 @@ export function PublicCodesPanel({
   initialCodes: PublicCodeRow[];
 }) {
   const router = useRouter();
+  const t = useT();
   const [maxSessions, setMaxSessions] = useState("100");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,7 +52,7 @@ export function PublicCodesPanel({
         setRevealed(data.code);
         router.refresh();
       } else {
-        setError("Impossibile creare il codice pubblico.");
+        setError(t.codes.public.errors.createFailed);
       }
     } finally {
       setLoading(false);
@@ -58,7 +60,7 @@ export function PublicCodesPanel({
   }
 
   async function revoke(id: string) {
-    if (!window.confirm("Revocare questo codice pubblico? I nuovi accessi verranno bloccati.")) return;
+    if (!window.confirm(t.codes.public.confirm.revoke)) return;
     await fetch(`/api/admin/codes/${id}/status`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -68,7 +70,7 @@ export function PublicCodesPanel({
   }
 
   async function del(id: string) {
-    if (!window.confirm("Eliminare definitivamente questo codice pubblico?")) return;
+    if (!window.confirm(t.codes.public.confirm.delete)) return;
     await fetch(`/api/admin/codes/${id}`, { method: "DELETE" });
     router.refresh();
   }
@@ -77,15 +79,15 @@ export function PublicCodesPanel({
     <div className="flex flex-col gap-4 rounded-lg border border-surface-border p-4">
       <div className="flex items-center gap-2">
         <Globe size={16} className="text-muted" aria-hidden="true" />
-        <h2 className="text-sm font-semibold">Codici pubblici</h2>
+        <h2 className="text-sm font-semibold">{t.codes.public.title}</h2>
       </div>
       <p className="text-xs text-muted">
-        Un codice pubblico è usabile da più persone, senza scadenza. Ogni persona diventa un &quot;Ospite&quot; tracciato singolarmente, fino al numero massimo di utilizzi.
+        {t.codes.public.description}
       </p>
 
       <div className="flex flex-wrap items-end gap-3">
         <div className="flex flex-col gap-1">
-          <label className="text-xs uppercase tracking-wide text-muted">Utilizzi massimi</label>
+          <label className="text-xs uppercase tracking-wide text-muted">{t.codes.public.maxUses}</label>
           <input
             type="number"
             min={1}
@@ -102,7 +104,7 @@ export function PublicCodesPanel({
           className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-accent-foreground disabled:opacity-50"
         >
           <Globe size={16} aria-hidden="true" />
-          {loading ? "Creazione..." : "Crea codice pubblico"}
+          {loading ? t.codes.public.creating : t.codes.public.createButton}
         </button>
       </div>
 
@@ -111,7 +113,7 @@ export function PublicCodesPanel({
       {revealed && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-accent/40 bg-accent/5 p-4">
           <div>
-            <p className="text-xs uppercase tracking-wide text-muted">Codice pubblico generato</p>
+            <p className="text-xs uppercase tracking-wide text-muted">{t.codes.public.created}</p>
             <div className="mt-1 flex items-center gap-3">
               <span className="font-mono text-2xl tracking-widest">{revealed}</span>
               <CopyButton value={revealed} />
@@ -123,13 +125,13 @@ export function PublicCodesPanel({
           </div>
           <button
             type="button"
-            title="Nascondi"
-            aria-label="Nascondi"
+            title={t.codes.public.hide}
+            aria-label={t.codes.public.hide}
             onClick={() => setRevealed(null)}
             className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-surface-border text-muted hover:text-foreground"
           >
             <X size={16} aria-hidden="true" />
-            <span className="sr-only">Nascondi</span>
+            <span className="sr-only">{t.codes.public.hide}</span>
           </button>
         </div>
       )}
@@ -139,9 +141,9 @@ export function PublicCodesPanel({
           <table className="w-full text-left text-sm">
             <thead className="border-b border-surface-border bg-surface text-xs uppercase tracking-wide text-muted">
               <tr>
-                <th className="px-4 py-2">Codice</th>
-                <th className="px-4 py-2">Utilizzi</th>
-                <th className="px-4 py-2">Stato</th>
+                <th className="px-4 py-2">{t.codes.public.table.code}</th>
+                <th className="px-4 py-2">{t.codes.public.table.uses}</th>
+                <th className="px-4 py-2">{t.codes.public.table.status}</th>
                 <th className="px-4 py-2" />
               </tr>
             </thead>
@@ -158,15 +160,15 @@ export function PublicCodesPanel({
                           target="_blank"
                           rel="noopener noreferrer"
                           className={iconButtonClass()}
-                          title="Apri link accesso"
-                          aria-label="Apri link accesso"
+                          title={t.codes.public.actions.openLink}
+                          aria-label={t.codes.public.actions.openLink}
                         >
                           <ExternalLink size={16} aria-hidden="true" />
-                          <span className="sr-only">Apri link accesso</span>
+                          <span className="sr-only">{t.codes.public.actions.openLink}</span>
                         </a>
                       </span>
                     ) : (
-                      <span className="text-muted">N/D</span>
+                      <span className="text-muted">{t.common.na}</span>
                     )}
                   </td>
                   <td className="px-4 py-2 text-muted">
@@ -174,9 +176,9 @@ export function PublicCodesPanel({
                   </td>
                   <td className="px-4 py-2">
                     {c.status === "revoked" ? (
-                      <span className="text-danger">Revocato</span>
+                      <span className="text-danger">{t.codes.public.statusRevoked}</span>
                     ) : (
-                      <span className="text-emerald-400">Attivo · senza scadenza</span>
+                      <span className="text-emerald-400">{t.codes.public.statusActive}</span>
                     )}
                   </td>
                   <td className="px-4 py-2 text-right">
@@ -184,24 +186,24 @@ export function PublicCodesPanel({
                       {c.status !== "revoked" && (
                         <button
                           type="button"
-                          title="Revoca"
-                          aria-label="Revoca"
+                          title={t.codes.public.actions.revoke}
+                          aria-label={t.codes.public.actions.revoke}
                           onClick={() => void revoke(c.id)}
                           className={iconButtonClass()}
                         >
                           <Ban size={16} aria-hidden="true" />
-                          <span className="sr-only">Revoca</span>
+                          <span className="sr-only">{t.codes.public.actions.revoke}</span>
                         </button>
                       )}
                       <button
                         type="button"
-                        title="Elimina"
-                        aria-label="Elimina"
+                        title={t.codes.public.actions.delete}
+                        aria-label={t.codes.public.actions.delete}
                         onClick={() => void del(c.id)}
                         className={iconButtonClass("danger")}
                       >
                         <Trash2 size={16} aria-hidden="true" />
-                        <span className="sr-only">Elimina</span>
+                        <span className="sr-only">{t.codes.public.actions.delete}</span>
                       </button>
                     </div>
                   </td>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { CheckCircle2, Download, ExternalLink, KeyRound, Loader2, RefreshCw, TriangleAlert } from "lucide-react";
 import { CopyButton } from "./CopyButton";
 import { GuideScreenshot } from "./GuideScreenshot";
+import { useT } from "@/lib/i18n/context";
 
 interface Props {
   // How far setup has progressed. The guide renders for "needs-env" and
@@ -57,6 +58,7 @@ const StepBadge = ({ n }: { n: number }) => (
 );
 
 export function VercelSetupGuide({ state, missing, error: initialError }: Props) {
+  const t = useT();
   const [testing, setTesting] = useState(false);
   const [testError, setTestError] = useState<string | null>(initialError ?? null);
   const [testMissing, setTestMissing] = useState<string[]>(state === "needs-env" ? missing : []);
@@ -82,10 +84,10 @@ export function VercelSetupGuide({ state, missing, error: initialError }: Props)
         setTimeout(() => { window.location.href = "/admin/setup"; }, 1200);
       } else {
         if (Array.isArray(data?.missing) && data.missing.length > 0) setTestMissing(data.missing);
-        setTestError(data?.message ?? "Connessione fallita. Verifica le credenziali.");
+        setTestError(data?.message ?? t.setup.vercel.errors.connectionFailed);
       }
     } catch {
-      setTestError("Impossibile contattare il server.");
+      setTestError(t.setup.vercel.errors.unreachable);
     } finally {
       setTesting(false);
     }
@@ -143,13 +145,13 @@ export function VercelSetupGuide({ state, missing, error: initialError }: Props)
       <div className="flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3">
         <TriangleAlert size={18} className="shrink-0 text-amber-400" aria-hidden="true" />
         <p className="text-amber-200">
-          Sei su <strong>Vercel</strong>. Il database si configura tramite <strong>Environment Variables</strong>, non da questa pagina. Segui i passaggi qui sotto.
+          {t.setup.vercel.intro}
         </p>
       </div>
 
       {missing.length > 0 && (
         <div className="rounded-lg border border-surface-border bg-background p-3">
-          <p className="mb-2 text-xs uppercase tracking-wide text-muted">Variabili ancora mancanti</p>
+          <p className="mb-2 text-xs uppercase tracking-wide text-muted">{t.setup.vercel.missingVars}</p>
           <div className="flex flex-wrap gap-1.5">
             {missing.map((m) => (
               <code key={m} className="rounded bg-surface px-1.5 py-0.5 text-[11px] text-amber-300">{m}</code>
@@ -162,7 +164,7 @@ export function VercelSetupGuide({ state, missing, error: initialError }: Props)
         {/* Step 1 */}
         <div className="flex flex-col gap-2">
           <StepBadge n={1} />
-          <p className="font-medium text-foreground">Apri le Environment Variables</p>
+          <p className="font-medium text-foreground">{t.setup.vercel.steps.env}</p>
           <p className="text-muted">
             Nel dashboard{" "}
             <a href="https://vercel.com" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-blue-400 hover:text-blue-300">
@@ -180,15 +182,15 @@ export function VercelSetupGuide({ state, missing, error: initialError }: Props)
         {/* Step 2 */}
         <div className="flex flex-col gap-2">
           <StepBadge n={2} />
-          <p className="font-medium text-foreground">Compila le variabili</p>
+          <p className="font-medium text-foreground">{t.setup.vercel.steps.compile}</p>
           <p className="text-muted">
-            Modo più rapido: <strong>compila e scarica il file .env qui sotto</strong>, poi su Vercel usa <strong>Import .env</strong> (o incolla il contenuto nel campo Key). In alternativa aggiungile una a una con <strong>Add Environment Variable</strong>.
+            {t.setup.vercel.compileGuide}
           </p>
 
           {/* .env builder + generator */}
           <div className="flex flex-col gap-3 rounded-lg border border-surface-border bg-background p-3">
             <p className="flex items-center gap-1.5 text-xs font-medium text-foreground">
-              <KeyRound size={14} aria-hidden="true" /> Componi il tuo file .env
+              <KeyRound size={14} aria-hidden="true" /> {t.setup.vercel.steps.compile}
             </p>
 
             <div className="flex flex-col gap-1">
@@ -241,7 +243,7 @@ export function VercelSetupGuide({ state, missing, error: initialError }: Props)
             )}
 
             <p className="text-[11px] text-amber-300/90">
-              <strong>ENCRYPTION_KEY</strong> e <strong>HASH_PEPPER</strong> vanno mantenuti stabili: cambiarli rende illeggibili i dati già salvati.
+              {t.setup.vercel.secretsInfo}
             </p>
 
             <div className="flex flex-col gap-2 border-t border-surface-border pt-2">
@@ -251,29 +253,29 @@ export function VercelSetupGuide({ state, missing, error: initialError }: Props)
                 className="inline-flex w-full items-center justify-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground"
               >
                 <Download size={13} aria-hidden="true" />
-                Scarica .env
+                {t.setup.vercel.downloadButton}
               </button>
               <button
                 type="button"
                 onClick={copyEnv}
                 className="inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-surface-border px-3 py-1.5 text-xs text-muted hover:text-foreground"
               >
-                Copia contenuto .env
+                {t.setup.vercel.copyButton}
               </button>
               {!dbUrl.trim() && (
-                <span className="text-center text-[11px] text-amber-300/80">Compila DATABASE_URL per un file completo.</span>
+                <span className="text-center text-[11px] text-amber-300/80">{t.setup.vercel.warning}</span>
               )}
             </div>
           </div>
 
           <details className="rounded-lg border border-surface-border">
-            <summary className="cursor-pointer px-3 py-2 text-xs text-muted hover:text-foreground">Elenco completo delle variabili</summary>
+            <summary className="cursor-pointer px-3 py-2 text-xs text-muted hover:text-foreground">{t.setup.vercel.fullTable}</summary>
             <div className="overflow-x-auto border-t border-surface-border">
               <table className="w-full border-collapse text-left text-xs">
                 <thead>
                   <tr className="border-b border-surface-border text-muted">
-                    <th className="px-3 py-2 font-medium">Nome</th>
-                    <th className="px-3 py-2 font-medium">Descrizione</th>
+                    <th className="px-3 py-2 font-medium">{t.setup.vercel.table.name}</th>
+                    <th className="px-3 py-2 font-medium">{t.setup.vercel.table.description}</th>
                     <th className="px-3 py-2" />
                   </tr>
                 </thead>
@@ -285,7 +287,7 @@ export function VercelSetupGuide({ state, missing, error: initialError }: Props)
                       </td>
                       <td className="px-3 py-2 align-top text-muted">
                         {v.hint}
-                        {v.example && <div className="mt-0.5 font-mono text-[10px] text-muted/70">es. {v.example}</div>}
+                        {v.example && <div className="mt-0.5 font-mono text-[10px] text-muted/70">{v.example}</div>}
                       </td>
                       <td className="px-3 py-2 align-top text-right">
                         <CopyButton value={v.name} />
@@ -307,16 +309,16 @@ export function VercelSetupGuide({ state, missing, error: initialError }: Props)
         {/* Step 3 */}
         <div className="flex flex-col gap-2">
           <StepBadge n={3} />
-          <p className="font-medium text-foreground">Rideploya il progetto</p>
-          <p className="text-muted">
-            Le env vars si applicano solo a un nuovo deploy: <strong>Deployments</strong> → ultimo deploy → menu <strong>⋯</strong> → <strong>Redeploy</strong>.
-          </p>
+          <p className="font-medium text-foreground">{t.setup.vercel.steps.redeploy}</p>
+            <p className="text-muted">
+              {t.setup.vercel.redeployInfo}
+            </p>
         </div>
 
         {/* Step 4 */}
         <div className="flex flex-col gap-2">
           <StepBadge n={4} />
-          <p className="font-medium text-foreground">Verifica e crea l&apos;amministratore</p>
+          <p className="font-medium text-foreground">{t.setup.vercel.steps.verify}</p>
           <p className="text-muted">
             Dopo il redeploy, torna qui e verifica: se tutto è a posto potrai creare l&apos;account admin.
           </p>
@@ -327,7 +329,7 @@ export function VercelSetupGuide({ state, missing, error: initialError }: Props)
         <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3">
           <TriangleAlert size={18} className="mt-0.5 shrink-0 text-amber-400" aria-hidden="true" />
           <div className="flex flex-col gap-1 text-amber-200">
-            <p className="font-medium">Variabili mancanti</p>
+            <p className="font-medium">{t.setup.vercel.missingVars}</p>
             <div className="flex flex-wrap gap-1.5">
               {testMissing.map((m) => (
                 <code key={m} className="rounded bg-surface px-1.5 py-0.5 text-[11px] text-amber-300">{m}</code>
@@ -342,9 +344,9 @@ export function VercelSetupGuide({ state, missing, error: initialError }: Props)
         <div className="flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/10 p-3">
           <TriangleAlert size={18} className="mt-0.5 shrink-0 text-red-400" aria-hidden="true" />
           <div className="flex flex-col gap-1 text-red-200">
-            <p className="font-medium">Connessione fallita</p>
+            <p className="font-medium">{t.setup.vercel.errors.failed}</p>
             <p className="break-words">{testError}</p>
-            <p className="text-xs text-red-300">Assicurati che il database sia accessibile da internet e che le env vars siano corrette.</p>
+            <p className="text-xs text-red-300">{t.setup.vercel.errors.failed}</p>
           </div>
         </div>
       )}
@@ -352,7 +354,7 @@ export function VercelSetupGuide({ state, missing, error: initialError }: Props)
       {testOk && (
         <div className="flex items-center gap-2 rounded-lg border border-green-500/30 bg-green-500/10 p-3">
           <CheckCircle2 size={18} className="shrink-0 text-green-400" aria-hidden="true" />
-          <p className="text-green-200">Tutto pronto! Reindirizzamento alla creazione dell&apos;account...</p>
+          <p className="text-green-200">{t.setup.vercel.success}</p>
         </div>
       )}
 
@@ -364,12 +366,12 @@ export function VercelSetupGuide({ state, missing, error: initialError }: Props)
         {testing ? (
           <>
             <Loader2 size={16} className="animate-spin" aria-hidden="true" />
-            Verifica in corso...
+            {t.setup.vercel.verifying}
           </>
         ) : (
           <>
             <CheckCircle2 size={16} aria-hidden="true" />
-            Verifica connessione
+            {t.setup.vercel.verifyButton}
           </>
         )}
       </button>

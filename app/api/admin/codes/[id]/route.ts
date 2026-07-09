@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/admin-guard";
 import { codeUpdateSchema } from "@/lib/validation/admin-codes";
 import { buildCodeRecord } from "@/lib/invite-code";
+import { getLocale, getDictionary } from "@/lib/i18n/server";
 
 // PATCH — set a custom code value (admin-chosen). Resets it to valid and
 // ends any active session, like a regenerate but with a specific value.
@@ -11,8 +12,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if ("response" in auth) return auth.response;
   const { id } = await params;
 
+  const locale = await getLocale();
+  const t = getDictionary(locale);
   const body = await req.json().catch(() => null);
-  const parsed = codeUpdateSchema.safeParse(body);
+  const parsed = codeUpdateSchema(t).safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: "invalid", issues: parsed.error.issues }, { status: 400 });
   }

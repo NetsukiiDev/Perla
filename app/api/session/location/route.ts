@@ -12,8 +12,11 @@ import { AccessLogType } from "@/lib/generated/prisma/client";
 import { deviceTokenMatchesSession, getParticipantSessionContext } from "@/lib/session-participant";
 import { projectActiveSession } from "@/lib/public-projection";
 import { DEFAULTS } from "@/lib/constants";
+import { getLocale, getDictionary } from "@/lib/i18n/server";
 
 export async function POST(req: Request) {
+  const locale = await getLocale();
+  const t = getDictionary(locale);
   const ctx = await getParticipantSessionContext();
   if (!ctx) {
     return NextResponse.json({ error: "invalid" }, { status: 401 });
@@ -34,7 +37,7 @@ export async function POST(req: Request) {
       where: { sessionId_stepNumber: { sessionId: ctx.id, stepNumber: ctx.currentStep } },
     });
     return NextResponse.json({
-      state: projectActiveSession({
+      state: projectActiveSession({ t,
         event: ctx.inviteCode.event,
         session: ctx,
         currentStep,
@@ -46,7 +49,7 @@ export async function POST(req: Request) {
   const currentStep = await prisma.routeStep.findUnique({
     where: { sessionId_stepNumber: { sessionId: ctx.id, stepNumber: ctx.currentStep } },
   });
-  const currentState = projectActiveSession({
+  const currentState = projectActiveSession({ t,
     event: ctx.inviteCode.event,
     session: ctx,
     currentStep,
@@ -81,7 +84,7 @@ export async function POST(req: Request) {
   if (!currentStep) {
     await prisma.session.update({ where: { id: ctx.id }, data: { lastSeenAt: now } });
     return NextResponse.json({
-      state: projectActiveSession({
+      state: projectActiveSession({ t,
         event: ctx.inviteCode.event,
         session: ctx,
         currentStep: null,
@@ -99,7 +102,7 @@ export async function POST(req: Request) {
       data: { lastSeenAt: now },
     });
     return NextResponse.json({
-      state: projectActiveSession({
+      state: projectActiveSession({ t,
         event: ctx.inviteCode.event,
         session: updated,
         currentStep,
@@ -138,7 +141,7 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({
-      state: projectActiveSession({
+      state: projectActiveSession({ t,
         event: ctx.inviteCode.event,
         session: updatedSession,
         currentStep: null,
@@ -182,7 +185,7 @@ export async function POST(req: Request) {
   });
 
   return NextResponse.json({
-    state: projectActiveSession({
+    state: projectActiveSession({ t,
       event: ctx.inviteCode.event,
       session: updatedSession,
       currentStep: newCurrentStep,

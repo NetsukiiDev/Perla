@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useT } from "@/lib/i18n/context";
 import { EventInfoGrid } from "./EventInfoGrid";
 import { OpenLocationButton } from "./OpenLocationButton";
 
@@ -64,10 +65,11 @@ export function ParticipantStepView({
   tollEstimateCents,
   hint,
 }: ParticipantStepViewProps) {
+  const t = useT();
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-1 text-center">
-        <h1 className="text-2xl font-semibold">Posizione {stepIndex} di {stepsCount}</h1>
+        <h1 className="text-2xl font-semibold">{t.participantFlow.stepView.positionOf.replace("{step}", String(stepIndex)).replace("{total}", String(stepsCount))}</h1>
       </div>
 
       <InlineMap lat={lat} lng={lng} />
@@ -79,25 +81,25 @@ export function ParticipantStepView({
         totalDistanceM !== undefined ||
         totalDurationS !== undefined) && (
         <div className="grid grid-cols-2 gap-x-6 gap-y-4 border-t border-surface-border/70 pt-4 text-left text-sm">
-          <MetricItem label="Distanza tappa" value={stepDistanceM !== undefined ? formatDistance(stepDistanceM) : "N/D"} />
-          <MetricItem label="Tempo tappa" value={stepDurationS !== undefined ? formatDuration(stepDurationS) : "N/D"} />
+          <MetricItem label={t.participantFlow.stepView.stepDistance} value={stepDistanceM !== undefined ? formatDistance(stepDistanceM) : t.participantFlow.stepView.na} />
+          <MetricItem label={t.participantFlow.stepView.stepTime} value={stepDurationS !== undefined ? formatDuration(stepDurationS) : t.participantFlow.stepView.na} />
           <MetricItem
-            label="Distanza totale"
-            value={totalDistanceM !== undefined ? formatDistance(totalDistanceM) : "N/D"}
+            label={t.participantFlow.stepView.totalDistance}
+            value={totalDistanceM !== undefined ? formatDistance(totalDistanceM) : t.participantFlow.stepView.na}
           />
-          <MetricItem label="Tempo totale" value={totalDurationS !== undefined ? formatDuration(totalDurationS) : "N/D"} />
+          <MetricItem label={t.participantFlow.stepView.totalTime} value={totalDurationS !== undefined ? formatDuration(totalDurationS) : t.participantFlow.stepView.na} />
         </div>
       )}
 
       {hasHighway !== undefined && (
         <div className="flex items-center justify-between gap-4 rounded-lg border border-surface-border/70 bg-surface/40 px-4 py-3 text-sm">
           <div className="min-w-0">
-            <span className="block text-xs uppercase tracking-wide text-muted">Autostrada</span>
-            <span className="font-medium text-foreground">{hasHighway ? "Sì" : "No"}</span>
+            <span className="block text-xs uppercase tracking-wide text-muted">{t.participantFlow.stepView.highway}</span>
+            <span className="font-medium text-foreground">{hasHighway ? t.participantFlow.stepView.yes : t.participantFlow.stepView.no}</span>
           </div>
           {hasHighway && tollEstimateCents !== undefined && (
             <div className="min-w-0 text-right">
-              <span className="block text-xs uppercase tracking-wide text-muted">Pedaggio stimato</span>
+              <span className="block text-xs uppercase tracking-wide text-muted">{t.participantFlow.stepView.toll}</span>
               <span className="font-medium text-foreground">~{formatEuroCents(tollEstimateCents)}</span>
             </div>
           )}

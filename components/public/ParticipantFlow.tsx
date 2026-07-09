@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { PublicState } from "@/lib/public-projection";
-import { ERROR_MESSAGES } from "@/lib/constants";
+import { useT } from "@/lib/i18n/context";
 import { PrivacyConsent } from "./PrivacyConsent";
 import { ScheduledNotice } from "./ScheduledNotice";
 import { ParticipantStepView } from "./ParticipantStepView";
@@ -11,22 +11,6 @@ import { GenericError } from "./GenericError";
 const POLL_INTERVAL_MS = 20_000;
 const LOCATION_REPORT_MIN_INTERVAL_MS = 12_000;
 
-function insecureLocationMessage(): string | null {
-  if (typeof window === "undefined" || window.isSecureContext) return null;
-  if (["localhost", "127.0.0.1", "::1"].includes(window.location.hostname)) return null;
-  return "Il browser del telefono blocca la posizione su HTTP. Apri il link in HTTPS oppure usa localhost dal dispositivo che esegue il server.";
-}
-
-function geolocationErrorMessage(error: GeolocationPositionError): string {
-  if (error.code === error.PERMISSION_DENIED) {
-    return "Permesso posizione negato o bloccato dal browser. Abilita la posizione per questo sito dalle impostazioni del browser e riprova.";
-  }
-  if (error.code === error.TIMEOUT) {
-    return "Tempo scaduto durante il rilevamento della posizione. Riprova restando all'aperto o con GPS attivo.";
-  }
-  return ERROR_MESSAGES.GENERIC;
-}
-
 // Client-side state machine driving the participant flow after the code
 // has been verified. Initial state comes from the server component (no
 // extra round trip); subsequent transitions come from /api/session/start,
@@ -34,20 +18,25 @@ function geolocationErrorMessage(error: GeolocationPositionError): string {
 // low-frequency poll of /api/session/current as a resync fallback (e.g.
 // the admin forced a step change).
 export function ParticipantFlow({ initialState }: { initialState: PublicState }) {
+  const t = useT();
   const [state, setState] = useState<PublicState>(initialState);
   const [consentLoading, setConsentLoading] = useState(false);
   const [consentError, setConsentError] = useState<string | null>(null);
   const lastReportRef = useRef(0);
 
   function handleConsent() {
-    const contextError = insecureLocationMessage();
+    const contextError = (() => {
+      if (typeof window === "undefined" || window.isSecureContext) return null;
+      if (["localhost", "127.0.0.1", "::1"].includes(window.location.hostname)) return null;
+      return t.participantFlow.insecureWarning;
+    })();
     if (contextError) {
       setConsentError(contextError);
       return;
     }
 
     if (!("geolocation" in navigator)) {
-      setConsentError("Questo browser non rende disponibile la posizione per questa pagina.");
+      setConsentError(t.participantFlow.noGeolocation);
       return;
     }
     setConsentLoading(true);
@@ -72,16 +61,22 @@ export function ParticipantFlow({ initialState }: { initialState: PublicState })
           } else if (data.error === "not_available") {
             setState({ kind: "not_available" });
           } else {
-            setConsentError(data.message ?? ERROR_MESSAGES.GENERIC);
+            setConsentError(data.message ?? t.participantFlow.errors.generic);
           }
         } catch {
-          setConsentError(ERROR_MESSAGES.GENERIC);
+          setConsentError(t.participantFlow.errors.generic);
         } finally {
           setConsentLoading(false);
         }
       },
       (error) => {
-        setConsentError(geolocationErrorMessage(error));
+        if (error.code === error.PERMISSION_DENIED) {
+          setConsentError(t.participantFlow.geolocationError);
+        } else if (error.code === error.TIMEOUT) {
+          setConsentError(t.participantFlow.timeoutError);
+        } else {
+          setConsentError(t.participantFlow.errors.generic);
+        }
         setConsentLoading(false);
       },
       { enableHighAccuracy: true, timeout: 15000 },
@@ -155,7 +150,7 @@ export function ParticipantFlow({ initialState }: { initialState: PublicState })
         />
       );
     case "geolocation_denied":
-      return <GenericError message={ERROR_MESSAGES.LOCATION_DENIED} />;
+      return <GenericError message={t.participantFlow.errors.locationDenied} />;
     case "in_progress":
       return (
         <ParticipantStepView
@@ -176,13 +171,13 @@ export function ParticipantFlow({ initialState }: { initialState: PublicState })
         />
       );
     case "arrived":
-      return <GenericError message={ERROR_MESSAGES.ROUTE_COMPLETE} />;
+      return <GenericError message={t.participantFlow.errors.routeComplete} />;
     case "already_used":
-      return <GenericError message={ERROR_MESSAGES.ALREADY_USED} />;
+      return <GenericError message={t.participantFlow.errors.alreadyUsed} />;
     case "not_available":
-      return <GenericError message={ERROR_MESSAGES.CODE_NOT_AVAILABLE} />;
+      return <GenericError message={t.participantFlow.errors.codeNotAvailable} />;
     case "invalid":
     default:
-      return <GenericError message={ERROR_MESSAGES.INVALID_CODE} />;
+      return <GenericError message={t.participantFlow.errors.invalidCode} />;
   }
 }

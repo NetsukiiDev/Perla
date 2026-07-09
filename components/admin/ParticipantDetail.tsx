@@ -9,7 +9,8 @@ import { CopyButton } from "./CopyButton";
 import { IconButton } from "./IconButton";
 import { CodeStatusToggle } from "./CodeStatusToggle";
 import { AccessSharePanel } from "./AccessSharePanel";
-import { DISPLAY_STATUS_LABELS, inviteCodeStatusLabel, type DisplayStatus } from "@/lib/status";
+import { getDisplayStatusLabels, inviteCodeStatusLabel, type DisplayStatus } from "@/lib/status";
+import { useT } from "@/lib/i18n/context";
 
 const LiveMap = dynamic(() => import("./LiveMap").then((m) => m.LiveMap), { ssr: false });
 
@@ -39,6 +40,8 @@ const inputClass =
 const labelClass = "text-xs uppercase tracking-wide text-muted";
 
 export function ParticipantDetail({ accessUrl, participant: p }: Props) {
+  const t = useT();
+  const displayLabels = getDisplayStatusLabels(t);
   const router = useRouter();
   const [name, setName] = useState(p.displayName ?? "");
   const [notes, setNotes] = useState(p.notes ?? "");
@@ -59,10 +62,10 @@ export function ParticipantDetail({ accessUrl, participant: p }: Props) {
       if (!res.ok) {
         setMsg(
           data?.error === "code_taken"
-            ? "Codice gia in uso."
+            ? t.participants.detail.errors.codeInUse
             : data?.error === "not_active"
-              ? "Sessione non attiva."
-              : "Operazione non riuscita.",
+              ? t.participants.detail.errors.sessionInactive
+              : t.participants.detail.errors.operationFailed,
         );
         return null;
       }
@@ -78,7 +81,7 @@ export function ParticipantDetail({ accessUrl, participant: p }: Props) {
 
   async function saveInfo() {
     await call(`/api/admin/participants/${p.id}`, "PATCH", { displayName: name || null, notes: notes || null });
-    setMsg("Salvato.");
+    setMsg(t.participants.detail.saved);
   }
 
   async function setCustomCode() {
@@ -91,11 +94,11 @@ export function ParticipantDetail({ accessUrl, participant: p }: Props) {
   async function showDestination() {
     if (!p.sessionId) return;
     await call(`/api/admin/sessions/${p.sessionId}/show-destination`, "POST");
-    setMsg("Destinazione mostrata al partecipante.");
+    setMsg(t.participants.detail.errors.destinationShown);
   }
 
   const mapMarkers = p.lastLocation
-    ? [{ id: p.id, lat: p.lastLocation.lat, lng: p.lastLocation.lng, label: p.code ?? p.displayName ?? "Partecipante" }]
+    ? [{ id: p.id, lat: p.lastLocation.lat, lng: p.lastLocation.lng, label: p.code ?? p.displayName ?? t.participants.detail.title }]
     : [];
   const accessLink = accessUrl;
 
@@ -103,16 +106,16 @@ export function ParticipantDetail({ accessUrl, participant: p }: Props) {
     <div className="flex flex-col gap-8">
       <section className="flex flex-col gap-4 border-t border-surface-border pt-6">
         <div className="flex flex-wrap items-center gap-3">
-          <StatusBadge value={p.displayStatus} label={DISPLAY_STATUS_LABELS[p.displayStatus]} />
-          {p.currentStep && <span className="text-sm text-muted">Tappa {p.currentStep} di {p.stepsCount}</span>}
+          <StatusBadge value={p.displayStatus} label={displayLabels[p.displayStatus]} />
+          {p.currentStep && <span className="text-sm text-muted">{t.participants.detail.stepOf.replace("{current}", String(p.currentStep)).replace("{total}", String(p.stepsCount))}</span>}
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="flex flex-col gap-1">
-            <label className={labelClass}>Username</label>
+            <label className={labelClass}>{t.participants.manager.username}</label>
             <input value={name} onChange={(e) => setName(e.target.value)} className={inputClass} />
           </div>
           <div className="flex flex-col gap-1">
-            <label className={labelClass}>Note</label>
+            <label className={labelClass}>{t.participants.detail.notes}</label>
             <input value={notes} onChange={(e) => setNotes(e.target.value)} className={inputClass} />
           </div>
         </div>
@@ -123,13 +126,13 @@ export function ParticipantDetail({ accessUrl, participant: p }: Props) {
           className="inline-flex items-center gap-2 self-start rounded-lg bg-accent px-4 py-2 text-sm font-medium text-accent-foreground disabled:opacity-50"
         >
           <Save size={16} aria-hidden="true" />
-          Salva
+          {t.common.save}
         </button>
       </section>
 
       <section className="flex flex-col gap-4 border-t border-surface-border pt-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <span className={labelClass}>Accesso</span>
+          <span className={labelClass}>{t.participants.detail.access.section}</span>
           {p.codeId && (
             <CodeStatusToggle
               codeId={p.codeId}
@@ -145,7 +148,7 @@ export function ParticipantDetail({ accessUrl, participant: p }: Props) {
 
         {revealedCode && (
           <div className="rounded-lg border border-accent/40 bg-accent/5 p-3">
-            <p className="text-xs uppercase tracking-wide text-muted">Nuovo codice, visibile solo ora</p>
+            <p className="text-xs uppercase tracking-wide text-muted">{t.participants.detail.access.newCode}</p>
             <div className="mt-1 flex items-center gap-3">
               <span className="font-mono text-2xl tracking-widest">{revealedCode}</span>
               <CopyButton value={revealedCode} />
@@ -156,16 +159,16 @@ export function ParticipantDetail({ accessUrl, participant: p }: Props) {
         {p.code ? (
           <div className="grid gap-4 md:grid-cols-[0.8fr_1.2fr]">
             <div className="flex flex-col gap-2">
-              <span className={labelClass}>Codice</span>
+              <span className={labelClass}>{t.participants.detail.access.code}</span>
               <div className="flex flex-wrap items-center gap-3">
                 <span className="font-mono text-2xl tracking-widest">{p.code}</span>
                 <CopyButton value={p.code} />
-                {p.codeStatus && <StatusBadge value={p.codeStatus} label={inviteCodeStatusLabel(p.codeStatus)} />}
+                {p.codeStatus && <StatusBadge value={p.codeStatus} label={inviteCodeStatusLabel(p.codeStatus, t)} />}
               </div>
             </div>
             {accessLink && (
               <div className="flex min-w-0 flex-col gap-2">
-                <span className={labelClass}>Link</span>
+                <span className={labelClass}>{t.participants.detail.access.link}</span>
                 <div className="flex min-w-0 items-center gap-2">
                   <Link2 size={16} aria-hidden="true" className="shrink-0 text-muted" />
                   <a
@@ -182,11 +185,11 @@ export function ParticipantDetail({ accessUrl, participant: p }: Props) {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-surface-border text-muted hover:text-foreground"
-                    title="Apri link"
-                    aria-label="Apri link"
+                    title={t.participants.detail.access.openLink}
+                    aria-label={t.participants.detail.access.openLink}
                   >
                     <ExternalLink size={16} aria-hidden="true" />
-                    <span className="sr-only">Apri link</span>
+                    <span className="sr-only">{t.participants.detail.access.openLink}</span>
                   </a>
                 </div>
               </div>
@@ -194,11 +197,11 @@ export function ParticipantDetail({ accessUrl, participant: p }: Props) {
           </div>
         ) : p.codeId ? (
           <div className="flex flex-col gap-2 text-sm text-muted">
-            <p>Codice presente. Il valore non viene salvato in chiaro: rigenera o modifica per mostrarne uno nuovo.</p>
-            {p.codeStatus && <StatusBadge value={p.codeStatus} label={inviteCodeStatusLabel(p.codeStatus)} />}
+            <p>{t.participants.detail.access.info}</p>
+            {p.codeStatus && <StatusBadge value={p.codeStatus} label={inviteCodeStatusLabel(p.codeStatus, t)} />}
           </div>
         ) : (
-          <p className="text-sm text-muted">Nessun codice attivo.</p>
+          <p className="text-sm text-muted">{t.participants.detail.access.noActiveCode}</p>
         )}
 
         <div className="flex flex-wrap gap-2">
@@ -206,16 +209,16 @@ export function ParticipantDetail({ accessUrl, participant: p }: Props) {
             <>
               <IconButton
                 icon={RotateCcw}
-                label="Rigenera codice"
+                label={t.participants.detail.access.regenerate}
                 disabled={busy}
                 onClick={() => call(`/api/admin/codes/${p.codeId}/regenerate`, "POST")}
               />
-              <IconButton icon={Pencil} label="Modifica codice" disabled={busy} onClick={setCustomCode} />
+              <IconButton icon={Pencil} label={t.participants.detail.access.edit} disabled={busy} onClick={setCustomCode} />
             </>
           ) : (
             <IconButton
               icon={KeyRound}
-              label="Genera codice"
+              label={t.participants.detail.access.generate}
               disabled={busy}
               onClick={() => call("/api/admin/codes/generate", "POST", { participantId: p.id })}
               variant="primary"
@@ -229,33 +232,33 @@ export function ParticipantDetail({ accessUrl, participant: p }: Props) {
       <section className="flex flex-col gap-3 border-t border-surface-border pt-6">
         <div className="flex items-center gap-2">
           <Wifi size={16} aria-hidden="true" className="text-muted" />
-          <span className={labelClass}>Rete</span>
+          <span className={labelClass}>{t.participants.detail.network.section}</span>
         </div>
         <div className="grid gap-4 text-sm sm:grid-cols-2">
           <div>
-            <span className="block text-xs uppercase tracking-wide text-muted">Indirizzo IP</span>
-            <span className="font-mono text-foreground">{p.ipAddress ?? "N/D"}</span>
+            <span className="block text-xs uppercase tracking-wide text-muted">{t.participants.detail.network.ip}</span>
+            <span className="font-mono text-foreground">{p.ipAddress ?? t.common.na}</span>
           </div>
           <div>
-            <span className="block text-xs uppercase tracking-wide text-muted">ISP</span>
-            <span className="text-foreground">{p.ipIsp ?? "N/D"}</span>
+            <span className="block text-xs uppercase tracking-wide text-muted">{t.participants.detail.network.isp}</span>
+            <span className="text-foreground">{p.ipIsp ?? t.common.na}</span>
           </div>
         </div>
       </section>
 
       <section className="flex flex-col gap-3 border-t border-surface-border pt-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <span className={labelClass}>Posizione attuale</span>
+          <span className={labelClass}>{t.participants.detail.location.section}</span>
           {p.sessionId && (
             <button
               type="button"
-              title={p.sessionStatus === "active" ? "Mostra destinazione" : "Sessione non attiva"}
+              title={p.sessionStatus === "active" ? t.participants.detail.actions.showDestination : t.participants.detail.actions.sessionNotActive}
               onClick={showDestination}
               disabled={busy || p.sessionStatus !== "active"}
               className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-accent-foreground disabled:opacity-50"
             >
               <MapPin size={16} aria-hidden="true" />
-              Mostra destinazione
+              {t.participants.detail.actions.showDestination}
             </button>
           )}
         </div>
@@ -268,7 +271,7 @@ export function ParticipantDetail({ accessUrl, participant: p }: Props) {
             <LiveMap markers={mapMarkers} />
           </>
         ) : (
-          <p className="text-sm text-muted">Nessuna posizione disponibile (partecipante non ancora partito).</p>
+          <p className="text-sm text-muted">{t.participants.detail.location.noData}</p>
         )}
       </section>
 

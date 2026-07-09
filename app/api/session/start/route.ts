@@ -18,11 +18,15 @@ import type { InviteCodeStatus, Session } from "@/lib/generated/prisma/client";
 import { getOrCreateDeviceToken, issueParticipantSession, readCodeRef } from "@/lib/session-participant";
 import { projectActiveSession } from "@/lib/public-projection";
 import { evaluateInviteCodeState } from "@/lib/code-resolution";
-import { ERROR_MESSAGES, DEFAULTS } from "@/lib/constants";
+import { getErrorMessages, DEFAULTS } from "@/lib/constants";
+import { getLocale, getDictionary } from "@/lib/i18n/server";
 
 const CLAIMABLE_CODE_STATUSES: InviteCodeStatus[] = ["created", "valid", "scheduled"];
 
 export async function POST(req: Request) {
+  const locale = await getLocale();
+  const t = getDictionary(locale);
+  const E = getErrorMessages(t);
   const ip = getClientIp(req);
   const limit = rateLimit(rateLimitKey(ip, "session-start"), { windowMs: 5 * 60_000, max: 10 });
   if (!limit.allowed) {
@@ -50,12 +54,12 @@ export async function POST(req: Request) {
 
   // Re-validate: another tab/device may have raced us, or the event may
   // have changed state since the code_ref cookie was issued.
-  const precheck = await evaluateInviteCodeState(inviteCode, inviteCode.event, codeRef.codeDisplay);
+  const precheck = await evaluateInviteCodeState(inviteCode, inviteCode.event, t, codeRef.codeDisplay);
   if (precheck.kind === "not_available" || precheck.kind === "invalid") {
-    return NextResponse.json({ error: "not_available", message: ERROR_MESSAGES.CODE_NOT_AVAILABLE }, { status: 409 });
+    return NextResponse.json({ error: "not_available", message: E.CODE_NOT_AVAILABLE }, { status: 409 });
   }
   if (precheck.kind === "already_used") {
-    return NextResponse.json({ error: "already_used", message: ERROR_MESSAGES.ALREADY_USED }, { status: 409 });
+    return NextResponse.json({ error: "already_used", message: E.ALREADY_USED }, { status: 409 });
   }
   if (precheck.kind === "in_progress" || precheck.kind === "arrived") {
     // evaluateInviteCodeState already resumed an existing session (same
@@ -85,7 +89,7 @@ export async function POST(req: Request) {
       inviteCodeId: inviteCode.id,
       metadata: { message: err instanceof RouteProviderError ? err.message : "unknown" },
     });
-    return NextResponse.json({ error: "routing_failed", message: ERROR_MESSAGES.GENERIC }, { status: 502 });
+    return NextResponse.json({ error: "routing_failed", message: E.GENERIC }, { status: 502 });
   }
 
   const stepPoints = buildRouteSteps(routeResult.polyline, event.stepsCount, destination, event.unlockRadiusM);
@@ -138,7 +142,7 @@ export async function POST(req: Request) {
     // a fresh guest participant + session bound to this device.
     const used = await prisma.session.count({ where: { inviteCodeId: inviteCode.id } });
     if (used >= inviteCode.maxSessions) {
-      return NextResponse.json({ error: "not_available", message: ERROR_MESSAGES.CODE_NOT_AVAILABLE }, { status: 409 });
+      return NextResponse.json({ error: "not_available", message: E.CODE_NOT_AVAILABLE }, { status: 409 });
     }
     session = await prisma.$transaction(async (tx) => {
       const guest = await tx.participant.create({
@@ -172,7 +176,7 @@ export async function POST(req: Request) {
       return created;
     });
     if (!claimed) {
-      return NextResponse.json({ error: "already_used", message: ERROR_MESSAGES.ALREADY_USED }, { status: 409 });
+      return NextResponse.json({ error: "already_used", message: E.ALREADY_USED }, { status: 409 });
     }
     session = claimed;
   }
@@ -191,6 +195,6 @@ export async function POST(req: Request) {
     where: { sessionId_stepNumber: { sessionId: session.id, stepNumber: 1 } },
   });
 
-  const state = projectActiveSession({ event, session, currentStep, participantCode: codeRef.codeDisplay });
+  const state = projectActiveSession({ event, session, currentStep, participantCode: codeRef.codeDisplay, t });
   return NextResponse.json({ state });
 }

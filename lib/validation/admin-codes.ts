@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { Dictionary } from "@/lib/i18n/types";
 
 const dateInput = z.union([z.string().trim().min(1), z.number(), z.date()]).pipe(z.coerce.date());
 
@@ -16,14 +17,16 @@ export const codePublicCreateSchema = z.object({
 });
 
 // Custom code set by an admin. Normalized (uppercase, no spaces) server-side.
-export const codeUpdateSchema = z.object({
-  code: z
-    .string()
-    .trim()
-    .min(4, "Il codice deve avere almeno 4 caratteri")
-    .max(32)
-    .regex(/^[A-Za-z0-9\s-]+$/, "Solo lettere, numeri, spazi e trattini"),
-});
+export function codeUpdateSchema(t: Dictionary) {
+  return z.object({
+    code: z
+      .string()
+      .trim()
+      .min(4, t.validation.codes.minLength)
+      .max(32)
+      .regex(/^[A-Za-z0-9\s-]+$/, t.validation.codes.pattern),
+  });
+}
 
 export const codeStatusUpdateSchema = z.object({
   active: z.boolean(),

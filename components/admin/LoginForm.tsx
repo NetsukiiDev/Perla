@@ -1,17 +1,22 @@
-const ERROR_MESSAGES: Record<string, string> = {
-  invalid: "Credenziali non valide.",
-  rate_limited: "Troppi tentativi. Riprova tra qualche minuto.",
+"use client";
+
+import { useT } from "@/lib/i18n/context";
+
+const ERROR_MESSAGES: Record<string, (t: ReturnType<typeof useT>) => string> = {
+  invalid: (t) => t.login.errors.invalid,
+  rate_limited: (t) => t.login.errors.rateLimit,
 };
 
 export function LoginForm({ nextPath, error }: { nextPath: string; error?: string }) {
-  const message = error ? ERROR_MESSAGES[error] : null;
+  const t = useT();
+  const message = error ? ERROR_MESSAGES[error]?.(t) : null;
 
   return (
     <form action="/api/admin/auth/login" method="post" className="flex flex-col gap-4">
       <input type="hidden" name="next" value={nextPath} />
       <div className="flex flex-col gap-1">
         <label htmlFor="admin-email" className="text-xs uppercase tracking-wide text-muted">
-          Email
+          {t.login.email}
         </label>
         <input
           id="admin-email"
@@ -24,7 +29,7 @@ export function LoginForm({ nextPath, error }: { nextPath: string; error?: strin
       </div>
       <div className="flex flex-col gap-1">
         <label htmlFor="admin-password" className="text-xs uppercase tracking-wide text-muted">
-          Password
+          {t.login.password}
         </label>
         <input
           id="admin-password"
@@ -37,7 +42,7 @@ export function LoginForm({ nextPath, error }: { nextPath: string; error?: strin
       </div>
       {message && <p className="text-sm text-danger">{message}</p>}
       <button type="submit" className="w-full rounded-lg bg-accent px-4 py-2.5 font-medium text-accent-foreground">
-        Accedi
+        {t.login.loginButton}
       </button>
     </form>
   );

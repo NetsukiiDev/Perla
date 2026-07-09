@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { requireAdminUser } from "@/lib/admin-guard";
 import { createUserSchema } from "@/lib/validation/admin-users";
 import { hashPassword } from "@/lib/hash";
+import { getLocale, getDictionary } from "@/lib/i18n/server";
 import { writeAccessLog } from "@/lib/access-log";
 import { AccessLogType } from "@/lib/generated/prisma/client";
 
@@ -24,8 +25,10 @@ export async function POST(req: Request) {
   const auth = await requireAdminUser(["admin"]);
   if ("response" in auth) return auth.response;
 
+  const locale = await getLocale();
+  const t = getDictionary(locale);
   const body = await req.json().catch(() => null);
-  const parsed = createUserSchema.safeParse(body);
+  const parsed = createUserSchema(t).safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: "invalid", issues: parsed.error.issues }, { status: 400 });
   }

@@ -7,6 +7,7 @@ import { rateLimit, rateLimitKey } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/request-context";
 import { adminSetupSchema } from "@/lib/validation/admin-setup";
 import { hashPassword } from "@/lib/hash";
+import { getLocale, getDictionary } from "@/lib/i18n/server";
 import { issueAdminSession } from "@/lib/auth-admin";
 import { writeAccessLog } from "@/lib/access-log";
 import { AccessLogType } from "@/lib/generated/prisma/client";
@@ -28,8 +29,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "rate_limited", message: "Troppi tentativi. Riprova tra qualche minuto." }, { status: 429 });
   }
 
+  const locale = await getLocale();
+  const t = getDictionary(locale);
   const body = await req.json().catch(() => null);
-  const parsed = adminSetupSchema.safeParse(body);
+  const parsed = adminSetupSchema(t).safeParse(body);
   if (!parsed.success) {
     const first = parsed.error.issues[0]?.message ?? "Dati non validi.";
     return NextResponse.json({ error: "invalid", message: first }, { status: 400 });

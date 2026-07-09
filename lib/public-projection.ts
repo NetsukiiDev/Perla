@@ -5,8 +5,9 @@
 // RouteStep's coordinates, and it only ever receives the session's CURRENT
 // step, never the full list.
 import { decryptCoord } from "@/lib/crypto";
-import { formatHHmm, notYetAvailableMessage, STEP_HINT } from "@/lib/constants";
+import { formatHHmm, notYetAvailableMessage, getStepHint } from "@/lib/constants";
 import type { Event, RouteStep, Session } from "@/lib/generated/prisma/client";
+import type { Dictionary } from "@/lib/i18n/types";
 
 export type PublicState =
   | { kind: "invalid" }
@@ -53,7 +54,7 @@ function eventIsUnavailable(event: Event, now = Date.now()): boolean {
 
 // Used before any session exists, right after a code resolves to a valid,
 // non-revoked, non-expired event/code pair.
-export function projectPreSessionState(event: Event, participantCode?: string): PublicState {
+export function projectPreSessionState(event: Event, t: Dictionary, participantCode?: string): PublicState {
   const now = Date.now();
   if (eventIsUnavailable(event, now)) {
     return { kind: "not_available" };
@@ -70,8 +71,8 @@ export function projectPreSessionState(event: Event, participantCode?: string): 
       endsAt: event.endsAt ? event.endsAt.toISOString() : null,
       participantCode,
       message: revealAt
-        ? notYetAvailableMessage(revealAt)
-        : `Le posizioni non sono ancora disponibili. Riprova alle ${formatHHmm(event.startsAt)}.`,
+        ? notYetAvailableMessage(t, revealAt)
+        : t.participantFlow.notYetAvailable.replace("{time}", formatHHmm(event.startsAt)),
     };
   }
 
@@ -91,8 +92,9 @@ export function projectActiveSession(params: {
   session: Session;
   currentStep: RouteStep | null;
   participantCode?: string | null;
+  t: Dictionary;
 }): PublicState {
-  const { event, session, currentStep, participantCode } = params;
+  const { event, session, currentStep, participantCode, t } = params;
   const now = Date.now();
 
   if (
@@ -138,6 +140,6 @@ export function projectActiveSession(params: {
     tollEstimateCents:
       event.showTollInfo && session.hasHighway ? (session.tollEstimateCents ?? undefined) : undefined,
     participantCode: participantCode ?? undefined,
-    hint: STEP_HINT,
+    hint: getStepHint(t),
   };
 }

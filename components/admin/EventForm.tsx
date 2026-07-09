@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { Plus, Save, Trash2 } from "lucide-react";
+import { useT } from "@/lib/i18n/context";
 
 const EventLocationPicker = dynamic(() => import("./EventLocationPicker").then((m) => m.EventLocationPicker), {
   ssr: false,
@@ -27,13 +28,7 @@ export interface EventFormValues {
   notes: string | null;
 }
 
-const STATUS_OPTIONS = [
-  { value: "draft", label: "Bozza" },
-  { value: "scheduled", label: "Programmato" },
-  { value: "active", label: "Attivo" },
-  { value: "closed", label: "Chiuso" },
-  { value: "archived", label: "Archiviato" },
-];
+const STATUS_OPTIONS = ["draft", "scheduled", "active", "closed", "archived"] as const;
 
 const inputClass =
   "w-full rounded-lg border border-surface-border bg-background px-3 py-2 text-sm text-foreground focus:border-foreground focus:outline-none";
@@ -61,6 +56,7 @@ function formatCoord(value: number): string {
 
 export function EventForm({ initial }: { initial?: EventFormValues }) {
   const router = useRouter();
+  const t = useT();
   const isEdit = Boolean(initial?.id);
 
   const [internalName, setInternalName] = useState(initial?.internalName ?? "");
@@ -111,15 +107,15 @@ export function EventForm({ initial }: { initial?: EventFormValues }) {
       if (!res.ok) {
         setError(
           data?.error === "region_not_detected"
-            ? "Coordinate non riconosciute in una regione italiana. Controlla latitudine e longitudine."
-            : "Impossibile salvare l'evento. Controlla i campi.",
+            ? t.events.form.errors.coordinate
+            : t.events.form.errors.saveFailed,
         );
         return;
       }
       router.push(`/admin/events/${data.event.id}`);
       router.refresh();
     } catch {
-      setError("Si è verificato un errore. Riprova.");
+      setError(t.events.form.errors.generic);
     } finally {
       setLoading(false);
     }
@@ -127,7 +123,7 @@ export function EventForm({ initial }: { initial?: EventFormValues }) {
 
   async function handleDelete() {
     if (!initial?.id) return;
-    if (!window.confirm(`Eliminare definitivamente l'evento "${initial.internalName}"? Questa azione non può essere annullata.`)) {
+    if (!window.confirm(t.events.form.confirmDelete.replace("{name}", initial.internalName))) {
       return;
     }
     setDeleting(true);
@@ -135,14 +131,14 @@ export function EventForm({ initial }: { initial?: EventFormValues }) {
     try {
       const res = await fetch(`/api/admin/events/${initial.id}`, { method: "DELETE" });
       if (!res.ok) {
-        setError("Impossibile eliminare l'evento.");
+        setError(t.events.form.errors.deleteFailed);
         setDeleting(false);
         return;
       }
       router.push("/admin/events");
       router.refresh();
     } catch {
-      setError("Si è verificato un errore. Riprova.");
+      setError(t.events.form.errors.generic);
       setDeleting(false);
     }
   }
@@ -151,7 +147,7 @@ export function EventForm({ initial }: { initial?: EventFormValues }) {
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-1">
-          <label className={labelClass}>Nome interno</label>
+          <label className={labelClass}>{t.events.form.labels.internalName}</label>
           <input
             required
             value={internalName}
@@ -162,7 +158,7 @@ export function EventForm({ initial }: { initial?: EventFormValues }) {
       </div>
 
       <div className="flex flex-col gap-2">
-        <label className={labelClass}>Posizione evento</label>
+        <label className={labelClass}>{t.events.form.labels.location}</label>
         <EventLocationPicker
           lat={Number.isFinite(parseDecimalInput(destinationLat)) ? parseDecimalInput(destinationLat) : null}
           lng={Number.isFinite(parseDecimalInput(destinationLng)) ? parseDecimalInput(destinationLng) : null}
@@ -175,7 +171,7 @@ export function EventForm({ initial }: { initial?: EventFormValues }) {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-1">
-          <label className={labelClass}>Latitudine destinazione</label>
+          <label className={labelClass}>{t.events.form.labels.destLat}</label>
           <input
             required
             type="text"
@@ -186,7 +182,7 @@ export function EventForm({ initial }: { initial?: EventFormValues }) {
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className={labelClass}>Longitudine destinazione</label>
+          <label className={labelClass}>{t.events.form.labels.destLng}</label>
           <input
             required
             type="text"
@@ -200,7 +196,7 @@ export function EventForm({ initial }: { initial?: EventFormValues }) {
 
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="flex flex-col gap-1">
-          <label className={labelClass}>Attivazione posizioni</label>
+          <label className={labelClass}>{t.events.form.labels.activationTime}</label>
           <input
             type="datetime-local"
             value={revealAt}
@@ -209,7 +205,7 @@ export function EventForm({ initial }: { initial?: EventFormValues }) {
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className={labelClass}>Inizio evento</label>
+          <label className={labelClass}>{t.events.form.labels.startTime}</label>
           <input
             required
             type="datetime-local"
@@ -219,7 +215,7 @@ export function EventForm({ initial }: { initial?: EventFormValues }) {
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className={labelClass}>Fine evento</label>
+          <label className={labelClass}>{t.events.form.labels.endTime}</label>
           <input
             type="datetime-local"
             value={endsAt}
@@ -232,18 +228,18 @@ export function EventForm({ initial }: { initial?: EventFormValues }) {
       <div className="grid gap-4 sm:grid-cols-3">
         {isEdit && (
           <div className="flex flex-col gap-1">
-            <label className={labelClass}>Stato</label>
+            <label className={labelClass}>{t.events.form.labels.status}</label>
             <select value={status} onChange={(e) => setStatus(e.target.value)} className={inputClass}>
               {STATUS_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
+                <option key={opt} value={opt}>
+                  {t.events.statusOptions[opt]}
                 </option>
               ))}
             </select>
           </div>
         )}
         <div className="flex flex-col gap-1">
-          <label className={labelClass}>Numero tappe</label>
+          <label className={labelClass}>{t.events.form.labels.steps}</label>
           <input
             required
             type="number"
@@ -255,7 +251,7 @@ export function EventForm({ initial }: { initial?: EventFormValues }) {
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className={labelClass}>Raggio sblocco (m)</label>
+          <label className={labelClass}>{t.events.form.labels.unlockRadius}</label>
           <input
             required
             type="number"
@@ -275,7 +271,7 @@ export function EventForm({ initial }: { initial?: EventFormValues }) {
             checked={showTotalDistance}
             onChange={(e) => setShowTotalDistance(e.target.checked)}
           />
-          Mostra distanza totale
+          {t.events.form.labels.showTotalDistance}
         </label>
         <label className="flex items-center gap-2 text-sm">
           <input
@@ -283,7 +279,7 @@ export function EventForm({ initial }: { initial?: EventFormValues }) {
             checked={showTotalDuration}
             onChange={(e) => setShowTotalDuration(e.target.checked)}
           />
-          Mostra durata totale
+          {t.events.form.labels.showTotalDuration}
         </label>
         <label className="flex items-center gap-2 text-sm">
           <input
@@ -291,12 +287,12 @@ export function EventForm({ initial }: { initial?: EventFormValues }) {
             checked={showTollInfo}
             onChange={(e) => setShowTollInfo(e.target.checked)}
           />
-          Mostra autostrada e pedaggio stimato
+          {t.events.form.labels.showTollInfo}
         </label>
       </div>
 
       <div className="flex flex-col gap-1">
-        <label className={labelClass}>Note interne</label>
+        <label className={labelClass}>{t.events.form.labels.notes}</label>
         <textarea
           value={notes ?? ""}
           onChange={(e) => setNotes(e.target.value)}
@@ -314,7 +310,7 @@ export function EventForm({ initial }: { initial?: EventFormValues }) {
           className="inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-accent-foreground disabled:opacity-50"
         >
           {isEdit ? <Save size={16} aria-hidden="true" /> : <Plus size={16} aria-hidden="true" />}
-          {loading ? "Salvataggio..." : isEdit ? "Salva modifiche" : "Crea evento"}
+          {loading ? t.events.form.buttons.saving : isEdit ? t.events.form.buttons.save : t.events.form.buttons.create}
         </button>
 
         {isEdit && (
@@ -325,7 +321,7 @@ export function EventForm({ initial }: { initial?: EventFormValues }) {
             className="inline-flex items-center gap-2 rounded-lg border border-danger/40 px-4 py-2.5 text-sm font-medium text-danger hover:bg-danger/10 disabled:opacity-50"
           >
             <Trash2 size={16} aria-hidden="true" />
-            {deleting ? "Eliminazione..." : "Elimina evento"}
+            {deleting ? t.events.form.buttons.deleting : t.events.form.buttons.delete}
           </button>
         )}
       </div>

@@ -3,6 +3,7 @@
 import { Ban, Flag, MapPin, MapPinOff, RotateCcw, ShieldCheck } from "lucide-react";
 import { ConfirmButton } from "./ConfirmButton";
 import { IconButton } from "./IconButton";
+import { useT } from "@/lib/i18n/context";
 
 interface SessionActionsMenuProps {
   sessionId: string | null;
@@ -11,6 +12,7 @@ interface SessionActionsMenuProps {
 }
 
 export function SessionActionsMenu({ sessionId, sessionStatus, onChanged }: SessionActionsMenuProps) {
+  const t = useT();
   async function post(url: string) {
     await fetch(url, { method: "POST" });
     onChanged();
@@ -20,60 +22,60 @@ export function SessionActionsMenu({ sessionId, sessionStatus, onChanged }: Sess
     <div className="flex flex-wrap justify-end gap-2">
       {sessionId && sessionStatus !== "blocked" && (
         <ConfirmButton
-          confirmMessage="Bloccare questa sessione?"
+          confirmMessage={t.participants.detail.actions.block}
           onConfirm={() => post(`/api/admin/sessions/${sessionId}/block`)}
           icon={Ban}
-          label="Blocca"
+          label={t.participants.detail.actions.block}
           variant="neutral"
         >
-          Blocca
+          {t.participants.detail.actions.block}
         </ConfirmButton>
       )}
       {sessionId && sessionStatus === "blocked" && (
-        <IconButton icon={ShieldCheck} label="Sblocca" onClick={() => post(`/api/admin/sessions/${sessionId}/unblock`)} />
+        <IconButton icon={ShieldCheck} label={t.participants.detail.actions.unblock} onClick={() => post(`/api/admin/sessions/${sessionId}/unblock`)} />
       )}
       {sessionId && (
         <ConfirmButton
-          confirmMessage="Resettare il viaggio di questo codice dalla tappa 1?"
+          confirmMessage={t.participants.detail.actions.reset}
           onConfirm={() => post(`/api/admin/sessions/${sessionId}/reset`)}
           icon={RotateCcw}
-          label="Resetta viaggio"
+          label={t.participants.detail.actions.reset}
           variant="neutral"
         >
-          Resetta
+          {t.participants.detail.actions.reset}
         </ConfirmButton>
       )}
       {sessionId && sessionStatus === "active" && (
         <ConfirmButton
-          confirmMessage="Mostrare subito la destinazione finale a questo codice?"
+          confirmMessage={t.participants.detail.actions.showDestination}
           onConfirm={() => post(`/api/admin/sessions/${sessionId}/show-destination`)}
           icon={MapPin}
-          label="Mostra destinazione"
+          label={t.participants.detail.actions.showDestination}
           variant="neutral"
         >
-          Mostra destinazione
+          {t.participants.detail.actions.showDestination}
         </ConfirmButton>
       )}
       {sessionId && (
         <ConfirmButton
-          confirmMessage="Segnare questo codice come arrivato?"
+          confirmMessage={t.participants.detail.actions.markArrived}
           onConfirm={() => post(`/api/admin/sessions/${sessionId}/mark-arrived`)}
           icon={Flag}
-          label="Segna arrivato"
+          label={t.participants.detail.actions.markArrived}
           variant="neutral"
         >
-          Segna arrivato
+          {t.participants.detail.actions.markArrived}
         </ConfirmButton>
       )}
       {sessionId && (
         <ConfirmButton
-          confirmMessage="Cancellare i dati di posizione di questo codice?"
+          confirmMessage={t.participants.detail.actions.deleteLocation}
           onConfirm={() => post(`/api/admin/sessions/${sessionId}/delete-location`)}
           icon={MapPinOff}
-          label="Cancella posizione"
+          label={t.participants.detail.actions.deleteLocation}
           variant="neutral"
         >
-          Cancella posizione
+          {t.participants.detail.actions.deleteLocation}
         </ConfirmButton>
       )}
     </div>

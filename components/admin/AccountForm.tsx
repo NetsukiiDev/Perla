@@ -2,12 +2,14 @@
 
 import { useState, type FormEvent } from "react";
 import { KeyRound } from "lucide-react";
+import { useT } from "@/lib/i18n/context";
 
 const inputClass =
   "w-full rounded-lg border border-surface-border bg-background px-4 py-2.5 text-foreground focus:border-foreground focus:outline-none";
 const labelClass = "text-xs uppercase tracking-wide text-muted";
 
 export function AccountForm({ email }: { email: string }) {
+  const t = useT();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -20,11 +22,11 @@ export function AccountForm({ email }: { email: string }) {
     setError(null);
     setDone(false);
     if (newPassword.length < 8) {
-      setError("La nuova password deve avere almeno 8 caratteri.");
+      setError(t.account.errors.tooShort);
       return;
     }
     if (newPassword !== confirm) {
-      setError("Le password non coincidono.");
+      setError(t.account.errors.notMatch);
       return;
     }
     setLoading(true);
@@ -42,9 +44,9 @@ export function AccountForm({ email }: { email: string }) {
         return;
       }
       const data = await res.json().catch(() => null);
-      setError(data?.error === "wrong_password" ? "Password attuale errata." : "Impossibile aggiornare la password.");
+      setError(data?.error === "wrong_password" ? t.account.errors.wrongPassword : t.account.errors.updateFailed);
     } catch {
-      setError("Si è verificato un errore. Riprova.");
+      setError(t.account.errors.generic);
     } finally {
       setLoading(false);
     }
@@ -53,11 +55,11 @@ export function AccountForm({ email }: { email: string }) {
   return (
     <form onSubmit={handleSubmit} className="flex max-w-md flex-col gap-4">
       <div className="flex flex-col gap-1">
-        <label className={labelClass}>Email</label>
+        <label className={labelClass}>{t.account.email}</label>
         <input value={email} disabled className={`${inputClass} opacity-60`} />
       </div>
       <div className="flex flex-col gap-1">
-        <label className={labelClass}>Password attuale</label>
+        <label className={labelClass}>{t.account.currentPassword}</label>
         <input
           type="password"
           required
@@ -67,7 +69,7 @@ export function AccountForm({ email }: { email: string }) {
         />
       </div>
       <div className="flex flex-col gap-1">
-        <label className={labelClass}>Nuova password</label>
+        <label className={labelClass}>{t.account.newPassword}</label>
         <input
           type="password"
           required
@@ -78,7 +80,7 @@ export function AccountForm({ email }: { email: string }) {
         />
       </div>
       <div className="flex flex-col gap-1">
-        <label className={labelClass}>Conferma nuova password</label>
+        <label className={labelClass}>{t.account.confirmPassword}</label>
         <input
           type="password"
           required
@@ -89,14 +91,14 @@ export function AccountForm({ email }: { email: string }) {
         />
       </div>
       {error && <p className="text-sm text-danger">{error}</p>}
-      {done && <p className="text-sm text-emerald-400">Password aggiornata.</p>}
+      {done && <p className="text-sm text-emerald-400">{t.account.success}</p>}
       <button
         type="submit"
         disabled={loading}
         className="inline-flex items-center gap-2 self-start rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-accent-foreground disabled:opacity-50"
       >
         <KeyRound size={16} aria-hidden="true" />
-        {loading ? "..." : "Aggiorna password"}
+        {loading ? "..." : t.account.updateButton}
       </button>
     </form>
   );

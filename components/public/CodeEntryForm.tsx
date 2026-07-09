@@ -1,13 +1,15 @@
-import { ERROR_MESSAGES } from "@/lib/constants";
+"use client";
 
-const CODE_ERROR_MESSAGES: Record<string, string> = {
-  already_used: ERROR_MESSAGES.ALREADY_USED,
-  invalid: ERROR_MESSAGES.INVALID_CODE,
-  not_available: ERROR_MESSAGES.CODE_NOT_AVAILABLE,
-  rate_limited: "Troppi tentativi. Riprova tra qualche minuto.",
-};
+import { useT } from "@/lib/i18n/context";
 
 export function CodeEntryForm({ error, defaultCode }: { error?: string; defaultCode?: string }) {
+  const t = useT();
+  const CODE_ERROR_MESSAGES: Record<string, string> = {
+    already_used: t.participantFlow.errors.alreadyUsed,
+    invalid: t.participantFlow.errors.invalidCode,
+    not_available: t.participantFlow.errors.codeNotAvailable,
+    rate_limited: t.participantFlow.codeEntry.errors.rateLimit,
+  };
   const message = error ? CODE_ERROR_MESSAGES[error] : null;
 
   return (
@@ -19,7 +21,7 @@ export function CodeEntryForm({ error, defaultCode }: { error?: string; defaultC
         autoComplete="off"
         autoCapitalize="characters"
         spellCheck={false}
-        placeholder="Inserisci codice"
+        placeholder={t.participantFlow.codeEntry.placeholder}
         defaultValue={defaultCode}
         required
         maxLength={64}
@@ -30,7 +32,7 @@ export function CodeEntryForm({ error, defaultCode }: { error?: string; defaultC
         type="submit"
         className="w-full rounded-lg bg-accent px-4 py-3 text-center font-medium text-accent-foreground transition-opacity"
       >
-        Continua
+        {t.participantFlow.codeEntry.continue}
       </button>
     </form>
   );

@@ -7,31 +7,32 @@ import { APP_NAME, APP_VERSION, BUILD_ENV, COMMIT_SHA, GITHUB_REPO, isNewerVersi
 
 export const runtime = "nodejs";
 
+async function githubJson(path: string): Promise<unknown | null> {
+  // Plain fetch options only: Next's fetch instrumentation can throw
+  // "fetch failed" when combined with AbortSignal.timeout(); cache: "no-store"
+  // keeps the result fresh without opting into the caching path.
+  const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/${path}`, {
+    headers: { Accept: "application/vnd.github+json", "User-Agent": "PERLA" },
+    cache: "no-store",
+  });
+  return res.ok ? res.json() : null;
+}
+
 async function fetchLatestVersion(): Promise<string | null> {
-  const headers = { Accept: "application/vnd.github+json", "User-Agent": "PERLA" };
   try {
-    const rel = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`, {
-      headers,
-      signal: AbortSignal.timeout(6000),
-    });
-    if (rel.ok) {
-      const data = await rel.json();
-      const tag = typeof data?.tag_name === "string" ? data.tag_name : "";
-      if (tag) return tag.replace(/^v/i, "");
+    const rel = (await githubJson("releases/latest")) as { tag_name?: unknown } | null;
+    if (rel && typeof rel.tag_name === "string" && rel.tag_name) {
+      return rel.tag_name.replace(/^v/i, "");
     }
 
     // Repos without published releases: use the newest tag instead.
-    const tags = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/tags?per_page=1`, {
-      headers,
-      signal: AbortSignal.timeout(6000),
-    });
-    if (tags.ok) {
-      const arr = await tags.json();
-      const name = Array.isArray(arr) && typeof arr[0]?.name === "string" ? arr[0].name : "";
-      if (name) return name.replace(/^v/i, "");
-    }
-  } catch {
-    // network / timeout — treated as "check failed" below
+    const tags = (await githubJson("tags?per_page=1")) as Array<{ name?: unknown }> | null;
+    const name = Array.isArray(tags) && typeof tags[0]?.name === "string" ? tags[0].name : "";
+    if (name) return name.replace(/^v/i, "");
+  } catch (err) {
+    // Network / TLS failure (e.g. a local VPN or antivirus intercepting TLS
+    // breaks certificate verification). Surfaced to the UI as "check failed".
+    console.error("[version] GitHub update check failed:", err instanceof Error ? err.message : err);
   }
   return null;
 }

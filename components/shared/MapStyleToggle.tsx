@@ -1,19 +1,22 @@
 "use client";
 
 import { type MapStyle } from "./MapsTileLayer";
+import { useT } from "@/lib/i18n/context";
 
 interface MapStyleToggleProps {
   style: MapStyle;
   onChange: (style: MapStyle) => void;
 }
 
-const LABELS: Record<MapStyle, { next: MapStyle; label: string; title: string }> = {
-  dark: { next: "satellite", label: "Satellite", title: "Attiva satellite con nomi" },
-  satellite: { next: "dark", label: "Scuro", title: "Attiva scuro" },
-};
-
 export function MapStyleToggle({ style, onChange }: MapStyleToggleProps) {
-  const { label, next, title } = LABELS[style];
+  const t = useT();
+
+  const entries: Record<MapStyle, { next: MapStyle; label: string; title: string }> = {
+    dark: { next: "satellite", label: t.mapStyleToggle.satellite, title: t.mapStyleToggle.enableSatellite },
+    satellite: { next: "dark", label: t.mapStyleToggle.dark, title: t.mapStyleToggle.enableDark },
+  };
+
+  const { label, next, title } = entries[style];
 
   return (
     <button

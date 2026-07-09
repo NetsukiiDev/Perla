@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requireAdminPage } from "@/lib/admin-guard";
 import { decryptCoord } from "@/lib/crypto";
+import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { AdminContainer } from "@/components/admin/AdminContainer";
 import { EventSubNav } from "@/components/admin/EventSubNav";
 import { StatusBadge } from "@/components/admin/StatusBadge";
@@ -11,16 +12,9 @@ import { EventOverview } from "@/components/admin/EventOverview";
 
 export const dynamic = "force-dynamic";
 
-const STATUS_LABELS: Record<string, string> = {
-  draft: "Bozza",
-  scheduled: "Programmato",
-  active: "Attivo",
-  closed: "Chiuso",
-  archived: "Archiviato",
-};
-
 export default async function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAdminPage();
+  const t = getDictionary(await getLocale());
 
   const { id } = await params;
   const event = await prisma.event.findUnique({
@@ -49,7 +43,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
           <p className="text-sm text-muted">{event.region}</p>
         </div>
         <div className="flex items-center gap-3">
-          <StatusBadge value={event.status} label={STATUS_LABELS[event.status] ?? event.status} />
+          <StatusBadge value={event.status} label={t.events.statusOptions[event.status as keyof typeof t.events.statusOptions] ?? event.status} />
           <EventStatusControl eventId={id} status={event.status} />
         </div>
       </div>

@@ -1,20 +1,23 @@
-// Cookie names, defaults, and the exact user-facing strings from the spec.
-// Keep these centralized so every surface shows identical wording and no
-// route accidentally leaks more detail than the spec allows.
+import type { Dictionary } from "@/lib/i18n/types";
 
-export const ERROR_MESSAGES = {
-  INVALID_CODE: "Codice non valido o non disponibile.",
-  CODE_NOT_AVAILABLE: "Codice non disponibile.",
-  ALREADY_USED: "Questo codice è già stato utilizzato.",
-  LOCATION_DENIED: "Per visualizzare la posizione devi consentire l'accesso alla posizione.",
-  ROUTE_COMPLETE: "Percorso completato.",
-  GENERIC: "Si è verificato un errore. Riprova.",
-} as const;
+export function getErrorMessages(t: Dictionary) {
+  return {
+    INVALID_CODE: t.participantFlow.errors.invalidCode,
+    CODE_NOT_AVAILABLE: t.participantFlow.errors.codeNotAvailable,
+    ALREADY_USED: t.participantFlow.errors.alreadyUsed,
+    LOCATION_DENIED: t.participantFlow.errors.locationDenied,
+    ROUTE_COMPLETE: t.participantFlow.errors.routeComplete,
+    GENERIC: t.participantFlow.errors.generic,
+  } as const;
+}
 
-export const PRIVACY_NOTICE =
-  "Useremo la tua posizione solo per mostrarti la prossima posizione da raggiungere e verificare l'arrivo alle tappe. I dati temporanei vengono eliminati dopo la chiusura dell'evento.";
+export function getPrivacyNotice(t: Dictionary): string {
+  return t.participantFlow.privacyNotice;
+}
 
-export const STEP_HINT = "Raggiungi questo punto per ricevere la prossima posizione.";
+export function getStepHint(t: Dictionary): string {
+  return t.participantFlow.stepHint;
+}
 
 export const COOKIE_NAMES = {
   CODE_REF: "code_ref",
@@ -39,6 +42,6 @@ export function formatHHmm(date: Date): string {
   }).format(date);
 }
 
-export function notYetAvailableMessage(revealAt: Date): string {
-  return `Le posizioni non sono ancora disponibili. Riprova alle ${formatHHmm(revealAt)}.`;
+export function notYetAvailableMessage(t: Dictionary, revealAt: Date): string {
+  return t.participantFlow.notYetAvailable.replace("{time}", formatHHmm(revealAt));
 }

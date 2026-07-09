@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Database, UserPlus, TriangleAlert } from "lucide-react";
+import { useT } from "@/lib/i18n/context";
 
 type Step = "database" | "admin";
 
@@ -26,14 +27,15 @@ const PLACEHOLDERS: Record<string, string> = {
 
 export function SetupWizard({ initialStep, currentProvider }: { initialStep: Step; currentProvider: string }) {
   const router = useRouter();
+  const t = useT();
   const [step, setStep] = useState<Step>(initialStep);
 
   return (
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-center gap-2 text-xs uppercase tracking-wide text-muted">
-        <span className={step === "database" ? "text-foreground" : ""}>1. Database</span>
+        <span className={step === "database" ? "text-foreground" : ""}>{t.setup.wizard.step1}</span>
         <span>&#8250;</span>
-        <span className={step === "admin" ? "text-foreground" : ""}>2. Amministratore</span>
+        <span className={step === "admin" ? "text-foreground" : ""}>{t.setup.wizard.step2}</span>
       </div>
 
       {step === "database" ? (
@@ -48,6 +50,7 @@ export function SetupWizard({ initialStep, currentProvider }: { initialStep: Ste
 type DbMode = "manual" | "url";
 
 function DatabaseStep({ currentProvider, onDone }: { currentProvider: string; onDone: () => void }) {
+  const t = useT();
   const [provider, setProvider] = useState(
     PROVIDERS.some((p) => p.value === currentProvider) ? currentProvider : "postgresql",
   );
@@ -93,17 +96,15 @@ function DatabaseStep({ currentProvider, onDone }: { currentProvider: string; on
       const data = await res.json().catch(() => null);
       if (res.ok && data?.ok) {
         if (data.restartRequired) {
-          setRestartMsg(
-            `Database inizializzato. Riavvia il server con "npm run dev", poi ricarica questa pagina per creare l'account.`,
-          );
+          setRestartMsg(t.setup.wizard.db.success);
           return;
         }
         onDone();
         return;
       }
-      setError(data?.message ?? data?.error ?? "Impossibile configurare il database.");
+      setError(data?.message ?? data?.error ?? t.setup.wizard.db.error);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Si è verificato un errore. Riprova.");
+      setError(err instanceof Error ? err.message : t.setup.wizard.admin.errors.generic);
     } finally {
       setLoading(false);
     }
@@ -112,7 +113,7 @@ function DatabaseStep({ currentProvider, onDone }: { currentProvider: string; on
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
-        <label className={labelClass}>Provider</label>
+        <label className={labelClass}>{t.setup.wizard.db.provider}</label>
         <select value={provider} onChange={(e) => setProvider(e.target.value)} className={inputClass}>
           {PROVIDERS.map((p) => (
             <option key={p.value} value={p.value}>
@@ -126,7 +127,7 @@ function DatabaseStep({ currentProvider, onDone }: { currentProvider: string; on
         <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-400">
           <TriangleAlert size={16} className="mt-0.5 shrink-0" />
           <span>
-            Assicurati che il server MongoDB sia in esecuzione. Il database verrà creato automaticamente se non esiste.
+            {t.setup.wizard.db.mongoInfo}
           </span>
         </div>
       )}
@@ -141,14 +142,14 @@ function DatabaseStep({ currentProvider, onDone }: { currentProvider: string; on
               mode === m ? "bg-accent text-accent-foreground" : "text-muted hover:text-foreground"
             }`}
           >
-            {m === "manual" ? "Manuale" : "Stringa"}
+            {m === "manual" ? t.setup.wizard.db.manual : t.setup.wizard.db.connectionString}
           </button>
         ))}
       </div>
 
       {mode === "url" ? (
         <div className="flex flex-col gap-1">
-          <label className={labelClass}>Stringa di connessione</label>
+          <label className={labelClass}>{t.setup.wizard.db.connectionString}</label>
           <input
             required
             value={url}
@@ -161,7 +162,7 @@ function DatabaseStep({ currentProvider, onDone }: { currentProvider: string; on
         <>
           <div className="grid grid-cols-3 gap-3">
             <div className="col-span-2 flex flex-col gap-1">
-              <label className={labelClass}>Host</label>
+              <label className={labelClass}>{t.setup.wizard.db.host}</label>
               <input
                 required
                 value={host}
@@ -171,7 +172,7 @@ function DatabaseStep({ currentProvider, onDone }: { currentProvider: string; on
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className={labelClass}>Porta</label>
+              <label className={labelClass}>{t.setup.wizard.db.port}</label>
               <input
                 value={port}
                 onChange={(e) => setPort(e.target.value)}
@@ -182,7 +183,7 @@ function DatabaseStep({ currentProvider, onDone }: { currentProvider: string; on
             </div>
           </div>
           <div className="flex flex-col gap-1">
-            <label className={labelClass}>Database</label>
+            <label className={labelClass}>{t.setup.wizard.db.database}</label>
             <input
               required
               value={database}
@@ -193,11 +194,11 @@ function DatabaseStep({ currentProvider, onDone }: { currentProvider: string; on
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
-              <label className={labelClass}>Utente</label>
+              <label className={labelClass}>{t.setup.wizard.db.user}</label>
               <input required value={user} onChange={(e) => setUser(e.target.value)} className={inputClass} />
             </div>
             <div className="flex flex-col gap-1">
-              <label className={labelClass}>Password</label>
+              <label className={labelClass}>{t.setup.wizard.db.password}</label>
               <input
                 type="password"
                 value={password}
@@ -219,12 +220,12 @@ function DatabaseStep({ currentProvider, onDone }: { currentProvider: string; on
         {loading ? (
           <>
             <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-            Inizializzazione...
+            {t.setup.wizard.db.initLoading}
           </>
         ) : (
           <>
             <Database size={16} aria-hidden="true" />
-            Verifica e inizializza
+            {t.setup.wizard.db.initButton}
           </>
         )}
       </button>
@@ -233,6 +234,7 @@ function DatabaseStep({ currentProvider, onDone }: { currentProvider: string; on
 }
 
 function AdminStep({ onDone }: { onDone: () => void }) {
+  const t = useT();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -243,11 +245,11 @@ function AdminStep({ onDone }: { onDone: () => void }) {
     e.preventDefault();
     setError(null);
     if (password.length < 8) {
-      setError("La password deve avere almeno 8 caratteri.");
+      setError(t.setup.wizard.admin.errors.passwordTooShort);
       return;
     }
     if (password !== confirm) {
-      setError("Le password non coincidono.");
+      setError(t.setup.wizard.admin.errors.notMatch);
       return;
     }
     setLoading(true);
@@ -262,9 +264,9 @@ function AdminStep({ onDone }: { onDone: () => void }) {
         onDone();
         return;
       }
-      setError(data?.message ?? data?.error ?? "Impossibile completare la configurazione. Controlla i dati.");
+      setError(data?.message ?? data?.error ?? t.setup.wizard.admin.errors.setupFailed);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Si è verificato un errore. Riprova.");
+      setError(err instanceof Error ? err.message : t.setup.wizard.admin.errors.generic);
     } finally {
       setLoading(false);
     }
@@ -273,11 +275,11 @@ function AdminStep({ onDone }: { onDone: () => void }) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
-        <label className={labelClass}>Email</label>
+        <label className={labelClass}>{t.setup.wizard.admin.email}</label>
         <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} />
       </div>
       <div className="flex flex-col gap-1">
-        <label className={labelClass}>Password</label>
+        <label className={labelClass}>{t.setup.wizard.admin.password}</label>
         <input
           type="password"
           required
@@ -288,7 +290,7 @@ function AdminStep({ onDone }: { onDone: () => void }) {
         />
       </div>
       <div className="flex flex-col gap-1">
-        <label className={labelClass}>Conferma password</label>
+        <label className={labelClass}>{t.setup.wizard.admin.confirmPassword}</label>
         <input
           type="password"
           required
@@ -307,12 +309,12 @@ function AdminStep({ onDone }: { onDone: () => void }) {
         {loading ? (
           <>
             <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-            Creazione...
+            {t.setup.wizard.admin.creating}
           </>
         ) : (
           <>
             <UserPlus size={16} aria-hidden="true" />
-            Crea account amministratore
+            {t.setup.wizard.admin.createButton}
           </>
         )}
       </button>

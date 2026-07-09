@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/admin-guard";
 import { eventCreateSchema } from "@/lib/validation/admin-event";
 import { encryptCoord } from "@/lib/crypto";
 import { detectItalianRegion } from "@/lib/detect-italian-region";
+import { getLocale, getDictionary } from "@/lib/i18n/server";
 
 export async function GET() {
   const auth = await requireAdmin();
@@ -17,8 +18,10 @@ export async function POST(req: Request) {
   const auth = await requireAdmin();
   if ("response" in auth) return auth.response;
 
+  const locale = await getLocale();
+  const t = getDictionary(locale);
   const body = await req.json().catch(() => null);
-  const parsed = eventCreateSchema.safeParse(body);
+  const parsed = eventCreateSchema(t).safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: "invalid_body", issues: parsed.error.issues }, { status: 400 });
   }

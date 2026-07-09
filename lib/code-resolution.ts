@@ -12,6 +12,8 @@ import {
 } from "@/lib/session-participant";
 import { projectActiveSession, projectPreSessionState, type PublicState } from "@/lib/public-projection";
 import type { Event, InviteCode, Session } from "@/lib/generated/prisma/client";
+import type { Dictionary } from "@/lib/i18n/types";
+import { getLocale, getDictionary } from "@/lib/i18n/server";
 
 const BLOCKING_CODE_STATUSES = new Set(["revoked", "deleted", "blocked", "expired"]);
 const USED_CODE_STATUSES = new Set(["started", "in_progress"]);
@@ -34,7 +36,7 @@ async function currentRouteStepFor(session: Session) {
 
 // Same device, but the participant_session cookie was lost — resume by
 // rotating the session token rather than minting a brand-new session.
-async function resumeSessionState(session: Session, event: Event, participantCode?: string): Promise<PublicState> {
+async function resumeSessionState(session: Session, event: Event, t: Dictionary, participantCode?: string): Promise<PublicState> {
   const rawToken = generateRandomToken();
   const resumed = await prisma.session.update({
     where: { id: session.id },
@@ -42,7 +44,7 @@ async function resumeSessionState(session: Session, event: Event, participantCod
   });
   await issueParticipantSession({ sessionId: resumed.id, sessionTokenRaw: rawToken, participantCode });
   const currentStep = await currentRouteStepFor(resumed);
-  return projectActiveSession({ event, session: resumed, currentStep, participantCode });
+  return projectActiveSession({ event, session: resumed, currentStep, participantCode, t });
 }
 
 // Public codes are reusable by many devices: resolve strictly by THIS device's
@@ -51,6 +53,7 @@ async function resumeSessionState(session: Session, event: Event, participantCod
 async function evaluatePublicCodeState(
   inviteCode: Pick<InviteCode, "id" | "maxSessions">,
   event: Event,
+  t: Dictionary,
   participantCode?: string,
 ): Promise<PublicState> {
   const deviceHash = await getDeviceTokenHashFromCookie();
@@ -62,7 +65,7 @@ async function evaluatePublicCodeState(
     : null;
 
   if (mySession) {
-    if (mySession.status === "active") return resumeSessionState(mySession, event, participantCode);
+    if (mySession.status === "active") return resumeSessionState(mySession, event, t, participantCode);
     if (mySession.status === "completed") return { kind: "arrived" };
     return { kind: "not_available" }; // blocked / expired
   }
@@ -70,7 +73,7 @@ async function evaluatePublicCodeState(
   // New device: enforce the usage cap before offering consent.
   const used = await prisma.session.count({ where: { inviteCodeId: inviteCode.id } });
   if (used >= inviteCode.maxSessions) return { kind: "not_available" };
-  return projectPreSessionState(event, participantCode);
+  return projectPreSessionState(event, t, participantCode);
 }
 
 // Evaluates an invite code that has no active session yet bound to *this*
@@ -80,6 +83,7 @@ async function evaluatePublicCodeState(
 export async function evaluateInviteCodeState(
   inviteCode: Pick<InviteCode, "id" | "status" | "expiresAt" | "isPublic" | "maxSessions">,
   event: Event,
+  t: Dictionary,
   participantCode?: string,
 ): Promise<PublicState> {
   if (BLOCKING_CODE_STATUSES.has(inviteCode.status)) {
@@ -93,7 +97,7 @@ export async function evaluateInviteCodeState(
   }
 
   if (inviteCode.isPublic) {
-    return evaluatePublicCodeState(inviteCode, event, participantCode);
+    return evaluatePublicCodeState(inviteCode, event, t, participantCode);
   }
 
   if (inviteCode.status === "arrived") {
@@ -109,17 +113,19 @@ export async function evaluateInviteCodeState(
     if (!deviceMatches) {
       return { kind: "already_used" };
     }
-    return resumeSessionState(existingActive, event, participantCode);
+    return resumeSessionState(existingActive, event, t, participantCode);
   }
 
   if (USED_CODE_STATUSES.has(inviteCode.status)) {
     return { kind: "already_used" };
   }
 
-  return projectPreSessionState(event, participantCode);
+  return projectPreSessionState(event, t, participantCode);
 }
 
 export async function resolveCurrentPublicState(): Promise<PublicState> {
+  const locale = await getLocale();
+  const t = getDictionary(locale);
   const ctx = await getParticipantSessionContext();
   if (ctx) {
     const matches = await deviceTokenMatchesSession(ctx);
@@ -132,6 +138,7 @@ export async function resolveCurrentPublicState(): Promise<PublicState> {
       session: ctx,
       currentStep,
       participantCode: ctx.participantCode,
+      t,
     });
   }
 
@@ -146,5 +153,5 @@ export async function resolveCurrentPublicState(): Promise<PublicState> {
   });
   if (!inviteCode || inviteCode.codeHash !== codeRef.codeHash) return { kind: "invalid" };
 
-  return evaluateInviteCodeState(inviteCode, inviteCode.event, codeRef.codeDisplay);
+  return evaluateInviteCodeState(inviteCode, inviteCode.event, t, codeRef.codeDisplay);
 }

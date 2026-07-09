@@ -3,6 +3,7 @@ import { LoginForm } from "@/components/admin/LoginForm";
 import { PageShell } from "@/components/public/PageShell";
 import { getCurrentAdminUser } from "@/lib/admin-guard";
 import { isDatabaseConfigured, isSetupComplete, clearSetupConfig } from "@/lib/config";
+import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { isVercel } from "@/lib/env";
 import { getVercelSetupState } from "@/lib/vercel-setup";
 import { prisma } from "@/lib/db";
@@ -54,9 +55,11 @@ export default async function AdminLoginPage({ searchParams }: AdminLoginPagePro
   const nextPath = safeNextPath(firstValue(query.next));
   const error = firstValue(query.error);
 
+  const t = getDictionary(await getLocale());
+
   return (
     <PageShell>
-      <h1 className="mb-4 text-center text-lg font-medium">Area amministratore</h1>
+      <h1 className="mb-4 text-center text-lg font-medium">{t.login.title}</h1>
       <LoginForm nextPath={nextPath} error={error} />
     </PageShell>
   );

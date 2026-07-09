@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { requireAdminPage } from "@/lib/admin-guard";
 import { getParticipantView } from "@/lib/admin-participant-view";
 import { codeAccessUrl } from "@/lib/code-access-link";
+import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { AdminContainer } from "@/components/admin/AdminContainer";
 import { ParticipantDetail } from "@/components/admin/ParticipantDetail";
 
@@ -37,6 +38,7 @@ export default async function ParticipantDetailPage({
   params: Promise<{ id: string; participantId: string }>;
 }) {
   await requireAdminPage();
+  const t = getDictionary(await getLocale());
 
   const { id, participantId } = await params;
 
@@ -56,10 +58,10 @@ export default async function ParticipantDetailPage({
         className="inline-flex items-center gap-2 text-sm text-muted hover:text-foreground"
       >
         <ArrowLeft size={16} aria-hidden="true" />
-        Partecipanti
+        {t.events.subnav.participants}
       </Link>
       <div className="mb-6 mt-2">
-        <h1 className="text-xl font-semibold">{view.code ?? "Codice"}</h1>
+        <h1 className="text-xl font-semibold">{view.code ?? t.participants.manager.table.code}</h1>
         {view.displayName && <p className="text-sm text-muted">{view.displayName}</p>}
       </div>
       <ParticipantDetail accessUrl={accessUrl} participant={view} />
