@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Ban, ExternalLink, Globe, QrCode, Trash2, X } from "lucide-react";
 import { CopyButton } from "./CopyButton";
@@ -39,7 +39,8 @@ export function PublicCodesPanel({
     return `${initialBaseUrl.replace(/\/$/, "")}${codeAccessPath(code)}`;
   }
 
-  async function create() {
+  async function create(e: FormEvent) {
+    e.preventDefault();
     setLoading(true);
     setError(null);
     try {
@@ -77,7 +78,7 @@ export function PublicCodesPanel({
   }
 
   return (
-    <div className="flex flex-col gap-4 rounded-lg border border-surface-border p-4">
+    <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
         <Globe size={16} className="text-muted" aria-hidden="true" />
         <h2 className="text-sm font-semibold">{t.codes.public.title}</h2>
@@ -86,7 +87,7 @@ export function PublicCodesPanel({
         {t.codes.public.description}
       </p>
 
-      <div className="flex flex-wrap items-end gap-3">
+      <form onSubmit={create} className="flex flex-wrap items-end gap-3 rounded-lg border border-surface-border p-4">
         <div className="flex flex-col gap-1">
           <label className="text-xs uppercase tracking-wide text-muted">{t.codes.public.maxUses}</label>
           <input
@@ -99,15 +100,14 @@ export function PublicCodesPanel({
           />
         </div>
         <button
-          type="button"
-          onClick={create}
+          type="submit"
           disabled={loading}
           className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-accent-foreground disabled:opacity-50"
         >
           <Globe size={16} aria-hidden="true" />
           {loading ? t.codes.public.creating : t.codes.public.createButton}
         </button>
-      </div>
+      </form>
 
       {error && <p className="text-sm text-danger">{error}</p>}
 
