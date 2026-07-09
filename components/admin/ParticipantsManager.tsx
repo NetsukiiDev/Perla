@@ -8,6 +8,7 @@ import { CheckSquare, ExternalLink, Link2, QrCode, RotateCcw, Trash2, UserPlus, 
 import { StatusBadge } from "./StatusBadge";
 import { CopyButton } from "./CopyButton";
 import { iconButtonClass } from "./IconButton";
+
 import { codeAccessPath } from "@/lib/code-access-link";
 import { getDisplayStatusLabels, type DisplayStatus } from "@/lib/status";
 import { useT } from "@/lib/i18n/context";
@@ -46,6 +47,8 @@ export function ParticipantsManager({
   const [bulkError, setBulkError] = useState<string | null>(null);
   const [selectedCodeIds, setSelectedCodeIds] = useState<string[]>([]);
   const [revealed, setRevealed] = useState<{ name: string; code: string } | null>(null);
+  const [regenerating, setRegenerating] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
   const [qrPreview, setQrPreview] = useState<{ code: string; displayName: string | null } | null>(null);
 
   const filtered = initialParticipants.filter((r) => {
@@ -84,11 +87,16 @@ export function ParticipantsManager({
   }
 
   async function regenerate(codeId: string, participantName: string) {
-    const res = await fetch(`/api/admin/codes/${codeId}/regenerate`, { method: "POST" });
-    if (res.ok) {
-      const data = await res.json();
-      setRevealed({ name: participantName === "codice" ? "" : participantName, code: data.code });
-      router.refresh();
+    setRegenerating(codeId);
+    try {
+      const res = await fetch(`/api/admin/codes/${codeId}/regenerate`, { method: "POST" });
+      if (res.ok) {
+        const data = await res.json();
+        setRevealed({ name: participantName === "codice" ? "" : participantName, code: data.code });
+        router.refresh();
+      }
+    } finally {
+      setRegenerating(null);
     }
   }
 
@@ -110,7 +118,7 @@ export function ParticipantsManager({
     });
   }
 
-  async function deleteCodes(codeIds: string[]) {
+  async function deleteCodes(codeIds: string[], singleCodeId?: string) {
     if (codeIds.length === 0) return;
     const ok = window.confirm(
       codeIds.length === 1
@@ -119,7 +127,8 @@ export function ParticipantsManager({
     );
     if (!ok) return;
 
-    setBulkLoading(true);
+    if (singleCodeId) setDeleting(singleCodeId);
+    else setBulkLoading(true);
     setBulkError(null);
     try {
       const res = await fetch("/api/admin/codes/bulk", {
@@ -135,6 +144,7 @@ export function ParticipantsManager({
       router.refresh();
     } finally {
       setBulkLoading(false);
+      if (singleCodeId) setDeleting(null);
     }
   }
 
@@ -157,24 +167,36 @@ export function ParticipantsManager({
 
       {revealed && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-accent/40 bg-accent/5 p-4">
-          <div>
-            <p className="text-xs uppercase tracking-wide text-muted">
-              {revealed.name ? `${t.participants.manager.generated} per ${revealed.name}` : t.participants.manager.generated}
-            </p>
-            <div className="mt-1 flex items-center gap-3">
-              <span className="font-mono text-2xl tracking-widest">{revealed.code}</span>
-              <CopyButton value={revealed.code} />
-              <button
-                type="button"
-                title={t.participants.manager.showQR}
-                aria-label={t.participants.manager.showQR}
-                onClick={() => setQrPreview({ code: revealed.code, displayName: revealed.name || null })}
-                className={iconButtonClass()}
-              >
-                <QrCode size={16} aria-hidden="true" />
-                <span className="sr-only">{t.participants.manager.showQR}</span>
-              </button>
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col gap-1">
+              <p className="text-xs uppercase tracking-wide text-muted">
+                {revealed.name ? `${t.participants.manager.generated} per ${revealed.name}` : t.participants.manager.generated}
+              </p>
+              <div className="mt-1 flex items-center gap-3">
+                <span className="font-mono text-2xl tracking-widest">{revealed.code}</span>
+                <CopyButton value={revealed.code} />
+                <CopyButton
+                  value={accessUrlFor(revealed.code)}
+                  className="inline-flex h-9 items-center gap-2 rounded-lg border border-surface-border px-3 text-xs text-muted hover:text-foreground"
+                />
+                <button
+                  type="button"
+                  title={t.participants.manager.showQR}
+                  aria-label={t.participants.manager.showQR}
+                  onClick={() => setQrPreview({ code: revealed.code, displayName: revealed.name || null })}
+                  className={iconButtonClass()}
+                >
+                  <QrCode size={16} aria-hidden="true" />
+                  <span className="sr-only">{t.participants.manager.showQR}</span>
+                </button>
+              </div>
             </div>
+            {/* Fixed-size QR from an internal endpoint — next/image gives no benefit here. */}
+            <img
+              src={`/api/admin/qr?text=${encodeURIComponent(accessUrlFor(revealed.code))}`}
+              alt={`QR ${revealed.code}`}
+              className="h-24 w-24 rounded-lg bg-white p-2"
+            />
           </div>
           <button
             type="button"
@@ -277,7 +299,7 @@ export function ParticipantsManager({
                         <span className="sr-only">{t.participants.manager.showQR}</span>
                       </button>
                       <a
-                        href={codeAccessPath(r.code)}
+                        href={accessUrlFor(r.code)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className={iconButtonClass()}
@@ -305,6 +327,7 @@ export function ParticipantsManager({
                         title={t.participants.manager.actions.regenerate}
                         aria-label={t.participants.manager.actions.regenerate}
                         onClick={() => regenerate(r.codeId!, r.displayName ?? "codice")}
+                        disabled={regenerating === r.codeId}
                         className={iconButtonClass()}
                       >
                         <RotateCcw size={16} aria-hidden="true" />
@@ -325,8 +348,8 @@ export function ParticipantsManager({
                         type="button"
                         title={t.participants.manager.actions.delete}
                         aria-label={t.participants.manager.actions.delete}
-                        onClick={() => void deleteCodes([r.codeId!])}
-                        disabled={bulkLoading}
+                        onClick={() => void deleteCodes([r.codeId!], r.codeId!)}
+                        disabled={Boolean(deleting === r.codeId || bulkLoading)}
                         className={iconButtonClass("danger")}
                       >
                         <Trash2 size={16} aria-hidden="true" />

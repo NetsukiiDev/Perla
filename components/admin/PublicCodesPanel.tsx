@@ -166,7 +166,7 @@ export function PublicCodesPanel({
                         <span className="font-mono tracking-widest">{c.code}</span>
                         <CopyButton value={c.code} />
                         <a
-                          href={codeAccessPath(c.code)}
+                          href={accessUrlFor(c.code)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className={iconButtonClass()}
