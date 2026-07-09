@@ -29,10 +29,16 @@ export async function verifyPassword(plain: string, hash: string): Promise<boole
 const CODE_ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
 
 export function generateRandomCode(length = 8): string {
-  const bytes = crypto.randomBytes(length);
+  const alphabetLength = CODE_ALPHABET.length;
+  // Reject bytes in the biased tail so `byte % alphabetLength` is uniform.
+  // Without this, 256 % 31 != 0 makes the first few characters more likely
+  // (modulo bias — CWE-327). Rejection sampling keeps every char equiprobable.
+  const maxUnbiased = Math.floor(256 / alphabetLength) * alphabetLength;
   let out = "";
-  for (let i = 0; i < length; i++) {
-    out += CODE_ALPHABET[bytes[i] % CODE_ALPHABET.length];
+  while (out.length < length) {
+    const byte = crypto.randomBytes(1)[0];
+    if (byte >= maxUnbiased) continue;
+    out += CODE_ALPHABET[byte % alphabetLength];
   }
   return out;
 }

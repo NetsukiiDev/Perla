@@ -1,0 +1,10 @@
+---
+# Codacy configuration.
+# app/globals.css is a Tailwind CSS v4 entrypoint (@import "tailwindcss",
+# @theme, var(--token), ...). The legacy CSS linters Codacy runs (CSSLint,
+# Stylelint without a Tailwind config) can't parse that syntax and report false
+# positives, even though the stylesheet compiles correctly via the Tailwind
+# build. Exclude generated code too.
+exclude_paths:
+  - "app/globals.css"
+  - "lib/generated/**"
