@@ -88,7 +88,7 @@ export interface Dictionary {
       created: string; hide: string; show: string;
       table: { code: string; uses: string; status: string };
       statusActive: string; statusRevoked: string;
-      actions: { revoke: string; delete: string; openLink: string };
+      actions: { revoke: string; delete: string; openLink: string; qr: string };
       errors: { createFailed: string };
       confirm: { revoke: string; delete: string };
     };

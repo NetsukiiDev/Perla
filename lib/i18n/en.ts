@@ -206,7 +206,7 @@ export const en: Dictionary = {
       table: { code: "Code", uses: "Uses", status: "Status" },
       statusActive: "Active · no expiry",
       statusRevoked: "Revoked",
-      actions: { revoke: "Revoke", delete: "Delete", openLink: "Open access link" },
+      actions: { revoke: "Revoke", delete: "Delete", openLink: "Open access link", qr: "QR" },
       errors: { createFailed: "Unable to create the public code." },
       confirm: {
         revoke: "Revoke this public code? New accesses will be blocked.",

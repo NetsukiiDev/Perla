@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Ban, ExternalLink, Globe, Trash2, X } from "lucide-react";
+import { Ban, ExternalLink, Globe, QrCode, Trash2, X } from "lucide-react";
 import { CopyButton } from "./CopyButton";
 import { iconButtonClass } from "./IconButton";
 import { codeAccessPath } from "@/lib/code-access-link";
@@ -33,6 +33,7 @@ export function PublicCodesPanel({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [revealed, setRevealed] = useState<string | null>(null);
+  const [qrCode, setQrCode] = useState<string | null>(null);
 
   function accessUrlFor(code: string): string {
     return `${initialBaseUrl.replace(/\/$/, "")}${codeAccessPath(code)}`;
@@ -112,16 +113,25 @@ export function PublicCodesPanel({
 
       {revealed && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-accent/40 bg-accent/5 p-4">
-          <div>
-            <p className="text-xs uppercase tracking-wide text-muted">{t.codes.public.created}</p>
-            <div className="mt-1 flex items-center gap-3">
-              <span className="font-mono text-2xl tracking-widest">{revealed}</span>
-              <CopyButton value={revealed} />
-              <CopyButton
-                value={accessUrlFor(revealed)}
-                className="inline-flex h-9 items-center gap-2 rounded-lg border border-surface-border px-3 text-xs text-muted hover:text-foreground"
-              />
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col gap-1">
+              <p className="text-xs uppercase tracking-wide text-muted">{t.codes.public.created}</p>
+              <div className="mt-1 flex items-center gap-3">
+                <span className="font-mono text-2xl tracking-widest">{revealed}</span>
+                <CopyButton value={revealed} />
+                <CopyButton
+                  value={accessUrlFor(revealed)}
+                  className="inline-flex h-9 items-center gap-2 rounded-lg border border-surface-border px-3 text-xs text-muted hover:text-foreground"
+                />
+              </div>
             </div>
+            {/* Fixed-size QR from an internal endpoint — next/image gives no benefit here. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={`/api/admin/qr?text=${encodeURIComponent(accessUrlFor(revealed))}`}
+              alt={`QR ${revealed}`}
+              className="h-24 w-24 rounded-lg bg-white p-2"
+            />
           </div>
           <button
             type="button"
@@ -183,6 +193,18 @@ export function PublicCodesPanel({
                   </td>
                   <td className="px-4 py-2 text-right">
                     <div className="flex justify-end gap-2">
+                      {c.code && (
+                        <button
+                          type="button"
+                          title={t.codes.public.actions.qr}
+                          aria-label={t.codes.public.actions.qr}
+                          onClick={() => setQrCode(c.code)}
+                          className={iconButtonClass()}
+                        >
+                          <QrCode size={16} aria-hidden="true" />
+                          <span className="sr-only">{t.codes.public.actions.qr}</span>
+                        </button>
+                      )}
                       {c.status !== "revoked" && (
                         <button
                           type="button"
@@ -211,6 +233,53 @@ export function PublicCodesPanel({
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {qrCode && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true">
+          <div className="w-full max-w-sm rounded-xl border border-surface-border bg-surface p-5 shadow-2xl">
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted">{t.accessShare.qrLink}</p>
+                <h2 className="mt-1 font-mono text-xl tracking-widest">{qrCode}</h2>
+              </div>
+              <button
+                type="button"
+                title={t.participants.manager.qrModal.close}
+                aria-label={t.participants.manager.qrModal.close}
+                onClick={() => setQrCode(null)}
+                className={iconButtonClass()}
+              >
+                <X size={16} aria-hidden="true" />
+                <span className="sr-only">{t.participants.manager.qrModal.close}</span>
+              </button>
+            </div>
+            <div className="flex justify-center rounded-lg bg-white p-4">
+              {/* Fixed-size QR from an internal endpoint — next/image gives no benefit here. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`/api/admin/qr?text=${encodeURIComponent(accessUrlFor(qrCode))}`}
+                alt={`QR ${qrCode}`}
+                className="h-56 w-56"
+              />
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <CopyButton
+                value={accessUrlFor(qrCode)}
+                className="inline-flex h-9 items-center gap-2 rounded-lg border border-surface-border px-3 text-sm text-muted hover:text-foreground"
+              />
+              <a
+                href={accessUrlFor(qrCode)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-9 items-center gap-2 rounded-lg border border-surface-border px-3 text-sm text-muted hover:text-foreground"
+              >
+                <ExternalLink size={16} aria-hidden="true" />
+                {t.participants.detail.access.openLink}
+              </a>
+            </div>
+          </div>
         </div>
       )}
     </div>

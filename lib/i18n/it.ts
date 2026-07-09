@@ -206,7 +206,7 @@ export const it: Dictionary = {
       table: { code: "Codice", uses: "Utilizzi", status: "Stato" },
       statusActive: "Attivo · senza scadenza",
       statusRevoked: "Revocato",
-      actions: { revoke: "Revoca", delete: "Elimina", openLink: "Apri link accesso" },
+      actions: { revoke: "Revoca", delete: "Elimina", openLink: "Apri link accesso", qr: "QR" },
       errors: { createFailed: "Impossibile creare il codice pubblico." },
       confirm: {
         revoke: "Revocare questo codice pubblico? I nuovi accessi verranno bloccati.",
