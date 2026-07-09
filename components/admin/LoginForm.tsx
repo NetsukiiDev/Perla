@@ -44,6 +44,12 @@ export function LoginForm({ nextPath, error }: { nextPath: string; error?: strin
       <button type="submit" className="w-full rounded-lg bg-accent px-4 py-2.5 font-medium text-accent-foreground">
         {t.login.loginButton}
       </button>
+      <a
+        href="/admin/forgot-password"
+        className="self-end text-xs text-muted underline-offset-2 hover:text-foreground hover:underline"
+      >
+        {t.login.forgotPasswordLink}
+      </a>
     </form>
   );
 }

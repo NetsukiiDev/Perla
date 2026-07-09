@@ -15,6 +15,27 @@ export interface Dictionary {
       available: string; availableTo: string; viewOnGithub: string; failed: string; upToDate: string;
     };
     info: { section: string; environment: string; commit: string; notAvailable: string };
+    smtp: {
+      section: string;
+      description: string;
+      host: string;
+      port: string;
+      secure: string;
+      user: string;
+      password: string;
+      fromName: string;
+      fromEmail: string;
+      enabled: string;
+      enabledHint: string;
+      save: string;
+      saving: string;
+      saved: string;
+      sendTest: string;
+      sendingTest: string;
+      testSent: string;
+      notConfigured: string;
+      errors: { saveFailed: string; testFailed: string; testSent: string; invalid: string };
+    };
   };
 
   account: {
@@ -117,7 +138,30 @@ export interface Dictionary {
   login: {
     title: string;
     email: string; password: string; loginButton: string;
+    forgotPasswordLink: string;
     errors: { invalid: string; rateLimit: string };
+    forgotPassword: {
+      title: string;
+      description: string;
+      email: string;
+      submit: string;
+      submitting: string;
+      sent: string;
+      backToLogin: string;
+      errors: { generic: string; rateLimited: string };
+    };
+    resetPassword: {
+      title: string;
+      description: string;
+      newPassword: string;
+      confirmPassword: string;
+      submit: string;
+      submitting: string;
+      success: string;
+      invalidToken: string;
+      backToLogin: string;
+      errors: { tooShort: string; notMatch: string; expired: string; invalid: string; generic: string };
+    };
   };
 
   setup: {

@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Download, ExternalLink, Globe, Loader2, RefreshCw, TriangleAlert } from "lucide-react";
+import { Check, Download, ExternalLink, Globe, Loader2, Mail, RefreshCw, TriangleAlert } from "lucide-react";
 import { useLocale, useT } from "@/lib/i18n/context";
 import { LOCALES, type Locale } from "@/lib/i18n/config";
+import { SmtpSettingsForm } from "@/components/admin/SmtpSettingsForm";
 
 interface VersionInfo {
   name: string;
@@ -158,6 +159,16 @@ export function SettingsPanel() {
               <Check size={16} className="text-emerald-400" aria-hidden="true" /> {t.settings.version.upToDate}
             </div>
           ))}
+      </section>
+
+      <section className="flex flex-col gap-3 border-t border-surface-border pt-6">
+        <div>
+          <h2 className="flex items-center gap-2 text-sm font-semibold">
+            <Mail size={16} className="text-muted" aria-hidden="true" /> {t.settings.smtp.section}
+          </h2>
+          <p className="mt-1 text-sm text-muted">{t.settings.smtp.description}</p>
+        </div>
+        <SmtpSettingsForm />
       </section>
 
       <section className="flex flex-col gap-3 border-t border-surface-border pt-6">
