@@ -1,9 +1,7 @@
-// GET  /api/admin/settings/smtp — current SMTP config (password never returned)
-// PUT  /api/admin/settings/smtp — create/update the singleton SMTP config
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdminUser } from "@/lib/admin-guard";
-import { smtpConfigSchema } from "@/lib/validation/admin-auth";
+import { turnstileConfigSchema } from "@/lib/validation/admin-auth";
 import { encrypt } from "@/lib/crypto";
 import { writeAccessLog } from "@/lib/access-log";
 
@@ -13,19 +11,14 @@ export async function GET() {
   const auth = await requireAdminUser();
   if ("response" in auth) return auth.response;
 
-  const cfg = await prisma.smtpConfig.findUnique({ where: { id: "default" } });
+  const cfg = await prisma.turnstileConfig.findUnique({ where: { id: "default" } });
   if (!cfg) {
     return NextResponse.json({ configured: false });
   }
   return NextResponse.json({
     configured: true,
-    host: cfg.host,
-    port: cfg.port,
-    secure: cfg.secure,
-    user: cfg.user,
-    hasPassword: Boolean(cfg.passwordEncrypted),
-    fromName: cfg.fromName,
-    fromEmail: cfg.fromEmail,
+    siteKey: cfg.siteKey,
+    hasSecretKey: Boolean(cfg.secretKeyEncrypted),
     enabled: cfg.enabled,
   });
 }
@@ -35,28 +28,28 @@ export async function PUT(req: Request) {
   if ("response" in auth) return auth.response;
 
   const body = await req.json().catch(() => null);
-  const parsed = smtpConfigSchema.safeParse(body);
+  const parsed = turnstileConfigSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: "invalid", issues: parsed.error.issues }, { status: 400 });
   }
 
-  const { password, ...rest } = parsed.data;
+  const { secretKey, ...rest } = parsed.data;
 
-  const existing = await prisma.smtpConfig.findUnique({ where: { id: "default" } });
-  const passwordEncrypted =
-    password && password.length > 0 ? encrypt(password) : existing?.passwordEncrypted ?? null;
+  const existing = await prisma.turnstileConfig.findUnique({ where: { id: "default" } });
+  const secretKeyEncrypted =
+    secretKey && secretKey.length > 0 ? encrypt(secretKey) : existing?.secretKeyEncrypted ?? null;
 
   try {
-    await prisma.smtpConfig.upsert({
+    await prisma.turnstileConfig.upsert({
       where: { id: "default" },
       create: {
         id: "default",
         ...rest,
-        passwordEncrypted,
+        secretKeyEncrypted,
       },
       update: {
         ...rest,
-        passwordEncrypted,
+        secretKeyEncrypted,
       },
     });
   } catch {
@@ -65,7 +58,7 @@ export async function PUT(req: Request) {
 
   await writeAccessLog({
     type: "admin_action",
-    metadata: { action: "Configurazione SMTP salvata", detail: rest.host },
+    metadata: { action: "Configurazione Turnstile salvata" },
   });
 
   return NextResponse.json({ ok: true });

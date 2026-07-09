@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/admin-guard";
+import { getLocale, getDictionary } from "@/lib/i18n/server";
 import { eventUpdateSchema } from "@/lib/validation/admin-event";
 import { decryptCoord, encryptCoord } from "@/lib/crypto";
 import { detectItalianRegion } from "@/lib/detect-italian-region";
-import { getLocale, getDictionary } from "@/lib/i18n/server";
+import { writeAccessLog } from "@/lib/access-log";
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const auth = await requireAdmin();
@@ -66,6 +67,17 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     });
   }
 
+  await writeAccessLog({
+    type: "admin_action",
+    eventId: id,
+    metadata: {
+      action: "Evento modificato",
+      detail: data.status
+        ? `${existing.internalName} → stato: ${data.status}`
+        : existing.internalName,
+    },
+  });
+
   return NextResponse.json({ event });
 }
 
@@ -74,6 +86,11 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   if ("response" in auth) return auth.response;
   const { id } = await params;
 
+  const event = await prisma.event.findUnique({ where: { id }, select: { internalName: true } });
   await prisma.event.delete({ where: { id } }).catch(() => null);
+  await writeAccessLog({
+    type: "admin_action",
+    metadata: { action: "Evento eliminato", detail: event?.internalName ?? id },
+  });
   return NextResponse.json({ ok: true });
 }

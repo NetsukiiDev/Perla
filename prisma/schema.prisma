@@ -323,6 +323,19 @@ model SmtpConfig {
   @@map("smtp_config")
 }
 
+// Singleton Turnstile (Cloudflare CAPTCHA) configuration for admin login.
+// The secret key is stored AES-256-GCM encrypted via lib/crypto.ts. A single row
+// (id = "default") is used; settings are upserted.
+model TurnstileConfig {
+  id                 String   @id @default("default")
+  siteKey            String   @map("site_key") @db.VarChar(255)
+  secretKeyEncrypted String?  @map("secret_key_encrypted") @db.VarChar(512)
+  enabled            Boolean  @default(false) @map("enabled")
+  updatedAt          DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("turnstile_config")
+}
+
 // One-time password reset token for admin account recovery. The raw token is
 // only ever sent by email; only its SHA-256 hash is stored. Tokens expire and
 // are single-use (usedAt).

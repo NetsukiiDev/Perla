@@ -1,8 +1,7 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requireAdminPage } from "@/lib/admin-guard";
-import { AdminContainer } from "@/components/admin/AdminContainer";
-import { EventSubNav } from "@/components/admin/EventSubNav";
+import { PageWithSubNav } from "@/components/admin/PageWithSubNav";
 import { LiveDashboard } from "@/components/admin/LiveDashboard";
 
 export const dynamic = "force-dynamic";
@@ -15,10 +14,12 @@ export default async function LivePage({ params }: { params: Promise<{ id: strin
   if (!event) notFound();
 
   return (
-    <AdminContainer>
-      <h1 className="mb-2 text-xl font-semibold">{event.internalName}</h1>
-      <EventSubNav eventId={id} active="live" />
+    <PageWithSubNav
+      eventId={id}
+      activeTab="live"
+      header={<h1 className="mb-2 text-xl font-semibold">{event.internalName}</h1>}
+    >
       <LiveDashboard eventId={id} />
-    </AdminContainer>
+    </PageWithSubNav>
   );
 }

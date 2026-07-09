@@ -3,8 +3,7 @@ import { prisma } from "@/lib/db";
 import { requireAdminPage } from "@/lib/admin-guard";
 import { decryptCoord } from "@/lib/crypto";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
-import { AdminContainer } from "@/components/admin/AdminContainer";
-import { EventSubNav } from "@/components/admin/EventSubNav";
+import { PageWithSubNav } from "@/components/admin/PageWithSubNav";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { EventStatusControl } from "@/components/admin/EventStatusControl";
 import { EventInactiveNotice } from "@/components/admin/EventInactiveNotice";
@@ -36,20 +35,22 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   ]);
 
   return (
-    <AdminContainer>
-      <div className="mb-2 flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-semibold">{event.internalName}</h1>
-          <p className="text-sm text-muted">{event.region}</p>
+    <PageWithSubNav
+      eventId={id}
+      activeTab="overview"
+      header={
+        <div className="mb-2 flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-xl font-semibold">{event.internalName}</h1>
+            <p className="text-sm text-muted">{event.region}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <StatusBadge value={event.status} label={t.events.statusOptions[event.status as keyof typeof t.events.statusOptions] ?? event.status} />
+            <EventStatusControl eventId={id} status={event.status} />
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <StatusBadge value={event.status} label={t.events.statusOptions[event.status as keyof typeof t.events.statusOptions] ?? event.status} />
-          <EventStatusControl eventId={id} status={event.status} />
-        </div>
-      </div>
-
-      <EventSubNav eventId={id} active="overview" />
-
+      }
+    >
       <EventInactiveNotice status={event.status} />
 
       <EventOverview
@@ -79,6 +80,6 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
           arrivedParticipants,
         }}
       />
-    </AdminContainer>
+    </PageWithSubNav>
   );
 }

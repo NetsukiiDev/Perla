@@ -18,6 +18,13 @@ export const smtpConfigSchema = z.object({
   enabled: z.boolean(),
 });
 
+export const turnstileConfigSchema = z.object({
+  siteKey: z.string().trim().min(1).max(255),
+  // Empty string means "keep the existing stored secret key".
+  secretKey: z.string().max(512).optional().nullable(),
+  enabled: z.boolean(),
+});
+
 export const forgotPasswordSchema = z.object({
   email: z.string().trim().email(),
 });

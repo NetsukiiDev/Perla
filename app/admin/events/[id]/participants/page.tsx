@@ -4,8 +4,7 @@ import { prisma } from "@/lib/db";
 import { requireAdminPage } from "@/lib/admin-guard";
 import { getParticipantsForEvent } from "@/lib/admin-participant-view";
 import { decrypt } from "@/lib/crypto";
-import { AdminContainer } from "@/components/admin/AdminContainer";
-import { EventSubNav } from "@/components/admin/EventSubNav";
+import { PageWithSubNav } from "@/components/admin/PageWithSubNav";
 import { EventInactiveNotice } from "@/components/admin/EventInactiveNotice";
 import { ParticipantsManager } from "@/components/admin/ParticipantsManager";
 import { PublicCodesPanel } from "@/components/admin/PublicCodesPanel";
@@ -49,9 +48,11 @@ export default async function ParticipantsPage({ params }: { params: Promise<{ i
   const baseUrl = requestBaseUrl(headersList) ?? "";
 
   return (
-    <AdminContainer>
-      <h1 className="mb-2 text-xl font-semibold">{event.internalName}</h1>
-      <EventSubNav eventId={id} active="participants" />
+    <PageWithSubNav
+      eventId={id}
+      activeTab="participants"
+      header={<h1 className="mb-2 text-xl font-semibold">{event.internalName}</h1>}
+    >
       <EventInactiveNotice status={event.status} />
       <div className="mb-6">
         <PublicCodesPanel
@@ -81,6 +82,6 @@ export default async function ParticipantsPage({ params }: { params: Promise<{ i
           lastLocation: p.lastLocation,
         }))}
       />
-    </AdminContainer>
+    </PageWithSubNav>
   );
 }

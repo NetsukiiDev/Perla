@@ -5,6 +5,7 @@ import { eventCreateSchema } from "@/lib/validation/admin-event";
 import { encryptCoord } from "@/lib/crypto";
 import { detectItalianRegion } from "@/lib/detect-italian-region";
 import { getLocale, getDictionary } from "@/lib/i18n/server";
+import { writeAccessLog } from "@/lib/access-log";
 
 export async function GET() {
   const auth = await requireAdmin();
@@ -48,6 +49,12 @@ export async function POST(req: Request) {
       notes: data.notes ?? null,
       status: "draft",
     },
+  });
+
+  await writeAccessLog({
+    type: "admin_action",
+    eventId: event.id,
+    metadata: { action: "Evento creato", detail: data.internalName },
   });
 
   return NextResponse.json({ event }, { status: 201 });

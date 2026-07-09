@@ -2,8 +2,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requireAdminPage } from "@/lib/admin-guard";
 import { decryptCoord } from "@/lib/crypto";
-import { AdminContainer } from "@/components/admin/AdminContainer";
-import { EventSubNav } from "@/components/admin/EventSubNav";
+import { PageWithSubNav } from "@/components/admin/PageWithSubNav";
 import { EventForm } from "@/components/admin/EventForm";
 
 export const dynamic = "force-dynamic";
@@ -16,9 +15,11 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
   if (!event) notFound();
 
   return (
-    <AdminContainer>
-      <h1 className="mb-2 text-xl font-semibold">{event.internalName}</h1>
-      <EventSubNav eventId={id} active="edit" />
+    <PageWithSubNav
+      eventId={id}
+      activeTab="edit"
+      header={<h1 className="mb-2 text-xl font-semibold">{event.internalName}</h1>}
+    >
       <EventForm
         initial={{
           id: event.id,
@@ -37,6 +38,6 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
           notes: event.notes,
         }}
       />
-    </AdminContainer>
+    </PageWithSubNav>
   );
 }

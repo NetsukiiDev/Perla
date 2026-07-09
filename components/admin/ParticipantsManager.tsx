@@ -1,10 +1,10 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CheckSquare, ExternalLink, Link2, MapPin, QrCode, RotateCcw, Trash2, UserPlus, X } from "lucide-react";
+import { CheckSquare, ChevronLeft, ChevronRight, ExternalLink, Link2, MapPin, QrCode, RotateCcw, Trash2, UserPlus, X } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { CopyButton } from "./CopyButton";
 import { iconButtonClass } from "./IconButton";
@@ -50,6 +50,10 @@ export function ParticipantsManager({
   const [regenerating, setRegenerating] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [qrPreview, setQrPreview] = useState<{ code: string; displayName: string | null } | null>(null);
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(5);
+
+  useEffect(() => { setPage(0); }, [search, statusFilter]);
 
   const filtered = initialParticipants.filter((r) => {
     const normalizedSearch = search.trim().toLowerCase();
@@ -65,6 +69,12 @@ export function ParticipantsManager({
   const selectedSet = new Set(activeSelectedCodeIds);
   const visibleCodeIds = filtered.flatMap((r) => (r.codeId ? [r.codeId] : []));
   const allVisibleSelected = visibleCodeIds.length > 0 && visibleCodeIds.every((id) => selectedSet.has(id));
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const safePage = Math.min(page, totalPages - 1);
+  const paginatedRows = filtered.slice(safePage * pageSize, (safePage + 1) * pageSize);
+  const from = filtered.length === 0 ? 0 : safePage * pageSize + 1;
+  const to = Math.min((safePage + 1) * pageSize, filtered.length);
 
   async function handleAdd(e: FormEvent) {
     e.preventDefault();
@@ -209,6 +219,15 @@ export function ParticipantsManager({
         <span className="text-xs text-muted">
           {filtered.length}/{initialParticipants.length} {t.participants.manager.participants}
         </span>
+        <select
+          value={pageSize}
+          onChange={(e) => { setPageSize(Number(e.target.value)); setPage(0); }}
+          className="rounded-lg border border-surface-border bg-background px-2 py-1.5 text-xs text-foreground"
+        >
+          {[5, 10, 25, 50].map((n) => (
+            <option key={n} value={n}>{n} per pagina</option>
+          ))}
+        </select>
       </div>
 
       {activeSelectedCodeIds.length > 0 && (
@@ -231,9 +250,8 @@ export function ParticipantsManager({
       {bulkError && <p className="text-sm text-danger">{bulkError}</p>}
 
       <div className="overflow-x-auto rounded-lg border border-surface-border">
-        <div className="max-h-96 overflow-y-auto">
         <table className="w-full text-left text-sm">
-          <thead className="sticky top-0 z-10 border-b border-surface-border bg-surface text-xs uppercase tracking-wide text-muted">
+          <thead className="border-b border-surface-border bg-surface text-xs uppercase tracking-wide text-muted">
             <tr>
               <th className="w-10 px-4 py-3">
                 <input
@@ -253,7 +271,7 @@ export function ParticipantsManager({
             </tr>
           </thead>
           <tbody>
-            {filtered.map((r) => (
+            {paginatedRows.map((r) => (
               <tr key={r.id} className="border-b border-surface-border last:border-0 hover:bg-surface/50 transition-colors">
                 <td className="px-4 py-3">
                   <input
@@ -358,8 +376,35 @@ export function ParticipantsManager({
             )}
           </tbody>
         </table>
-        </div>
       </div>
+
+      {filtered.length > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-xs text-muted">
+            Mostrati da {from} a {to} di {filtered.length} risultati
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={safePage === 0}
+              className="inline-flex items-center gap-1 rounded-lg border border-surface-border px-3 py-1.5 text-xs text-muted hover:text-foreground disabled:opacity-30"
+            >
+              <ChevronLeft size={14} aria-hidden="true" />
+              Precedente
+            </button>
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+              disabled={safePage >= totalPages - 1}
+              className="inline-flex items-center gap-1 rounded-lg border border-surface-border px-3 py-1.5 text-xs text-muted hover:text-foreground disabled:opacity-30"
+            >
+              Successiva
+              <ChevronRight size={14} aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {qrPreview && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true">

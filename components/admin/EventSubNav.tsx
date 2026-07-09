@@ -6,7 +6,7 @@ import { useT } from "@/lib/i18n/context";
 
 type TabKey = "overview" | "edit" | "participants" | "tickets" | "live";
 
-export function EventSubNav({ eventId, active }: { eventId: string; active: TabKey }) {
+export function EventSubNav({ eventId, active, vertical }: { eventId: string; active: TabKey; vertical?: boolean }) {
   const t = useT();
 
   const labelMap: Record<TabKey, string> = {
@@ -32,6 +32,31 @@ export function EventSubNav({ eventId, active }: { eventId: string; active: TabK
     tickets: (id: string) => `/admin/events/${id}/tickets`,
     live: (id: string) => `/admin/events/${id}/live`,
   };
+
+  if (vertical) {
+    return (
+      <nav className="flex flex-col gap-1 border-r border-surface-border pr-4">
+        {Object.keys(labelMap).map((key) => {
+          const tabKey = key as TabKey;
+          const Icon = iconMap[tabKey];
+          return (
+            <Link
+              key={tabKey}
+              href={hrefMap[tabKey](eventId)}
+              className={`inline-flex items-center gap-3 rounded-lg px-3 py-2 text-sm ${
+                active === tabKey
+                  ? "bg-surface text-foreground font-medium"
+                  : "text-muted hover:bg-surface/50 hover:text-foreground"
+              }`}
+            >
+              <Icon size={18} aria-hidden="true" />
+              {labelMap[tabKey]}
+            </Link>
+          );
+        })}
+      </nav>
+    );
+  }
 
   return (
     <nav className="mb-6 flex gap-4 border-b border-surface-border text-sm">

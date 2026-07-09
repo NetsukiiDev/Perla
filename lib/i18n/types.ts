@@ -9,7 +9,7 @@ export interface Dictionary {
 
   settings: {
     title: string;
-    language: { section: string; description: string; italian: string; english: string };
+    language: { section: string; description: string; italian: string; english: string; auto: string };
     version: {
       section: string; current: string; check: string; checking: string;
       available: string; availableTo: string; viewOnGithub: string; failed: string; upToDate: string;
@@ -41,7 +41,47 @@ export interface Dictionary {
       description: string;
       empty: string;
       more: string;
-      table: { type: string; time: string };
+      loadMore: string;
+      table: { type: string; time: string; details: string; event: string; participant: string };
+      categories: { all: string; admin: string; event: string };
+      types: {
+        admin_login: string;
+        admin_login_failed: string;
+        admin_action: string;
+        password_reset_request: string;
+        password_reset_success: string;
+        code_verify_success: string;
+        code_verify_invalid: string;
+        code_verify_already_used: string;
+        code_not_yet_available: string;
+        code_not_available: string;
+        site_opened: string;
+        geolocation_denied: string;
+        session_started: string;
+        location_update: string;
+        step_unlocked: string;
+        arrived: string;
+        routing_error: string;
+      };
+    };
+    turnstile: {
+      section: string;
+      description: string;
+      siteKeyLabel: string;
+      siteKeyHint: string;
+      secretKeyLabel: string;
+      secretKeyHint: string;
+      enabledLabel: string;
+      save: string;
+      saving: string;
+      saved: string;
+      errors: { saveFailed: string };
+    };
+    navLayout: {
+      section: string;
+      description: string;
+      horizontal: string;
+      sidebar: string;
     };
   };
 
@@ -146,7 +186,7 @@ export interface Dictionary {
     title: string;
     email: string; password: string; loginButton: string;
     forgotPasswordLink: string;
-    errors: { invalid: string; rateLimit: string };
+    errors: { invalid: string; rateLimit: string; captchaFailed: string };
     forgotPassword: {
       title: string;
       description: string;

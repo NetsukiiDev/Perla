@@ -3,8 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requireAdminPage } from "@/lib/admin-guard";
 import { getParticipantsForEvent } from "@/lib/admin-participant-view";
-import { AdminContainer } from "@/components/admin/AdminContainer";
-import { EventSubNav } from "@/components/admin/EventSubNav";
+import { PageWithSubNav } from "@/components/admin/PageWithSubNav";
 import { EventInactiveNotice } from "@/components/admin/EventInactiveNotice";
 import { TicketGenerator } from "@/components/admin/TicketGenerator";
 
@@ -42,9 +41,11 @@ export default async function TicketsPage({ params }: { params: Promise<{ id: st
   const baseUrl = requestBaseUrl(headersList) ?? "";
 
   return (
-    <AdminContainer>
-      <h1 className="mb-2 text-xl font-semibold">{event.internalName}</h1>
-      <EventSubNav eventId={id} active="tickets" />
+    <PageWithSubNav
+      eventId={id}
+      activeTab="tickets"
+      header={<h1 className="mb-2 text-xl font-semibold">{event.internalName}</h1>}
+    >
       <EventInactiveNotice status={event.status} />
       <TicketGenerator
         eventId={id}
@@ -62,6 +63,6 @@ export default async function TicketsPage({ params }: { params: Promise<{ id: st
           displayName: p.displayName,
         }))}
       />
-    </AdminContainer>
+    </PageWithSubNav>
   );
 }
