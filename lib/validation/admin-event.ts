@@ -14,6 +14,7 @@ const eventBaseSchema = z.object({
   unlockRadiusM: z.coerce.number().int().min(5).max(5000).default(100),
   showTotalDistance: z.boolean().default(true),
   showTotalDuration: z.boolean().default(true),
+  showTollInfo: z.boolean().default(false),
   notes: z.string().max(5000).optional().nullable(),
 });
 

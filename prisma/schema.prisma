@@ -126,6 +126,7 @@ model Event {
 
   showTotalDistance Boolean @default(true) @map("show_total_distance")
   showTotalDuration Boolean @default(true) @map("show_total_duration")
+  showTollInfo      Boolean @default(false) @map("show_toll_info")
 
   notes String? @db.Text
 
@@ -162,7 +163,8 @@ model Participant {
 model InviteCode {
   id            String @id @default(cuid())
   eventId       String @map("event_id")
-  participantId String @map("participant_id")
+  // Null for public codes: they belong to the event, not a single participant.
+  participantId String? @map("participant_id")
 
   // SHA-256(+pepper) of the human-facing code, used for the verify lookup.
   codeHash String @unique @map("code_hash")
@@ -172,7 +174,12 @@ model InviteCode {
 
 
   status      InviteCodeStatus @default(created)
+  // Personal codes: 1 (single use). Public codes: the max number of guests
+  // that may start it (usage cap); enforced in session/start.
   maxSessions Int              @default(1) @map("max_sessions")
+  // A public code is reusable by many devices (each spawns a guest
+  // participant + session) and is never "consumed".
+  isPublic    Boolean          @default(false) @map("is_public")
 
   expiresAt   DateTime? @map("expires_at")
   activatedAt DateTime? @map("activated_at")
@@ -182,8 +189,8 @@ model InviteCode {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  event       Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  participant Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  event       Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  participant Participant? @relation(fields: [participantId], references: [id], onDelete: Cascade)
   sessions    Session[]
   accessLogs  AccessLog[]
 
@@ -209,6 +216,10 @@ model Session {
 
   totalDistanceM Float? @map("total_distance_m")
   totalDurationS Int?   @map("total_duration_s")
+
+  // Route-derived motorway/toll estimate (heuristic, see lib/toll-estimate.ts).
+  hasHighway        Boolean? @map("has_highway")
+  tollEstimateCents Int?     @map("toll_estimate_cents")
 
   startedAt   DateTime  @default(now()) @map("started_at")
   lastSeenAt  DateTime  @default(now()) @map("last_seen_at")

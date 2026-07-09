@@ -8,6 +8,13 @@ export const codeGenerateSchema = z.object({
   maxSessions: z.coerce.number().int().min(1).max(1).optional(),
 });
 
+// Public code: event-level, reusable by many guests, no expiry. maxSessions
+// is the usage cap (how many guests may start it).
+export const codePublicCreateSchema = z.object({
+  eventId: z.string().min(1),
+  maxSessions: z.coerce.number().int().min(1).max(10000).default(100),
+});
+
 // Custom code set by an admin. Normalized (uppercase, no spaces) server-side.
 export const codeUpdateSchema = z.object({
   code: z

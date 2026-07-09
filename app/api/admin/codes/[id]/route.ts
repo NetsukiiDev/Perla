@@ -46,7 +46,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       revokedAt: null,
     },
   });
-  await prisma.participant.update({ where: { id: existing.participantId }, data: { status: "not_started" } });
+  if (existing.participantId) {
+    await prisma.participant.update({ where: { id: existing.participantId }, data: { status: "not_started" } });
+  }
 
   return NextResponse.json({ code: rec.code, inviteCode });
 }
@@ -63,7 +65,9 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
 
   await prisma.$transaction([
     prisma.inviteCode.delete({ where: { id } }),
-    prisma.participant.update({ where: { id: existing.participantId }, data: { status: "not_started" } }),
+    ...(existing.participantId
+      ? [prisma.participant.update({ where: { id: existing.participantId }, data: { status: "not_started" } })]
+      : []),
   ]);
   return NextResponse.json({ ok: true });
 }

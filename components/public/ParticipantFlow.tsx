@@ -170,6 +170,8 @@ export function ParticipantFlow({ initialState }: { initialState: PublicState })
           totalDurationS={state.totalDurationS}
           stepDistanceM={state.stepDistanceM}
           stepDurationS={state.stepDurationS}
+          hasHighway={state.hasHighway}
+          tollEstimateCents={state.tollEstimateCents}
           hint={state.hint}
         />
       );

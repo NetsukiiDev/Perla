@@ -14,7 +14,7 @@ import { getRouteProvider, RouteProviderError } from "@/lib/route-provider";
 import { buildRouteSteps } from "@/lib/route-steps";
 import { writeAccessLog } from "@/lib/access-log";
 import { AccessLogType } from "@/lib/generated/prisma/client";
-import type { InviteCodeStatus } from "@/lib/generated/prisma/client";
+import type { InviteCodeStatus, Session } from "@/lib/generated/prisma/client";
 import { getOrCreateDeviceToken, issueParticipantSession, readCodeRef } from "@/lib/session-participant";
 import { projectActiveSession } from "@/lib/public-projection";
 import { evaluateInviteCodeState } from "@/lib/code-resolution";
@@ -98,70 +98,83 @@ export async function POST(req: Request) {
     now.getTime() + Number(process.env.LOCATION_RETENTION_HOURS ?? DEFAULTS.LOCATION_RETENTION_HOURS) * 60 * 60 * 1000,
   );
 
-  const session = await prisma.$transaction(async (tx) => {
-    const claimed = await tx.inviteCode.updateMany({
-      where: {
-        id: inviteCode.id,
-        status: { in: CLAIMABLE_CODE_STATUSES },
-        OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
-      },
-      data: { status: "started", activatedAt: now },
-    });
-
-    if (claimed.count !== 1) {
-      return null;
-    }
-
-    const created = await tx.session.create({
-      data: {
-        inviteCodeId: inviteCode.id,
-        participantId: inviteCode.participantId,
-        sessionTokenHash: sha256Hex(sessionTokenRaw),
-        deviceTokenHash: device.hash,
-        ipHash: sha256Hex(ip),
-        ipAddressEncrypted: networkInfo.ipAddress ? encrypt(networkInfo.ipAddress) : null,
-        ipIsp: networkInfo.isp,
-        userAgentHash: sha256Hex(getUserAgent(req)),
-        status: "active",
-        currentStep: 1,
-        totalDistanceM: routeResult.distanceM,
-        totalDurationS: Math.round(routeResult.durationS),
-        startedAt: now,
-        lastSeenAt: now,
-      },
-    });
-
-    await tx.routeStep.createMany({
-      data: stepPoints.map((p) => ({
-        sessionId: created.id,
-        stepNumber: p.stepNumber,
-        latEncrypted: encryptCoord(p.lat),
-        lngEncrypted: encryptCoord(p.lng),
-        radiusM: p.radiusM,
-        unlockedAt: p.stepNumber === 1 ? now : null,
-      })),
-    });
-
-    await tx.locationUpdate.create({
-      data: {
-        sessionId: created.id,
-        latEncrypted: encryptCoord(lat),
-        lngEncrypted: encryptCoord(lng),
-        accuracyM: accuracy ?? null,
-        expiresAt: locationExpiresAt,
-      },
-    });
-
-    await tx.participant.update({
-      where: { id: inviteCode.participantId },
-      data: { status: "started" },
-    });
-
-    return created;
+  const baseSessionData = {
+    inviteCodeId: inviteCode.id,
+    sessionTokenHash: sha256Hex(sessionTokenRaw),
+    deviceTokenHash: device.hash,
+    ipHash: sha256Hex(ip),
+    ipAddressEncrypted: networkInfo.ipAddress ? encrypt(networkInfo.ipAddress) : null,
+    ipIsp: networkInfo.isp,
+    userAgentHash: sha256Hex(getUserAgent(req)),
+    status: "active" as const,
+    currentStep: 1,
+    totalDistanceM: routeResult.distanceM,
+    totalDurationS: Math.round(routeResult.durationS),
+    hasHighway: routeResult.toll?.hasHighway ?? null,
+    tollEstimateCents: routeResult.toll?.tollCents ?? null,
+    startedAt: now,
+    lastSeenAt: now,
+  };
+  const routeStepRows = (sessionId: string) =>
+    stepPoints.map((p) => ({
+      sessionId,
+      stepNumber: p.stepNumber,
+      latEncrypted: encryptCoord(p.lat),
+      lngEncrypted: encryptCoord(p.lng),
+      radiusM: p.radiusM,
+      unlockedAt: p.stepNumber === 1 ? now : null,
+    }));
+  const locationRow = (sessionId: string) => ({
+    sessionId,
+    latEncrypted: encryptCoord(lat),
+    lngEncrypted: encryptCoord(lng),
+    accuracyM: accuracy ?? null,
+    expiresAt: locationExpiresAt,
   });
 
-  if (!session) {
-    return NextResponse.json({ error: "already_used", message: ERROR_MESSAGES.ALREADY_USED }, { status: 409 });
+  let session: Session;
+  if (inviteCode.isPublic) {
+    // Public code: reusable, never consumed. Enforce the usage cap, then spawn
+    // a fresh guest participant + session bound to this device.
+    const used = await prisma.session.count({ where: { inviteCodeId: inviteCode.id } });
+    if (used >= inviteCode.maxSessions) {
+      return NextResponse.json({ error: "not_available", message: ERROR_MESSAGES.CODE_NOT_AVAILABLE }, { status: 409 });
+    }
+    session = await prisma.$transaction(async (tx) => {
+      const guest = await tx.participant.create({
+        data: { eventId: event.id, displayName: "Ospite", status: "started" },
+      });
+      const created = await tx.session.create({ data: { ...baseSessionData, participantId: guest.id } });
+      await tx.routeStep.createMany({ data: routeStepRows(created.id) });
+      await tx.locationUpdate.create({ data: locationRow(created.id) });
+      return created;
+    });
+  } else {
+    // Personal code: single-use. Claim atomically so only one session wins.
+    const participantId = inviteCode.participantId;
+    if (!participantId) {
+      return NextResponse.json({ error: "invalid" }, { status: 400 });
+    }
+    const claimed = await prisma.$transaction(async (tx) => {
+      const claim = await tx.inviteCode.updateMany({
+        where: {
+          id: inviteCode.id,
+          status: { in: CLAIMABLE_CODE_STATUSES },
+          OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+        },
+        data: { status: "started", activatedAt: now },
+      });
+      if (claim.count !== 1) return null;
+      const created = await tx.session.create({ data: { ...baseSessionData, participantId } });
+      await tx.routeStep.createMany({ data: routeStepRows(created.id) });
+      await tx.locationUpdate.create({ data: locationRow(created.id) });
+      await tx.participant.update({ where: { id: participantId }, data: { status: "started" } });
+      return created;
+    });
+    if (!claimed) {
+      return NextResponse.json({ error: "already_used", message: ERROR_MESSAGES.ALREADY_USED }, { status: 409 });
+    }
+    session = claimed;
   }
 
   await issueParticipantSession({ sessionId: session.id, sessionTokenRaw, participantCode: codeRef.codeDisplay });
@@ -169,7 +182,7 @@ export async function POST(req: Request) {
   await writeAccessLog({
     type: AccessLogType.session_started,
     eventId: event.id,
-    participantId: inviteCode.participantId,
+    participantId: session.participantId,
     inviteCodeId: inviteCode.id,
     sessionId: session.id,
   });

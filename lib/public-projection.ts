@@ -35,6 +35,8 @@ export type PublicState =
       totalDurationS?: number;
       stepDistanceM?: number;
       stepDurationS?: number;
+      hasHighway?: boolean;
+      tollEstimateCents?: number;
       participantCode?: string;
       hint: string;
     }
@@ -132,6 +134,9 @@ export function projectActiveSession(params: {
       event.showTotalDuration && session.totalDurationS !== null
         ? session.totalDurationS / event.stepsCount
         : undefined,
+    hasHighway: event.showTollInfo ? (session.hasHighway ?? undefined) : undefined,
+    tollEstimateCents:
+      event.showTollInfo && session.hasHighway ? (session.tollEstimateCents ?? undefined) : undefined,
     participantCode: participantCode ?? undefined,
     hint: STEP_HINT,
   };

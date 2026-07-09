@@ -41,6 +41,7 @@ export async function POST(req: Request) {
       unlockRadiusM: data.unlockRadiusM,
       showTotalDistance: data.showTotalDistance,
       showTotalDuration: data.showTotalDuration,
+      showTollInfo: data.showTollInfo,
       notes: data.notes ?? null,
       status: "draft",
     },

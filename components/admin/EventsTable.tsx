@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Activity, Pencil, Trash2 } from "lucide-react";
+import { Activity, Eye, Pencil, Trash2, Users } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { ConfirmButton } from "./ConfirmButton";
 import { iconButtonClass } from "./IconButton";
@@ -62,6 +62,24 @@ export function EventsTable({ events }: { events: EventRow[] }) {
               <td className="px-4 py-3 text-muted">{new Date(event.startsAt).toLocaleString("it-IT")}</td>
               <td className="px-4 py-3 text-right">
                 <div className="flex justify-end gap-2">
+                  <Link
+                    href={`/admin/events/${event.id}`}
+                    title="Panoramica"
+                    aria-label="Panoramica"
+                    className={iconButtonClass()}
+                  >
+                    <Eye size={16} aria-hidden="true" />
+                    <span className="sr-only">Panoramica</span>
+                  </Link>
+                  <Link
+                    href={`/admin/events/${event.id}/participants`}
+                    title="Partecipanti"
+                    aria-label="Partecipanti"
+                    className={iconButtonClass()}
+                  >
+                    <Users size={16} aria-hidden="true" />
+                    <span className="sr-only">Partecipanti</span>
+                  </Link>
                   <Link
                     href={`/admin/events/${event.id}/live`}
                     title="Live"

@@ -3,10 +3,12 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requireAdminPage } from "@/lib/admin-guard";
 import { getParticipantsForEvent } from "@/lib/admin-participant-view";
+import { decrypt } from "@/lib/crypto";
 import { AdminContainer } from "@/components/admin/AdminContainer";
 import { EventSubNav } from "@/components/admin/EventSubNav";
 import { EventInactiveNotice } from "@/components/admin/EventInactiveNotice";
 import { ParticipantsManager } from "@/components/admin/ParticipantsManager";
+import { PublicCodesPanel } from "@/components/admin/PublicCodesPanel";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +40,11 @@ export default async function ParticipantsPage({ params }: { params: Promise<{ i
   if (!event) notFound();
 
   const participants = await getParticipantsForEvent(id);
+  const publicCodes = await prisma.inviteCode.findMany({
+    where: { eventId: id, isPublic: true },
+    orderBy: { createdAt: "desc" },
+    include: { _count: { select: { sessions: true } } },
+  });
   const headersList = await headers();
   const baseUrl = requestBaseUrl(headersList) ?? "";
 
@@ -46,6 +53,19 @@ export default async function ParticipantsPage({ params }: { params: Promise<{ i
       <h1 className="mb-2 text-xl font-semibold">{event.internalName}</h1>
       <EventSubNav eventId={id} active="participants" />
       <EventInactiveNotice status={event.status} />
+      <div className="mb-6">
+        <PublicCodesPanel
+          eventId={id}
+          initialBaseUrl={baseUrl}
+          initialCodes={publicCodes.map((c) => ({
+            id: c.id,
+            code: c.codeEncrypted ? decrypt(c.codeEncrypted) : null,
+            maxSessions: c.maxSessions,
+            used: c._count.sessions,
+            status: c.status,
+          }))}
+        />
+      </div>
       <ParticipantsManager
         eventId={id}
         initialBaseUrl={baseUrl}

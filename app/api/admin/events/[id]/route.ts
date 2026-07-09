@@ -48,6 +48,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       ...(data.unlockRadiusM !== undefined ? { unlockRadiusM: data.unlockRadiusM } : {}),
       ...(data.showTotalDistance !== undefined ? { showTotalDistance: data.showTotalDistance } : {}),
       ...(data.showTotalDuration !== undefined ? { showTotalDuration: data.showTotalDuration } : {}),
+      ...(data.showTollInfo !== undefined ? { showTollInfo: data.showTollInfo } : {}),
       ...(data.notes !== undefined ? { notes: data.notes } : {}),
       ...(data.status !== undefined ? { status: data.status } : {}),
     },

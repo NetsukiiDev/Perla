@@ -21,10 +21,16 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ deletedCodes: 0, deletedParticipants: 0 });
   }
 
-  const participantIds = Array.from(new Set(codes.map((code) => code.participantId)));
-  const result = await prisma.participant.deleteMany({
-    where: { eventId: parsed.data.eventId, id: { in: participantIds } },
-  });
+  // Public codes have no participant; only personal codes cascade to one.
+  const participantIds = Array.from(
+    new Set(codes.map((code) => code.participantId).filter((pid): pid is string => pid !== null)),
+  );
+  const result =
+    participantIds.length > 0
+      ? await prisma.participant.deleteMany({
+          where: { eventId: parsed.data.eventId, id: { in: participantIds } },
+        })
+      : { count: 0 };
 
   return NextResponse.json({
     deletedCodes: codes.length,

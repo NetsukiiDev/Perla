@@ -18,6 +18,10 @@ function formatDuration(s: number): string {
   return rem > 0 ? `${hours} h ${rem} min` : `${hours} h`;
 }
 
+function formatEuroCents(cents: number): string {
+  return `€${(cents / 100).toFixed(2).replace(".", ",")}`;
+}
+
 function MetricItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0">
@@ -39,6 +43,8 @@ interface ParticipantStepViewProps {
   totalDurationS?: number;
   stepDistanceM?: number;
   stepDurationS?: number;
+  hasHighway?: boolean;
+  tollEstimateCents?: number;
   hint: string;
 }
 
@@ -54,6 +60,8 @@ export function ParticipantStepView({
   totalDurationS,
   stepDistanceM,
   stepDurationS,
+  hasHighway,
+  tollEstimateCents,
   hint,
 }: ParticipantStepViewProps) {
   return (
@@ -78,6 +86,21 @@ export function ParticipantStepView({
             value={totalDistanceM !== undefined ? formatDistance(totalDistanceM) : "N/D"}
           />
           <MetricItem label="Tempo totale" value={totalDurationS !== undefined ? formatDuration(totalDurationS) : "N/D"} />
+        </div>
+      )}
+
+      {hasHighway !== undefined && (
+        <div className="flex items-center justify-between gap-4 rounded-lg border border-surface-border/70 bg-surface/40 px-4 py-3 text-sm">
+          <div className="min-w-0">
+            <span className="block text-xs uppercase tracking-wide text-muted">Autostrada</span>
+            <span className="font-medium text-foreground">{hasHighway ? "Sì" : "No"}</span>
+          </div>
+          {hasHighway && tollEstimateCents !== undefined && (
+            <div className="min-w-0 text-right">
+              <span className="block text-xs uppercase tracking-wide text-muted">Pedaggio stimato</span>
+              <span className="font-medium text-foreground">~{formatEuroCents(tollEstimateCents)}</span>
+            </div>
+          )}
         </div>
       )}
 

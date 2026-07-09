@@ -1,8 +1,15 @@
 // Default, fully-implemented routing provider. Calls a configurable OSRM
 // instance (OSRM_BASE_URL, defaults to the public demo server).
 import { decodePolyline } from "@/lib/polyline";
+import { estimateItalianToll, type RouteStepLike } from "@/lib/toll-estimate";
 import type { LatLng, RouteProvider, RouteResult } from "./types";
 import { RouteProviderError } from "./types";
+
+interface OsrmStep {
+  ref?: string;
+  name?: string;
+  distance: number;
+}
 
 interface OsrmRouteResponse {
   code: string;
@@ -10,6 +17,7 @@ interface OsrmRouteResponse {
     geometry: string;
     distance: number;
     duration: number;
+    legs?: Array<{ steps?: OsrmStep[] }>;
   }>;
 }
 
@@ -18,7 +26,8 @@ export class OsrmRouteProvider implements RouteProvider {
     const baseUrl = process.env.OSRM_BASE_URL ?? "https://router.project-osrm.org";
     const profile = process.env.OSRM_PROFILE ?? "driving";
     const coords = `${origin.lng},${origin.lat};${destination.lng},${destination.lat}`;
-    const path = `/route/v1/${profile}/${coords}?overview=full&geometries=polyline`;
+    // steps=true exposes per-segment road refs, used to estimate motorway/toll.
+    const path = `/route/v1/${profile}/${coords}?overview=full&geometries=polyline&steps=true`;
 
     let response: Response;
     try {
@@ -45,10 +54,13 @@ export class OsrmRouteProvider implements RouteProvider {
     const route = data.routes[0];
     const polyline: LatLng[] = decodePolyline(route.geometry).map(([lat, lng]) => ({ lat, lng }));
 
+    const steps: RouteStepLike[] = (route.legs ?? []).flatMap((leg) => leg.steps ?? []);
+
     return {
       polyline,
       distanceM: route.distance,
       durationS: route.duration,
+      toll: estimateItalianToll(steps),
     };
   }
 }

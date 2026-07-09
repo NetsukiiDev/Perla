@@ -72,6 +72,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
           unlockRadiusM: event.unlockRadiusM,
           showTotalDistance: event.showTotalDistance,
           showTotalDuration: event.showTotalDuration,
+          showTollInfo: event.showTollInfo,
           notes: event.notes,
         }}
         stats={{

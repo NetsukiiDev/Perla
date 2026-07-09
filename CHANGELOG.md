@@ -1,5 +1,16 @@
 # Changelog
 
+## Non rilasciato
+
+### Added
+- Pagina **Impostazioni** (`/admin/settings`) con selettore lingua e info versione
+- Supporto multilingua **Italiano / Inglese** (i18n con cookie `locale` + dizionari)
+- Controllo aggiornamenti: confronta la versione locale con l'ultima release GitHub, mostra info build/commit
+- Codici **pubblici** riusabili da più persone, senza scadenza, con tetto massimo di utilizzi (ogni persona è un "Ospite" tracciato singolarmente)
+- Stima **autostrada + costo pedaggio** nella vista partecipante (euristica gratuita, toggle per evento)
+- Guida configurazione **Vercel** con generatore/esportazione `.env`
+- Pulsanti Panoramica/Partecipanti nella tabella eventi ed Elimina nel form di modifica
+
 ## 0.1.0 — 2026-07-06
 
 ### Added

@@ -36,6 +36,7 @@ interface EventOverviewProps {
     unlockRadiusM: number;
     showTotalDistance: boolean;
     showTotalDuration: boolean;
+    showTollInfo: boolean;
     notes: string | null;
   };
   stats: {
@@ -62,6 +63,7 @@ function visibleRouteData(event: EventOverviewProps["event"]): string {
   const values = [
     event.showTotalDistance ? "distanza totale" : null,
     event.showTotalDuration ? "tempo totale" : null,
+    event.showTollInfo ? "autostrada/pedaggio" : null,
   ].filter(Boolean);
   return values.length > 0 ? values.join(", ") : "nascosti";
 }

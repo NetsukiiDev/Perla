@@ -40,10 +40,12 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       where: { id },
       data: { status: "valid", revokedAt: null, completedAt: null },
     });
-    await tx.participant.update({
-      where: { id: existing.participantId },
-      data: { status: "not_started" },
-    });
+    if (existing.participantId) {
+      await tx.participant.update({
+        where: { id: existing.participantId },
+        data: { status: "not_started" },
+      });
+    }
     return updated;
   });
 

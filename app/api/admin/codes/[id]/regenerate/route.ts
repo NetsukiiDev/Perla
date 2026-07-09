@@ -37,10 +37,12 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
           revokedAt: null,
         },
       });
-      await prisma.participant.update({
-        where: { id: existing.participantId },
-        data: { status: "not_started" },
-      });
+      if (existing.participantId) {
+        await prisma.participant.update({
+          where: { id: existing.participantId },
+          data: { status: "not_started" },
+        });
+      }
       return NextResponse.json({ code: rec.code, inviteCode }, { status: 200 });
     } catch {
       continue;
