@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { ExternalLink, Link2, Search } from "lucide-react";
+import { ExternalLink, Link2, MapPin, Search } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { SessionActionsMenu } from "./SessionActionsMenu";
 import { CopyButton } from "./CopyButton";
@@ -123,11 +123,15 @@ export function LiveDashboard({ eventId }: { eventId: string }) {
             className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted"
           />
         </div>
+        <span className="text-xs text-muted">
+          {filteredRows.length}/{rows.length} partecipanti
+        </span>
       </div>
 
       <div className="overflow-x-auto rounded-lg border border-surface-border">
+        <div className="max-h-96 overflow-y-auto">
         <table className="w-full text-left text-sm">
-          <thead className="border-b border-surface-border bg-surface text-xs uppercase tracking-wide text-muted">
+          <thead className="sticky top-0 z-10 border-b border-surface-border bg-surface text-xs uppercase tracking-wide text-muted">
             <tr>
               <th className="px-4 py-3">Codice</th>
               <th className="px-4 py-3">Stato</th>
@@ -139,7 +143,7 @@ export function LiveDashboard({ eventId }: { eventId: string }) {
           </thead>
           <tbody>
             {filteredRows.map((r) => (
-              <tr key={r.participantId} className="border-b border-surface-border last:border-0">
+              <tr key={r.participantId} className="border-b border-surface-border last:border-0 hover:bg-surface/50 transition-colors">
                 <td className="px-4 py-3">
                   {r.code ? (
                     <div className="flex flex-col gap-1">
@@ -162,31 +166,27 @@ export function LiveDashboard({ eventId }: { eventId: string }) {
                           <Link2 size={16} aria-hidden="true" />
                           <span className="sr-only">Apri link accesso</span>
                         </a>
+                        {r.lastLocation && <MapPin size={14} className="text-emerald-400" />}
                       </span>
-                      <span className="text-xs text-muted">{r.displayName ?? "N/D"}</span>
+                      <span className="text-xs text-muted">{r.displayName ?? <span className="italic">N/D</span>}</span>
                     </div>
                   ) : (
                     <div className="flex flex-col gap-1">
-                      <Link
-                        href={`/admin/events/${eventId}/participants/${r.participantId}`}
-                        className="text-foreground hover:underline"
-                      >
-                        Codice
-                      </Link>
-                      <span className="text-xs text-muted">{r.displayName ?? "N/D"}</span>
+                      <span className="font-mono tracking-widest text-muted italic">{r.displayName ?? "N/D"}</span>
+                      <span className="text-xs text-muted italic">Nessun codice</span>
                     </div>
                   )}
                 </td>
                 <td className="px-4 py-3">
                   <StatusBadge value={r.displayStatus} label={labels[r.displayStatus] ?? r.displayStatus} />
                 </td>
-                <td className="px-4 py-3 text-muted">{r.currentStep ? `${r.currentStep} di ${r.stepsCount}` : "N/D"}</td>
+                <td className="px-4 py-3 text-muted">{r.currentStep ? `${r.currentStep} di ${r.stepsCount}` : <span className="italic">N/D</span>}</td>
                 <td className="px-4 py-3">
                   <div className="flex flex-col gap-1 text-muted">
                     <span>{formatTime(r.lastSeenAt)}</span>
                     <span className="font-mono text-xs">{formatCoords(r.lastLocation)}</span>
-                    <span className="font-mono text-xs">{r.ipAddress ?? "IP N/D"}</span>
-                    <span className="text-xs">{r.ipIsp ?? "ISP N/D"}</span>
+                    <span className="font-mono text-xs">{r.ipAddress ? r.ipAddress : <span className="italic">IP N/D</span>}</span>
+                    <span className="text-xs">{r.ipIsp ? r.ipIsp : <span className="italic">ISP N/D</span>}</span>
                   </div>
                 </td>
                 <td className="px-4 py-3">
@@ -196,7 +196,7 @@ export function LiveDashboard({ eventId }: { eventId: string }) {
                       <span className="text-xs text-muted">{inviteCodeStatusLabel(r.codeStatus, t)}</span>
                     </div>
                   ) : (
-                    <span className="text-muted">N/D</span>
+                    <span className="text-muted italic">N/D</span>
                   )}
                 </td>
                 <td className="px-4 py-3 text-right">
@@ -221,13 +221,14 @@ export function LiveDashboard({ eventId }: { eventId: string }) {
             ))}
             {filteredRows.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-6 text-center text-muted">
-                  Nessun codice.
+                <td colSpan={6} className="px-4 py-8 text-center text-muted">
+                  <p>{rows.length === 0 ? "Nessun partecipante." : "Nessun risultato. Prova a modificare i filtri."}</p>
                 </td>
               </tr>
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );
