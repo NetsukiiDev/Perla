@@ -1,10 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { CalendarDays, LogOut, UserCircle, Users } from "lucide-react";
+import { CalendarDays, LogOut, Settings, UserCircle, Users } from "lucide-react";
 import { IconButton } from "./IconButton";
+import { useT } from "@/lib/i18n/context";
 
 export function Nav({ role }: { role: "admin" | "staff" }) {
+  const t = useT();
+
   async function handleLogout() {
     await fetch("/api/admin/auth/logout", { method: "POST" });
     window.location.assign("/admin/login");
@@ -16,20 +19,24 @@ export function Nav({ role }: { role: "admin" | "staff" }) {
         <nav className="flex items-center gap-4 text-sm">
           <Link href="/admin/events" className="inline-flex items-center gap-2 font-medium tracking-wide text-foreground">
             <CalendarDays size={16} aria-hidden="true" />
-            Eventi
+            {t.nav.events}
           </Link>
           {role === "admin" && (
             <Link href="/admin/users" className="inline-flex items-center gap-2 text-muted hover:text-foreground">
               <Users size={16} aria-hidden="true" />
-              Utenti
+              {t.nav.users}
             </Link>
           )}
           <Link href="/admin/account" className="inline-flex items-center gap-2 text-muted hover:text-foreground">
             <UserCircle size={16} aria-hidden="true" />
-            Account
+            {t.nav.account}
+          </Link>
+          <Link href="/admin/settings" className="inline-flex items-center gap-2 text-muted hover:text-foreground">
+            <Settings size={16} aria-hidden="true" />
+            {t.nav.settings}
           </Link>
         </nav>
-        <IconButton icon={LogOut} label="Esci" onClick={handleLogout} />
+        <IconButton icon={LogOut} label={t.nav.logout} onClick={handleLogout} />
       </div>
     </header>
   );
