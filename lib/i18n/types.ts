@@ -10,7 +10,7 @@ export interface Dictionary {
 
   settings: {
     title: string;
-    language: { section: string; description: string; italian: string; english: string; auto: string };
+    language: { section: string; description: string; italian: string; english: string; spanish: string; auto: string };
     version: {
       section: string; current: string; check: string; checking: string;
       available: string; availableTo: string; viewOnGithub: string; failed: string; upToDate: string;

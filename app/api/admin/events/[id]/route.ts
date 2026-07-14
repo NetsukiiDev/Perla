@@ -6,6 +6,7 @@ import { eventUpdateSchema } from "@/lib/validation/admin-event";
 import { decryptCoord, encryptCoord } from "@/lib/crypto";
 import { detectItalianRegion } from "@/lib/detect-italian-region";
 import { writeAccessLog } from "@/lib/access-log";
+import { recomputeActiveSessionsForEvent } from "@/lib/recompute-sessions";
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const auth = await requireAdmin();
@@ -65,6 +66,24 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       where: { participant: { eventId: id }, status: "active" },
       data: { status: "expired" },
     });
+  } else if (
+    // Route-affecting change on a still-live event: recompute the route/steps
+    // for active sessions so participants' phones reflect the new target.
+    data.destinationLat !== undefined ||
+    data.destinationLng !== undefined ||
+    data.stepsCount !== undefined ||
+    data.unlockRadiusM !== undefined
+  ) {
+    try {
+      await recomputeActiveSessionsForEvent(
+        id,
+        { lat: destinationLat, lng: destinationLng },
+        event.stepsCount,
+        event.unlockRadiusM,
+      );
+    } catch {
+      // Best-effort — never fail the event update because of a re-route error.
+    }
   }
 
   await writeAccessLog({

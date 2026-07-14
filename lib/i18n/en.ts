@@ -17,6 +17,7 @@ export const en: Dictionary = {
       description: "Choose the interface language.",
       italian: "Italiano",
       english: "English",
+      spanish: "Español",
       auto: "Auto",
     },
     version: {

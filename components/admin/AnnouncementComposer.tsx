@@ -32,7 +32,20 @@ export function AnnouncementComposer({ eventId }: { eventId: string }) {
   }
 
   useEffect(() => {
-    loadRecent();
+    // Inlined so the state update happens after the awaited fetch, not
+    // synchronously in the effect body. loadRecent() stays for manual refresh.
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/admin/events/${eventId}/announcements`);
+        if (!cancelled && res.ok) setRecent((await res.json()).announcements);
+      } catch {
+        /* ignore */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [eventId]);
 
   function onFile(e: ChangeEvent<HTMLInputElement>) {

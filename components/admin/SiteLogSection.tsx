@@ -85,15 +85,15 @@ export function SiteLogSection() {
   const [reloadToken, setReloadToken] = useState(0);
   const reqId = useRef(0);
 
-  function buildParams(offset: number): string {
+  function buildParams(offset: number, cat: LogCategory): string {
     const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String(offset) });
-    if (category !== "all") params.set("category", category);
+    if (cat !== "all") params.set("category", cat);
     return params.toString();
   }
 
   useEffect(() => {
     const id = ++reqId.current;
-    fetch(`/api/admin/logs?${buildParams(0)}`)
+    fetch(`/api/admin/logs?${buildParams(0, category)}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (id !== reqId.current || !data) return;
@@ -108,7 +108,7 @@ export function SiteLogSection() {
     if (loadingMore) return;
     setLoadingMore(true);
     try {
-      const res = await fetch(`/api/admin/logs?${buildParams(logs.length)}`);
+      const res = await fetch(`/api/admin/logs?${buildParams(logs.length, category)}`);
       if (res.ok) {
         const data = await res.json();
         setLogs((prev) => [...prev, ...data.logs]);

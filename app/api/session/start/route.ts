@@ -92,7 +92,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "routing_failed", message: E.GENERIC }, { status: 502 });
   }
 
-  const stepPoints = buildRouteSteps(routeResult.polyline, event.stepsCount, destination, event.unlockRadiusM);
+  const stepPoints = buildRouteSteps(
+    routeResult.polyline,
+    event.stepsCount,
+    destination,
+    event.unlockRadiusM,
+    routeResult.highwaySegments,
+  );
 
   const sessionTokenRaw = generateRandomToken();
   const device = await getOrCreateDeviceToken();

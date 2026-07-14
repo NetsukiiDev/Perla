@@ -1,4 +1,4 @@
-export const LOCALES = ["it", "en"] as const;
+export const LOCALES = ["it", "en", "es"] as const;
 export type Locale = (typeof LOCALES)[number];
 
 export const LOCALE_COOKIE = "locale";

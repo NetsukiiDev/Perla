@@ -51,6 +51,15 @@ export function isTolledAutostrada(ref: string | null | undefined): boolean {
   });
 }
 
+// True when a step's road ref denotes ANY motorway / trunk link the participant
+// shouldn't be routed to stop on — Italian autostrade (A*, tolled or free) and
+// raccordi autostradali (RA*). Broader than isTolledAutostrada, used to keep
+// route stops off high-speed roads.
+export function isMotorwayRef(ref: string | null | undefined): boolean {
+  if (!ref) return false;
+  return ref.split(/[;,]/).some((part) => /^(A|RA)\d{1,3}[a-z]*$/i.test(part.trim()));
+}
+
 export function estimateItalianToll(steps: RouteStepLike[]): TollEstimate {
   let highwayDistanceM = 0;
   for (const s of steps) {

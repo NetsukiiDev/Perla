@@ -104,12 +104,16 @@ export function SettingsPanel() {
 
   useEffect(() => {
     const navLang = navigator.language?.toLowerCase() || "";
-    setDetectedLang(navLang.startsWith("it") ? "it" : "en");
+    // Client-only (navigator) read after mount; one-time post-hydration update,
+    // not a cascading render.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setDetectedLang(navLang.startsWith("it") ? "it" : navLang.startsWith("es") ? "es" : "en");
   }, []);
 
   const langLabels: Record<Locale, string> = {
     it: t.settings.language.italian,
     en: t.settings.language.english,
+    es: t.settings.language.spanish,
   };
 
   const tabLabels: Record<SettingsTab, string> = {

@@ -1,7 +1,7 @@
 // Default, fully-implemented routing provider. Calls a configurable OSRM
 // instance (OSRM_BASE_URL, defaults to the public demo server).
 import { decodePolyline } from "@/lib/polyline";
-import { estimateItalianToll, type RouteStepLike } from "@/lib/toll-estimate";
+import { estimateItalianToll, isMotorwayRef } from "@/lib/toll-estimate";
 import type { LatLng, RouteProvider, RouteResult } from "./types";
 import { RouteProviderError } from "./types";
 
@@ -9,6 +9,7 @@ interface OsrmStep {
   ref?: string;
   name?: string;
   distance: number;
+  geometry?: string; // encoded polyline of this step (geometries=polyline)
 }
 
 interface OsrmRouteResponse {
@@ -52,15 +53,36 @@ export class OsrmRouteProvider implements RouteProvider {
     }
 
     const route = data.routes[0];
-    const polyline: LatLng[] = decodePolyline(route.geometry).map(([lat, lng]) => ({ lat, lng }));
+    const rawSteps = (route.legs ?? []).flatMap((leg) => leg.steps ?? []);
 
-    const steps: RouteStepLike[] = (route.legs ?? []).flatMap((leg) => leg.steps ?? []);
+    // Build the polyline by concatenating per-step geometries so each segment
+    // can be tagged as motorway (consecutive steps share a boundary vertex).
+    let polyline: LatLng[] = [];
+    let highwaySegments: boolean[] = [];
+    for (const step of rawSteps) {
+      if (!step.geometry) continue;
+      const coords = decodePolyline(step.geometry).map(([lat, lng]) => ({ lat, lng }));
+      if (coords.length === 0) continue;
+      const hw = isMotorwayRef(step.ref);
+      if (polyline.length === 0) polyline.push(coords[0]);
+      for (let i = 1; i < coords.length; i++) {
+        polyline.push(coords[i]);
+        highwaySegments.push(hw);
+      }
+    }
+
+    // Fallback to the overview geometry if steps carried no geometry.
+    if (polyline.length < 2) {
+      polyline = decodePolyline(route.geometry).map(([lat, lng]) => ({ lat, lng }));
+      highwaySegments = [];
+    }
 
     return {
       polyline,
       distanceM: route.distance,
       durationS: route.duration,
-      toll: estimateItalianToll(steps),
+      toll: estimateItalianToll(rawSteps.map((s) => ({ ref: s.ref, name: s.name, distance: s.distance }))),
+      highwaySegments: highwaySegments.length > 0 ? highwaySegments : undefined,
     };
   }
 }

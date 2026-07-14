@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CheckSquare, ChevronLeft, ChevronRight, ExternalLink, Link2, MapPin, QrCode, RotateCcw, Trash2, UserPlus, X } from "lucide-react";
@@ -53,7 +53,14 @@ export function ParticipantsManager({
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(5);
 
-  useEffect(() => { setPage(0); }, [search, statusFilter]);
+  // Reset to the first page whenever the filter changes (render-phase reset —
+  // avoids a state-setting effect and its extra render).
+  const filterKey = `${search} ${statusFilter}`;
+  const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
+  if (filterKey !== prevFilterKey) {
+    setPrevFilterKey(filterKey);
+    setPage(0);
+  }
 
   const filtered = initialParticipants.filter((r) => {
     const normalizedSearch = search.trim().toLowerCase();

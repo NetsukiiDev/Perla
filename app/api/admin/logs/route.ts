@@ -17,7 +17,7 @@ export async function GET(req: Request) {
   const type = url.searchParams.get("type") || undefined;
   const category = url.searchParams.get("category") || "all";
 
-  let where: Record<string, unknown> = {};
+  const where: Record<string, unknown> = {};
   if (type) {
     where.type = type;
   } else if (category === "admin") {
