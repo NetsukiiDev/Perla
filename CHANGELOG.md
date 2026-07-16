@@ -1,6 +1,6 @@
 # Changelog
 
-## Non rilasciato
+## 0.1.5 — 2026-07-16
 
 ### Added
 - Supporto eventi esteso a **46 paesi dell'Europa geografica** (da 2 a 46): oltre a Italia e Spagna, tutta l'UE, Regno Unito, Norvegia/Svezia/Finlandia/Islanda, Baltici, Balcani, Ucraina/Bielorussia/Moldova, Caucaso (Georgia/Armenia/Azerbaijan), le parti europee di Russia e Turchia, e i microstati (Andorra, Monaco, San Marino, Vaticano, Liechtenstein) — 690 regioni/province/cantoni in totale, ciascuna con rilevamento confini, silhouette di localizzazione e fuso orario corretto (incluse le eccezioni: Canarie, Azzorre, Kaliningrad)
