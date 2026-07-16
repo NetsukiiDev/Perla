@@ -1,19 +1,19 @@
 # Internationalization (i18n)
 
-PERLA supports **Italian, English and Spanish**. The language is chosen from **Settings** (`/admin/settings`) and applies to both the admin area and the participant flow.
+PERLA supports **Italian, English, Spanish, French, German, Portuguese, Dutch and Polish**. The language is chosen from **Settings** (`/admin/settings`) and applies to both the admin area and the participant flow.
 
 ## How it works
 
 | Piece | File |
 |---|---|
 | Config (locales, cookie) | `lib/i18n/config.ts` |
-| Dictionaries | `lib/i18n/it.ts`, `lib/i18n/en.ts`, `lib/i18n/es.ts` |
+| Dictionaries | `lib/i18n/{it,en,es,fr,de,pt,nl,pl}.ts` |
 | `Dictionary` type | `lib/i18n/types.ts` |
 | Server loader | `lib/i18n/server.ts` (`getLocale`, `getDictionary`) |
 | Client provider | `lib/i18n/context.tsx` (`I18nProvider`, `useT`, `useLocale`) |
 | Endpoint | `POST /api/settings/locale` (sets the `locale` cookie) |
 
-- The language is persisted in the **`locale`** cookie (`it` | `en` | `es`, default `it`).
+- The language is persisted in the **`locale`** cookie (`it` | `en` | `es` | `fr` | `de` | `pt` | `nl` | `pl`, default `it`).
 - The **root layout** reads the cookie, sets `<html lang>`, and wraps the app in `I18nProvider` (covers admin **and** the participant flow).
 - **Client components** use `useT()`; **server routes/pages** use `getDictionary(await getLocale())`.
 

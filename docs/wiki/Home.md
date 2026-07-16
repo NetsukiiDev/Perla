@@ -15,7 +15,7 @@ Use cases: treasure hunts, rallies, guided tours, surprise events, relay races.
 | [Architecture](Architecture) | Diagrams, participant flow, project structure |
 | [Public Codes](Public-Codes) | Codes reusable by many people |
 | [Toll & Highway Estimate](Toll-Estimate) | Highway + toll estimate |
-| [Internationalization](Internationalization) | Italian / English / Spanish i18n system |
+| [Internationalization](Internationalization) | 8-language i18n system (IT/EN/ES/FR/DE/PT/NL/PL) |
 | [Versioning & Updates](Versioning) | Version, changelog, update checks |
 | [Deploy on Vercel](Deploy-on-Vercel) | Step-by-step Vercel deploy |
 | [Security](Security) | Security model & encryption |

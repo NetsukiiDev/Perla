@@ -7,10 +7,10 @@
 - Confini contesi trattati secondo il riconoscimento ONU: Crimea in Ucraina, Abkhazia/Ossezia del Sud in Georgia, Transnistria in Moldova, Nagorno-Karabakh in Azerbaijan, Cipro del Nord in Cipro (come distretto di Kyrenia), Kosovo come paese separato
 - Architettura di rilevamento regione riorganizzata in un registro per-paese (`lib/regions/`) per scalare oltre le 2 nazioni iniziali; corretto un bug per cui un'enclave (es. Vienna dentro la Bassa Austria) veniva assegnata erroneamente alla regione che la circonda
 - Stima autostrada/pedaggio ora distingue "in autostrada" da "a pedaggio" per paese: la maggior parte dei paesi mostra l'uso dell'autostrada ma pedaggio €0 (gratuite o a bollino, non a consumo), mentre Italia/Portogallo/Francia (formato `A#`) e Spagna (`AP-*`/`R-*`) mantengono la stima a km; riconosciute anche le autostrade britanniche/irlandesi (`M#`)
+- Interfaccia disponibile in **5 nuove lingue** (francese, tedesco, portoghese, olandese, polacco), oltre a italiano/inglese/spagnolo — 8 lingue totali, stesso selettore in Impostazioni con rilevamento automatico della lingua del browser
 
 ### Known gaps
 - Alcuni paesi con dati grezzi troppo granulari (Lettonia, Macedonia del Nord, Malta, Azerbaijan) sono trattati come una singola regione anziché suddivisi, per mancanza di una fonte dati per il livello amministrativo corretto
-- Lingue interfaccia principali europee (francese, tedesco, portoghese, olandese, polacco) non ancora aggiunte
 
 ## 0.1.4 — 2026-07-16
 

@@ -134,13 +134,20 @@ export function SettingsPanel({ role }: { role: "admin" | "staff" }) {
     // Client-only (navigator) read after mount; one-time post-hydration update,
     // not a cascading render.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setDetectedLang(navLang.startsWith("it") ? "it" : navLang.startsWith("es") ? "es" : "en");
+    setDetectedLang(
+      LOCALES.find((l) => l !== "en" && navLang.startsWith(l)) ?? "en",
+    );
   }, []);
 
   const langLabels: Record<Locale, string> = {
     it: t.settings.language.italian,
     en: t.settings.language.english,
     es: t.settings.language.spanish,
+    fr: t.settings.language.french,
+    de: t.settings.language.german,
+    pt: t.settings.language.portuguese,
+    nl: t.settings.language.dutch,
+    pl: t.settings.language.polish,
   };
 
   const tabLabels: Record<SettingsTab, string> = {

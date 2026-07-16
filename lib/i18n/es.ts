@@ -18,6 +18,11 @@ export const es: Dictionary = {
       italian: "Italiano",
       english: "English",
       spanish: "Español",
+      french: "Français",
+      german: "Deutsch",
+      portuguese: "Português",
+      dutch: "Nederlands",
+      polish: "Polski",
       auto: "Auto",
     },
     version: {
