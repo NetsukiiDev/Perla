@@ -14,6 +14,7 @@ export async function recomputeActiveSessionsForEvent(
   destination: { lat: number; lng: number },
   stepsCount: number,
   unlockRadiusM: number,
+  country?: string | null,
 ): Promise<{ recomputed: number; skipped: number }> {
   const sessions = await prisma.session.findMany({
     where: { participant: { eventId }, status: "active" },
@@ -35,7 +36,7 @@ export async function recomputeActiveSessionsForEvent(
 
     let route;
     try {
-      route = await provider.getRoute(origin, destination);
+      route = await provider.getRoute(origin, destination, country);
     } catch {
       skipped++;
       continue;

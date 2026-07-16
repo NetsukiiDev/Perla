@@ -16,7 +16,10 @@ export interface RouteResult {
 }
 
 export interface RouteProvider {
-  getRoute(origin: LatLng, destination: LatLng): Promise<RouteResult>;
+  // `country` is the destination event's ISO country code (lib/regions
+  // countryForRegion) when known — only OSRM uses it, to disambiguate
+  // motorway ref conventions shared across countries (see lib/toll-estimate.ts).
+  getRoute(origin: LatLng, destination: LatLng, country?: string | null): Promise<RouteResult>;
 }
 
 export class RouteProviderError extends Error {}

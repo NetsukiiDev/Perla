@@ -23,7 +23,7 @@ interface OsrmRouteResponse {
 }
 
 export class OsrmRouteProvider implements RouteProvider {
-  async getRoute(origin: LatLng, destination: LatLng): Promise<RouteResult> {
+  async getRoute(origin: LatLng, destination: LatLng, country?: string | null): Promise<RouteResult> {
     const baseUrl = process.env.OSRM_BASE_URL ?? "https://router.project-osrm.org";
     const profile = process.env.OSRM_PROFILE ?? "driving";
     const coords = `${origin.lng},${origin.lat};${destination.lng},${destination.lat}`;
@@ -81,7 +81,7 @@ export class OsrmRouteProvider implements RouteProvider {
       polyline,
       distanceM: route.distance,
       durationS: route.duration,
-      toll: estimateHighwayToll(rawSteps.map((s) => ({ ref: s.ref, name: s.name, distance: s.distance }))),
+      toll: estimateHighwayToll(rawSteps.map((s) => ({ ref: s.ref, name: s.name, distance: s.distance })), country),
       highwaySegments: highwaySegments.length > 0 ? highwaySegments : undefined,
     };
   }

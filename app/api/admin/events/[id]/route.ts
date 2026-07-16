@@ -5,6 +5,7 @@ import { getLocale, getDictionary } from "@/lib/i18n/server";
 import { eventUpdateSchema } from "@/lib/validation/admin-event";
 import { decryptCoord, encryptCoord } from "@/lib/crypto";
 import { detectRegion } from "@/lib/detect-region";
+import { countryForRegion } from "@/lib/regions";
 import { writeAccessLog } from "@/lib/access-log";
 import { recomputeActiveSessionsForEvent } from "@/lib/recompute-sessions";
 
@@ -80,6 +81,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
         { lat: destinationLat, lng: destinationLng },
         event.stepsCount,
         event.unlockRadiusM,
+        countryForRegion(event.region),
       );
     } catch {
       // Best-effort — never fail the event update because of a re-route error.

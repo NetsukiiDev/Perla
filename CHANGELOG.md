@@ -1,5 +1,16 @@
 # Changelog
 
+## Non rilasciato
+
+### Added
+- Supporto eventi in **10 nuovi paesi europei** (Germania, Austria, Polonia, Paesi Bassi, Belgio, Svizzera, Cechia, Slovacchia, Danimarca, Portogallo), oltre a Italia e Spagna già presenti — rilevamento regione/provincia/cantone, silhouette di localizzazione, fuso orario corretto per regione (incluse Canarie e Azzorre)
+- Architettura di rilevamento regione riorganizzata in un registro per-paese (`lib/regions/`) per scalare oltre le 2 nazioni iniziali; corretto un bug per cui un'enclave (es. Vienna dentro la Bassa Austria) veniva assegnata erroneamente alla regione che la circonda
+- Stima autostrada/pedaggio ora distingue "in autostrada" da "a pedaggio" per paese: Germania/Austria/Svizzera/Polonia/Paesi Bassi/Belgio/Cechia/Slovacchia/Danimarca mostrano l'uso dell'autostrada ma pedaggio €0 (gratuite o a bollino, non a consumo), mentre Italia/Portogallo (formato `A#`) e Spagna (`AP-*`/`R-*`) mantengono la stima a km
+
+### Known gaps
+- Ancora da coprire: Francia, Regno Unito, paesi nordici (oltre Danimarca), Baltici, Balcani, Europa orientale, Caucaso, Russia/Turchia europee, microstati — in arrivo in blocchi successivi
+- Lingue interfaccia principali europee (francese, tedesco, portoghese, olandese, polacco) non ancora aggiunte
+
 ## 0.1.4 — 2026-07-16
 
 ### Added

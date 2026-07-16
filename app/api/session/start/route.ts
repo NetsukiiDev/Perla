@@ -11,6 +11,7 @@ import { decryptCoord, encrypt, encryptCoord } from "@/lib/crypto";
 import { generateRandomToken, sha256Hex } from "@/lib/hash";
 import { resolveParticipantNetworkInfo } from "@/lib/ip-info";
 import { getRouteProvider, RouteProviderError } from "@/lib/route-provider";
+import { countryForRegion } from "@/lib/regions";
 import { buildRouteSteps } from "@/lib/route-steps";
 import { writeAccessLog } from "@/lib/access-log";
 import { AccessLogType } from "@/lib/generated/prisma/client";
@@ -80,7 +81,7 @@ export async function POST(req: Request) {
 
   let routeResult;
   try {
-    routeResult = await getRouteProvider().getRoute({ lat, lng }, destination);
+    routeResult = await getRouteProvider().getRoute({ lat, lng }, destination, countryForRegion(event.region));
   } catch (err) {
     await writeAccessLog({
       type: AccessLogType.routing_error,
