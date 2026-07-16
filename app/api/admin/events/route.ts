@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/admin-guard";
 import { eventCreateSchema } from "@/lib/validation/admin-event";
 import { encryptCoord } from "@/lib/crypto";
-import { detectItalianRegion } from "@/lib/detect-italian-region";
+import { detectRegion } from "@/lib/detect-region";
 import { getLocale, getDictionary } from "@/lib/i18n/server";
 import { writeAccessLog } from "@/lib/access-log";
 
@@ -27,7 +27,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "invalid_body", issues: parsed.error.issues }, { status: 400 });
   }
   const data = parsed.data;
-  const region = detectItalianRegion(data.destinationLat, data.destinationLng);
+  const region = detectRegion(data.destinationLat, data.destinationLng);
   if (!region) {
     return NextResponse.json({ error: "region_not_detected" }, { status: 400 });
   }

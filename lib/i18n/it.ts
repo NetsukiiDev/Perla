@@ -30,6 +30,13 @@ export const it: Dictionary = {
       viewOnGithub: "Vedi su GitHub",
       failed: "Impossibile verificare aggiornamenti.",
       upToDate: "Versione aggiornata.",
+      update: "Aggiorna ora",
+      updating: "Aggiornamento in corso…",
+      updateStarted: "Aggiornamento avviato. L'app potrebbe diventare brevemente non raggiungibile durante il riavvio.",
+      updateFailed: "Aggiornamento non riuscito: {error}",
+      notConfigured: "Aggiornamento automatico non configurato su questo server. Imposta DEPLOY_HOOK_URL o SELF_UPDATE_ENABLED nelle variabili d'ambiente.",
+      confirmSelfUpdate: "Verrà scaricata la versione {version} e l'app si riavvierà: ci sarà una breve interruzione. Continuare?",
+      confirmDeployHook: "Verrà avviato un nuovo deploy alla versione {version} tramite il webhook configurato. Continuare?",
     },
     info: {
       section: "Informazioni",
@@ -174,7 +181,7 @@ export const it: Dictionary = {
         deleting: "Eliminazione…",
       },
       errors: {
-        coordinate: "Coordinate non riconosciute in una regione italiana. Controlla latitudine e longitudine.",
+        coordinate: "Coordinate non riconosciute in una regione supportata (Italia, Spagna). Controlla latitudine e longitudine.",
         saveFailed: "Impossibile salvare l'evento. Controlla i campi.",
         generic: "Si è verificato un errore. Riprova.",
         deleteFailed: "Impossibile eliminare l'evento.",

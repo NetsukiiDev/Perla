@@ -1,15 +1,16 @@
 "use client";
 
 import { useT } from "@/lib/i18n/context";
+import { timeZoneForRegion } from "@/lib/region-timezone";
 import { RegionSilhouette } from "./RegionSilhouette";
 
-function formatDateTime(iso: string): string {
+function formatDateTime(iso: string, region: string): string {
   return new Intl.DateTimeFormat("it-IT", {
     day: "2-digit",
     month: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
-    timeZone: "Europe/Rome",
+    timeZone: timeZoneForRegion(region),
   }).format(new Date(iso));
 }
 
@@ -39,8 +40,8 @@ export function EventInfoGrid({ region, startsAt, endsAt }: EventInfoGridProps) 
   return (
     <section className="flex flex-col gap-4">
       <div className={`grid ${endsAt ? "grid-cols-2" : "grid-cols-1"} gap-x-6 text-left`}>
-        <InfoItem label={t.eventInfo.start} value={formatDateTime(startsAt)} />
-        {endsAt && <InfoItem label={t.eventInfo.end} value={formatDateTime(endsAt)} />}
+        <InfoItem label={t.eventInfo.start} value={formatDateTime(startsAt, region)} />
+        {endsAt && <InfoItem label={t.eventInfo.end} value={formatDateTime(endsAt, region)} />}
       </div>
 
       <div className="flex items-center justify-center gap-4 border-t border-surface-border/70 pt-4">

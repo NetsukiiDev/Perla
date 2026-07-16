@@ -1,4 +1,5 @@
 import type { Dictionary } from "@/lib/i18n/types";
+import { timeZoneForRegion } from "@/lib/region-timezone";
 
 export function getErrorMessages(t: Dictionary) {
   return {
@@ -34,14 +35,14 @@ export const DEFAULTS = {
   CODE_REF_TTL_MIN: 10,
 } as const;
 
-export function formatHHmm(date: Date): string {
+export function formatHHmm(date: Date, region?: string | null): string {
   return new Intl.DateTimeFormat("it-IT", {
     hour: "2-digit",
     minute: "2-digit",
-    timeZone: "Europe/Rome",
+    timeZone: timeZoneForRegion(region),
   }).format(date);
 }
 
-export function notYetAvailableMessage(t: Dictionary, revealAt: Date): string {
-  return t.participantFlow.notYetAvailable.replace("{time}", formatHHmm(revealAt));
+export function notYetAvailableMessage(t: Dictionary, revealAt: Date, region?: string | null): string {
+  return t.participantFlow.notYetAvailable.replace("{time}", formatHHmm(revealAt, region));
 }

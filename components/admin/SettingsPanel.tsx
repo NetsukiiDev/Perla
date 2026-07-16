@@ -22,7 +22,10 @@ import { LOCALES, type Locale } from "@/lib/i18n/config";
 import { SmtpSettingsForm } from "@/components/admin/SmtpSettingsForm";
 import { SiteLogSection } from "@/components/admin/SiteLogSection";
 import { TurnstileSettingsForm } from "@/components/admin/TurnstileSettingsForm";
+import { ConfirmButton } from "@/components/admin/ConfirmButton";
 import { useNavLayout } from "@/lib/use-nav-layout";
+
+type UpdateMode = "deploy-hook" | "self-update" | null;
 
 interface VersionInfo {
   name: string;
@@ -33,6 +36,7 @@ interface VersionInfo {
   commit: string | null;
   env: string;
   repoUrl: string;
+  updateMode: UpdateMode;
 }
 
 type SettingsTab = "language" | "navLayout" | "version" | "smtp" | "turnstile" | "siteLog";
@@ -46,7 +50,7 @@ const tabIcons: Record<SettingsTab, typeof Globe> = {
   siteLog: ClipboardList,
 };
 
-export function SettingsPanel() {
+export function SettingsPanel({ role }: { role: "admin" | "staff" }) {
   const router = useRouter();
   const t = useT();
   const locale = useLocale();
@@ -55,6 +59,8 @@ export function SettingsPanel() {
   const [switching, setSwitching] = useState<Locale | null>(null);
   const [info, setInfo] = useState<VersionInfo | null>(null);
   const [loadingVersion, setLoadingVersion] = useState(true);
+  const [updating, setUpdating] = useState(false);
+  const [updateMessage, setUpdateMessage] = useState<{ ok: boolean; text: string } | null>(null);
 
   const loadVersion = useCallback(async () => {
     setLoadingVersion(true);
@@ -84,6 +90,27 @@ export function SettingsPanel() {
       cancelled = true;
     };
   }, []);
+
+  async function triggerUpdate() {
+    setUpdating(true);
+    setUpdateMessage(null);
+    try {
+      const res = await fetch("/api/admin/update", { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setUpdateMessage({ ok: true, text: t.settings.version.updateStarted });
+      } else {
+        setUpdateMessage({
+          ok: false,
+          text: t.settings.version.updateFailed.replace("{error}", data.detail ?? data.error ?? "?"),
+        });
+      }
+    } catch {
+      setUpdateMessage({ ok: false, text: t.settings.version.updateFailed.replace("{error}", "?") });
+    } finally {
+      setUpdating(false);
+    }
+  }
 
   async function changeLocale(next: Locale) {
     if (next === locale) return;
@@ -260,6 +287,35 @@ export function SettingsPanel() {
                   >
                     {t.settings.version.viewOnGithub} <ExternalLink size={12} aria-hidden="true" />
                   </a>
+                  {role === "admin" && (
+                    <div className="flex w-full flex-col gap-2 pt-1">
+                      {info.updateMode ? (
+                        <ConfirmButton
+                          confirmMessage={(info.updateMode === "self-update"
+                            ? t.settings.version.confirmSelfUpdate
+                            : t.settings.version.confirmDeployHook
+                          ).replace("{version}", info.latest ?? "")}
+                          onConfirm={() => void triggerUpdate()}
+                          disabled={updating}
+                          className="inline-flex w-fit items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-200 hover:bg-amber-500/20 disabled:opacity-50"
+                        >
+                          {updating ? (
+                            <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+                          ) : (
+                            <RefreshCw size={14} aria-hidden="true" />
+                          )}
+                          {updating ? t.settings.version.updating : t.settings.version.update}
+                        </ConfirmButton>
+                      ) : (
+                        <p className="text-xs text-muted">{t.settings.version.notConfigured}</p>
+                      )}
+                      {updateMessage && (
+                        <p className={`text-sm ${updateMessage.ok ? "text-emerald-300" : "text-danger"}`}>
+                          {updateMessage.text}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               ) : info.checkFailed ? (
                 <div className="flex items-center gap-2 rounded-lg border border-surface-border p-3 text-sm text-muted">

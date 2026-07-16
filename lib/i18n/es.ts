@@ -30,6 +30,13 @@ export const es: Dictionary = {
       viewOnGithub: "Ver en GitHub",
       failed: "No se pudieron buscar actualizaciones.",
       upToDate: "Actualizado.",
+      update: "Actualizar ahora",
+      updating: "Actualizando…",
+      updateStarted: "Actualización iniciada. Es posible que la app no esté disponible brevemente mientras se reinicia.",
+      updateFailed: "La actualización falló: {error}",
+      notConfigured: "La actualización automática no está configurada en este servidor. Define DEPLOY_HOOK_URL o SELF_UPDATE_ENABLED en las variables de entorno.",
+      confirmSelfUpdate: "Se descargará la versión {version} y la app se reiniciará: habrá una breve interrupción. ¿Continuar?",
+      confirmDeployHook: "Se iniciará un nuevo despliegue a la versión {version} mediante el webhook configurado. ¿Continuar?",
     },
     info: {
       section: "Info",
@@ -174,7 +181,7 @@ export const es: Dictionary = {
         deleting: "Eliminando…",
       },
       errors: {
-        coordinate: "Coordenadas no reconocidas en una región italiana. Revisa la latitud y longitud.",
+        coordinate: "Coordenadas no reconocidas en una región admitida (Italia, España). Revisa la latitud y longitud.",
         saveFailed: "No se pudo guardar el evento. Revisa los campos.",
         generic: "Algo salió mal. Por favor, inténtalo de nuevo.",
         deleteFailed: "No se pudo eliminar el evento.",

@@ -4,7 +4,7 @@ import { requireAdmin } from "@/lib/admin-guard";
 import { getLocale, getDictionary } from "@/lib/i18n/server";
 import { eventUpdateSchema } from "@/lib/validation/admin-event";
 import { decryptCoord, encryptCoord } from "@/lib/crypto";
-import { detectItalianRegion } from "@/lib/detect-italian-region";
+import { detectRegion } from "@/lib/detect-region";
 import { writeAccessLog } from "@/lib/access-log";
 import { recomputeActiveSessionsForEvent } from "@/lib/recompute-sessions";
 
@@ -33,7 +33,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     data.destinationLng !== undefined ? data.destinationLng : decryptCoord(existing.destinationLngEncrypted);
   const region =
     data.destinationLat !== undefined || data.destinationLng !== undefined
-      ? detectItalianRegion(destinationLat, destinationLng)
+      ? detectRegion(destinationLat, destinationLng)
       : null;
   if ((data.destinationLat !== undefined || data.destinationLng !== undefined) && !region) {
     return NextResponse.json({ error: "region_not_detected" }, { status: 400 });

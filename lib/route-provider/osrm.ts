@@ -1,7 +1,7 @@
 // Default, fully-implemented routing provider. Calls a configurable OSRM
 // instance (OSRM_BASE_URL, defaults to the public demo server).
 import { decodePolyline } from "@/lib/polyline";
-import { estimateItalianToll, isMotorwayRef } from "@/lib/toll-estimate";
+import { estimateHighwayToll, isMotorwayRef } from "@/lib/toll-estimate";
 import type { LatLng, RouteProvider, RouteResult } from "./types";
 import { RouteProviderError } from "./types";
 
@@ -81,7 +81,7 @@ export class OsrmRouteProvider implements RouteProvider {
       polyline,
       distanceM: route.distance,
       durationS: route.duration,
-      toll: estimateItalianToll(rawSteps.map((s) => ({ ref: s.ref, name: s.name, distance: s.distance }))),
+      toll: estimateHighwayToll(rawSteps.map((s) => ({ ref: s.ref, name: s.name, distance: s.distance }))),
       highwaySegments: highwaySegments.length > 0 ? highwaySegments : undefined,
     };
   }

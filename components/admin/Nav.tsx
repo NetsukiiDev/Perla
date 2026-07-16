@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { CalendarDays, LogOut, Menu, Settings, UserCircle, Users, X } from "lucide-react";
 import { IconButton } from "./IconButton";
+import { PearlIcon } from "./PearlIcon";
 import { useT } from "@/lib/i18n/context";
 
 export function Nav({ role }: { role: "admin" | "staff" }) {
@@ -26,8 +27,8 @@ export function Nav({ role }: { role: "admin" | "staff" }) {
     <header className="border-b border-surface-border">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
         <Link href="/admin/events" className="inline-flex items-center gap-2 font-medium tracking-wide text-foreground">
-          <CalendarDays size={16} aria-hidden="true" />
-          <span className="hidden sm:inline">{t.nav.events}</span>
+          <PearlIcon size={16} />
+          <span className="hidden sm:inline">PERLA</span>
         </Link>
 
         <nav className="hidden items-center gap-4 text-sm sm:flex">

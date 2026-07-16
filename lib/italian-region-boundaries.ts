@@ -1,9 +1,6 @@
 // Generated from ISTAT administrative boundaries via openpolis/geojson-italy (CC-BY-4.0).
 // Coordinates are WGS84 [lng, lat] rings, simplified for server-side region detection.
-export interface RegionBoundary {
-  name: string;
-  rings: Array<Array<[number, number]>>;
-}
+import type { RegionBoundary } from "@/lib/geo-polygon";
 
 export const ITALIAN_REGION_BOUNDARIES: RegionBoundary[] = [
   {

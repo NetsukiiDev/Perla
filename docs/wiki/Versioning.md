@@ -31,6 +31,17 @@ Typical response:
 
 To surface "update available", publish a new **release/tag** on GitHub (e.g. `v0.2.0`) with a version higher than the one in `package.json`.
 
+## Update now (auto-update)
+
+When an update is available, admins (not staff) see an **"Update now"** button next to the notice. It's a thin wrapper (`POST /api/admin/update`) around whichever mechanism is configured via environment variable — **both are off by default**, so adding this feature doesn't make anything happen on its own:
+
+| Env var | Behavior |
+|---|---|
+| `DEPLOY_HOOK_URL` | POSTs to this URL and returns. Point it at a Vercel **Deploy Hook**, or any other CI/CD webhook that owns the actual rebuild — PERLA never touches the filesystem or process in this mode. Takes priority if both vars are set. |
+| `SELF_UPDATE_ENABLED=true` | Runs `git pull --ff-only` → `npm ci` → `npm run build` in the running process, then exits. **Only use this if PERLA runs under a process manager (systemd, PM2, …) configured to restart on exit** — otherwise this just kills the server with nothing to bring it back. To avoid accidents, the process only exits when `NODE_ENV=production`; elsewhere it rebuilds but leaves the process running. |
+
+If neither is set, the button is replaced with a note explaining how to enable one. Every attempt (success or failure) is written to the admin access log.
+
 ## Build info
 
 - **Environment**: `vercel` in production on Vercel, otherwise `NODE_ENV`.

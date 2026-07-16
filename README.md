@@ -10,7 +10,7 @@ Real-time, secure, anonymous location sharing — trackable only by organizers. 
   <img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind-4-38bdf8?logo=tailwindcss&logoColor=white">
   <br>
   <img alt="Database" src="https://img.shields.io/badge/DB-PostgreSQL%20%C2%B7%20MySQL%20%C2%B7%20MariaDB%20%C2%B7%20MongoDB-336791">
-  <img alt="i18n" src="https://img.shields.io/badge/i18n-Italiano%20%C2%B7%20English-blue">
+  <img alt="i18n" src="https://img.shields.io/badge/i18n-Italiano%20%C2%B7%20English%20%C2%B7%20Espa%C3%B1ol-blue">
   <img alt="Encryption" src="https://img.shields.io/badge/crypto-AES--256--GCM-success">
   <img alt="License" src="https://img.shields.io/badge/license-Proprietary-lightgrey">
 </p>
@@ -25,7 +25,8 @@ Organizers create events with a **secret destination**, split them into **interm
 | 🎟️ | **One-time** device-bound codes **+ public codes** reusable by many people |
 | 📡 | **Live dashboard** — each participant's position, stop and status in real time |
 | 🛣️ | **Highway + toll** estimate on the route (free, per-event) |
-| 🌍 | **Bilingual** Italian / English UI with a language switcher |
+| 🗺️ | Destinations in **Italy 🇮🇹 or Spain 🇪🇸**, with a region-silhouette location hint |
+| 🌍 | **Multilingual** Italian / English / Spanish UI with a language switcher |
 | 🖥️ | **Settings**, versioning and update checks |
 | 🗄️ | 4 databases (PostgreSQL · MySQL · MariaDB · MongoDB) + setup wizard |
 | ☁️ | **Vercel**-ready with an in-app guide and `.env` generator |

@@ -1,10 +1,13 @@
 # Changelog
 
-## Non rilasciato
+## 0.1.4 — 2026-07-16
 
 ### Added
 - Pagina **Impostazioni** (`/admin/settings`) con selettore lingua e info versione
-- Supporto multilingua **Italiano / Inglese** (i18n con cookie `locale` + dizionari)
+- Supporto multilingua **Italiano / Inglese / Spagnolo** (i18n con cookie `locale` + dizionari)
+- Supporto eventi in **Spagna** oltre che in Italia: rilevamento regione (comunità autonome), silhouette di localizzazione e stima autostrada/pedaggio (autopistas `AP-*`/`R-*` a pedaggio, autovías `A-*` gratuite)
+- Pulsante **"Aggiorna ora"** in Impostazioni → Versione (solo admin): trigger opzionale via `DEPLOY_HOOK_URL` (webhook esterno) o `SELF_UPDATE_ENABLED` (git pull + rebuild in-process, richiede un process manager per il riavvio)
+- Branding **PERLA** con simbolo perla al posto di "Eventi" in alto a sinistra nel pannello admin
 - Controllo aggiornamenti: confronta la versione locale con l'ultima release GitHub, mostra info build/commit
 - Codici **pubblici** riusabili da più persone, senza scadenza, con tetto massimo di utilizzi (ogni persona è un "Ospite" tracciato singolarmente)
 - Stima **autostrada + costo pedaggio** nella vista partecipante (euristica gratuita, toggle per evento)

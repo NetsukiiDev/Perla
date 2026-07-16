@@ -14,6 +14,8 @@ export interface Dictionary {
     version: {
       section: string; current: string; check: string; checking: string;
       available: string; availableTo: string; viewOnGithub: string; failed: string; upToDate: string;
+      update: string; updating: string; updateStarted: string; updateFailed: string; notConfigured: string;
+      confirmSelfUpdate: string; confirmDeployHook: string;
     };
     info: { section: string; environment: string; commit: string; notAvailable: string };
     smtp: {

@@ -71,8 +71,8 @@ export function projectPreSessionState(event: Event, t: Dictionary, participantC
       endsAt: event.endsAt ? event.endsAt.toISOString() : null,
       participantCode,
       message: revealAt
-        ? notYetAvailableMessage(t, revealAt)
-        : t.participantFlow.notYetAvailable.replace("{time}", formatHHmm(event.startsAt)),
+        ? notYetAvailableMessage(t, revealAt, event.region)
+        : t.participantFlow.notYetAvailable.replace("{time}", formatHHmm(event.startsAt, event.region)),
     };
   }
 

@@ -8,13 +8,15 @@ In the event form, turn on **"Show highway and estimated toll"**. The value is c
 
 ## How it's computed
 
-A **free, no-API-key** approach (`lib/toll-estimate.ts`):
+A **free, no-API-key** approach (`lib/toll-estimate.ts`), covering both supported countries:
 
-1. The **OSRM** provider returns the route steps with road references (`ref`, e.g. `A1`, `A14`, `A1var`).
-2. Kilometers on tolled motorway segments are summed (excluding a few known toll-free "A" roads: Rome GRA, Milan ring roads, etc.).
+1. The **OSRM** provider returns the route steps with road references (`ref`).
+2. Kilometers on tolled motorway segments are summed:
+   - **Italy**: refs like `A1`, `A14`, `A1var` (excluding a few known toll-free "A" roads: Rome GRA, Milan ring roads, etc.).
+   - **Spain**: hyphenated refs — `AP-*` (autopista de peaje) and `R-*` (Madrid radial) are tolled, plain `A-*` (autovía) is free.
 3. The toll is estimated as `highway km × tariff`.
 
-> ⚠️ It's an **approximation**: no free source gives the exact toll. The average tariff is configurable via `TOLL_ESTIMATE_EUR_PER_KM` (default `0.08` €/km).
+> ⚠️ It's an **approximation**: no free source gives the exact toll. The average tariff is configurable via `TOLL_ESTIMATE_EUR_PER_KM` (default `0.08` €/km) and applies to both countries.
 
 ## Example
 

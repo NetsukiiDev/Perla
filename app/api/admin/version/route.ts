@@ -4,6 +4,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-guard";
 import { APP_NAME, APP_VERSION, BUILD_ENV, COMMIT_SHA, GITHUB_REPO, isNewerVersion } from "@/lib/version";
+import { updateModeConfigured } from "@/lib/self-update";
 
 export const runtime = "nodejs";
 
@@ -32,7 +33,12 @@ async function fetchLatestVersion(): Promise<string | null> {
   } catch (err) {
     // Network / TLS failure (e.g. a local VPN or antivirus intercepting TLS
     // breaks certificate verification). Surfaced to the UI as "check failed".
-    console.error("[version] GitHub update check failed:", err instanceof Error ? err.message : err);
+    const cause = err instanceof Error && "cause" in err ? err.cause : undefined;
+    console.error(
+      "[version] GitHub update check failed:",
+      err instanceof Error ? err.message : err,
+      cause ? `(cause: ${cause instanceof Error ? cause.message : JSON.stringify(cause)})` : "",
+    );
   }
   return null;
 }
@@ -53,5 +59,6 @@ export async function GET() {
     commit: COMMIT_SHA,
     env: BUILD_ENV,
     repoUrl: `https://github.com/${GITHUB_REPO}`,
+    updateMode: updateModeConfigured(),
   });
 }
