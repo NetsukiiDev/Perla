@@ -22,7 +22,7 @@
 // Everyone else's bare-A roads are free or flat-fee (vignette) and are
 // deliberately NOT charged an estimate, even though they still count as
 // "on a motorway" for isMotorwayRef.
-const PER_KM_TOLLED_BARE_A_COUNTRIES = new Set(["IT", "PT"]);
+const PER_KM_TOLLED_BARE_A_COUNTRIES = new Set(["IT", "PT", "FR"]);
 
 export interface RouteStepLike {
   ref?: string | null;
@@ -89,15 +89,20 @@ export function isTolledMotorway(ref: string | null | undefined, country?: strin
 }
 
 // True when a step's road ref denotes ANY motorway / trunk link the participant
-// shouldn't be routed to stop on — Italian autostrade (A*, RA*, tolled or
-// free) and Spanish autopistas/autovías/radiales (A-*, AP-*, R-*, tolled or
-// free). Broader than isTolledMotorway, used to keep route stops off
-// high-speed roads.
+// shouldn't be routed to stop on — bare "A#"/"RA#" (Italy, Portugal, France,
+// Germany, Austria, …), hyphenated "A-#"/"AP-#"/"R-#" (Spain), and bare "M#"
+// (UK/Ireland motorways — unlike the others, UK's bare "A#" is an ordinary
+// road, not a motorway, so it's deliberately NOT matched here; only "M#" is).
+// Broader than isTolledMotorway, used to keep route stops off high-speed
+// roads regardless of whether they're tolled.
 export function isMotorwayRef(ref: string | null | undefined): boolean {
   if (!ref) return false;
   return ref.split(/[;,]/).some((part) => {
     const r = part.trim();
-    return /^(A|RA)\d{1,3}[a-z]*$/i.test(r) || /^(A|AP|R)-\d{1,3}[a-z]*$/i.test(r);
+    return (
+      /^(A|RA|M)\d{1,3}[a-z]*$/i.test(r) ||
+      /^(A|AP|R)-\d{1,3}[a-z]*$/i.test(r)
+    );
   });
 }
 

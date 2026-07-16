@@ -25,7 +25,7 @@ Organizers create events with a **secret destination**, split them into **interm
 | 🎟️ | **One-time** device-bound codes **+ public codes** reusable by many people |
 | 📡 | **Live dashboard** — each participant's position, stop and status in real time |
 | 🛣️ | **Highway + toll** estimate on the route (free, per-event) |
-| 🗺️ | Destinations across **12 European countries**, with a region-silhouette location hint |
+| 🗺️ | Destinations across **46 European countries**, with a region-silhouette location hint |
 | 🌍 | **Multilingual** Italian / English / Spanish UI with a language switcher |
 | 🖥️ | **Settings**, versioning and update checks |
 | 🗄️ | 4 databases (PostgreSQL · MySQL · MariaDB · MongoDB) + setup wizard |

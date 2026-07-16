@@ -3,12 +3,13 @@
 ## Non rilasciato
 
 ### Added
-- Supporto eventi in **10 nuovi paesi europei** (Germania, Austria, Polonia, Paesi Bassi, Belgio, Svizzera, Cechia, Slovacchia, Danimarca, Portogallo), oltre a Italia e Spagna già presenti — rilevamento regione/provincia/cantone, silhouette di localizzazione, fuso orario corretto per regione (incluse Canarie e Azzorre)
+- Supporto eventi esteso a **46 paesi dell'Europa geografica** (da 2 a 46): oltre a Italia e Spagna, tutta l'UE, Regno Unito, Norvegia/Svezia/Finlandia/Islanda, Baltici, Balcani, Ucraina/Bielorussia/Moldova, Caucaso (Georgia/Armenia/Azerbaijan), le parti europee di Russia e Turchia, e i microstati (Andorra, Monaco, San Marino, Vaticano, Liechtenstein) — 690 regioni/province/cantoni in totale, ciascuna con rilevamento confini, silhouette di localizzazione e fuso orario corretto (incluse le eccezioni: Canarie, Azzorre, Kaliningrad)
+- Confini contesi trattati secondo il riconoscimento ONU: Crimea in Ucraina, Abkhazia/Ossezia del Sud in Georgia, Transnistria in Moldova, Nagorno-Karabakh in Azerbaijan, Cipro del Nord in Cipro (come distretto di Kyrenia), Kosovo come paese separato
 - Architettura di rilevamento regione riorganizzata in un registro per-paese (`lib/regions/`) per scalare oltre le 2 nazioni iniziali; corretto un bug per cui un'enclave (es. Vienna dentro la Bassa Austria) veniva assegnata erroneamente alla regione che la circonda
-- Stima autostrada/pedaggio ora distingue "in autostrada" da "a pedaggio" per paese: Germania/Austria/Svizzera/Polonia/Paesi Bassi/Belgio/Cechia/Slovacchia/Danimarca mostrano l'uso dell'autostrada ma pedaggio €0 (gratuite o a bollino, non a consumo), mentre Italia/Portogallo (formato `A#`) e Spagna (`AP-*`/`R-*`) mantengono la stima a km
+- Stima autostrada/pedaggio ora distingue "in autostrada" da "a pedaggio" per paese: la maggior parte dei paesi mostra l'uso dell'autostrada ma pedaggio €0 (gratuite o a bollino, non a consumo), mentre Italia/Portogallo/Francia (formato `A#`) e Spagna (`AP-*`/`R-*`) mantengono la stima a km; riconosciute anche le autostrade britanniche/irlandesi (`M#`)
 
 ### Known gaps
-- Ancora da coprire: Francia, Regno Unito, paesi nordici (oltre Danimarca), Baltici, Balcani, Europa orientale, Caucaso, Russia/Turchia europee, microstati — in arrivo in blocchi successivi
+- Alcuni paesi con dati grezzi troppo granulari (Lettonia, Macedonia del Nord, Malta, Azerbaijan) sono trattati come una singola regione anziché suddivisi, per mancanza di una fonte dati per il livello amministrativo corretto
 - Lingue interfaccia principali europee (francese, tedesco, portoghese, olandese, polacco) non ancora aggiunte
 
 ## 0.1.4 — 2026-07-16
