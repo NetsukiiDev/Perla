@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.0 — 2026-07-17
+
+### Added
+- La versione dell'app (es. **v0.2.0**) è ora visibile accanto alla scritta **PERLA** nella barra admin, in piccolo e in grigio, senza dover aprire Impostazioni → Versione
+
 ## 0.1.8 — 2026-07-17
 
 ### Fixed
