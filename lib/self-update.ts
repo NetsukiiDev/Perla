@@ -79,6 +79,11 @@ async function runSelfUpdate(): Promise<UpdateResult> {
     if (depsChanged) {
       await execFileAsync("npm", ["ci"], { cwd, timeout: 300_000 });
     }
+    // The generated Prisma client (gitignored — see lib/db.ts) must be
+    // regenerated after every pull, not just when package.json changed: a
+    // schema.prisma-only change wouldn't otherwise trigger it, leaving
+    // stale types that don't match fields the pulled schema just added.
+    await execFileAsync("npm", ["run", "db:generate"], { cwd, timeout: 60_000 });
     if (isProduction) {
       await execFileAsync("npm", ["run", "build"], { cwd, timeout: 300_000 });
     }
