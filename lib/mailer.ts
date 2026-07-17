@@ -23,7 +23,10 @@ export type SmtpConfigInput = {
 export async function getSmtpConfig(): Promise<SmtpConfig | null> {
   try {
     return await prisma.smtpConfig.findUnique({ where: { id: "default" } });
-  } catch {
+  } catch (err) {
+    // Logged so a DB outage doesn't look identical to "never configured" in
+    // the server logs, even though callers still just see null.
+    console.error("Failed to load SMTP config", err instanceof Error ? err.message : err);
     return null;
   }
 }
@@ -38,8 +41,11 @@ export async function buildSmtpTransport(): Promise<Transporter | null> {
   if (cfg.passwordEncrypted) {
     try {
       pass = decrypt(cfg.passwordEncrypted);
-    } catch {
-      // ENCRYPTION_KEY changed — stored password is unreadable.
+    } catch (err) {
+      // ENCRYPTION_KEY changed — stored password is unreadable. Logged so
+      // this doesn't look identical to "SMTP disabled" in the server logs;
+      // the fix is re-entering the password from Settings.
+      console.error("Stored SMTP password is unreadable (ENCRYPTION_KEY mismatch?)", err instanceof Error ? err.message : err);
       return null;
     }
   }
