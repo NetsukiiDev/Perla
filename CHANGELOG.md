@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.8 — 2026-07-17
+
+### Fixed
+- **"Aggiorna ora" poteva rompere la build in produzione**: `npm ci` durante il self-update eredita `NODE_ENV=production` dal processo in esecuzione, quindi salta le `devDependencies` — ma `tailwindcss`, `@tailwindcss/postcss`, `typescript` e i pacchetti `@types/*` servono a `next build` stesso (elaborazione CSS + controllo tipi), non solo allo sviluppo locale. Spostati in `dependencies`
+- Il client Prisma generato (non versionato) viene ora rigenerato dopo ogni pull, non solo quando cambia `package.json` — una modifica al solo `schema.prisma` non lo attivava, lasciando tipi non aggiornati rispetto ai nuovi campi
+
 ## 0.1.7 — 2026-07-17
 
 ### Added
