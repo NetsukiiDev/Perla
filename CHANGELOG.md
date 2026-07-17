@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.1.7 — 2026-07-17
+
+### Added
+- Titolo obbligatorio per gli annunci, oltre al messaggio, mostrato sia nel pannello admin sia nella vista partecipante
+- Modifica ed eliminazione degli annunci esistenti dal pannello admin (prima si potevano solo creare)
+- Vista partecipante: ogni annuncio appare come scheda compatta (titolo + orario) con un pulsante **"Apri"** che mostra il messaggio completo e l'immagine in una finestra modale, invece di renderizzare tutto inline
+- Nuova sezione **Tunnel ngrok** in Impostazioni: avvia/ferma un tunnel HTTPS pubblico verso il server di sviluppo direttamente dal pannello admin — utile per testare la geolocalizzazione della vista partecipante da un telefono reale — con authtoken cifrato a riposo e URL pubblico mostrato con pulsante copia
+- Script `npm run dev:tunnel`: avvia il tunnel ngrok prima di `next dev`, così l'hostname è già noto all'avvio e non serve riavviare per superare la protezione `allowedDevOrigins` di Next.js
+
+### Fixed
+- La finestra modale degli annunci non appare più dietro la mappa nella vista partecipante (il pulsante di cambio stile mappa aveva uno z-index troppo alto senza un proprio contesto di stacking, lasciando passare anche i livelli interni di Leaflet)
+- Le immagini verticali negli annunci non vengono più forzate a piena larghezza, evitando grandi spazi vuoti ai lati
+- Gli annunci creati prima dell'introduzione del titolo (default vuoto) non mostrano più una riga in grassetto vuota
+- Le email di test SMTP vengono ora inviate all'indirizzo dell'admin che le richiede invece che all'indirizzo "from" configurato, spesso una casella no-reply non monitorata
+
 ## 0.1.6 — 2026-07-17
 
 ### Changed
