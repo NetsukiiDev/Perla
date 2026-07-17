@@ -7,7 +7,7 @@ import { IconButton } from "./IconButton";
 import { PearlIcon } from "./PearlIcon";
 import { useT } from "@/lib/i18n/context";
 
-export function Nav({ role }: { role: "admin" | "staff" }) {
+export function Nav({ role, version }: { role: "admin" | "staff"; version: string }) {
   const t = useT();
   const [open, setOpen] = useState(false);
 
@@ -28,7 +28,9 @@ export function Nav({ role }: { role: "admin" | "staff" }) {
       <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
         <Link href="/admin/events" className="inline-flex items-center gap-2 font-medium tracking-wide text-foreground">
           <PearlIcon size={16} />
-          <span className="hidden sm:inline">PERLA</span>
+          <span className="hidden sm:inline">
+            PERLA <span className="text-xs font-normal text-muted">v{version}</span>
+          </span>
         </Link>
 
         <nav className="hidden items-center gap-4 text-sm sm:flex">

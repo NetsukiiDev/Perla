@@ -1,5 +1,6 @@
 import { getCurrentAdminUser } from "@/lib/admin-guard";
 import { Nav } from "@/components/admin/Nav";
+import { APP_VERSION } from "@/lib/version";
 import { ClientLayout } from "./client-layout";
 
 // The locale provider lives in the root layout so it also covers the public
@@ -9,7 +10,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
-      {user && <Nav role={user.role} />}
+      {user && <Nav role={user.role} version={APP_VERSION} />}
       <main className="flex flex-1 flex-col">
         <ClientLayout>{children}</ClientLayout>
       </main>
