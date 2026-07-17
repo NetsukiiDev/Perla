@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:tunnel": "tsx scripts/dev-tunnel.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -20,6 +21,7 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@ngrok/ngrok": "^1.7.0",
     "@prisma/adapter-mariadb": "^7.8.0",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",

@@ -12,6 +12,7 @@ import {
   Loader2,
   Mail,
   PanelLeft,
+  Radio,
   RefreshCw,
   ShieldCheck,
   Tag,
@@ -22,6 +23,7 @@ import { LOCALES, type Locale } from "@/lib/i18n/config";
 import { SmtpSettingsForm } from "@/components/admin/SmtpSettingsForm";
 import { SiteLogSection } from "@/components/admin/SiteLogSection";
 import { TurnstileSettingsForm } from "@/components/admin/TurnstileSettingsForm";
+import { NgrokSettingsForm } from "@/components/admin/NgrokSettingsForm";
 import { ConfirmButton } from "@/components/admin/ConfirmButton";
 import { useNavLayout } from "@/lib/use-nav-layout";
 
@@ -39,7 +41,7 @@ interface VersionInfo {
   updateMode: UpdateMode;
 }
 
-type SettingsTab = "language" | "navLayout" | "version" | "smtp" | "turnstile" | "siteLog";
+type SettingsTab = "language" | "navLayout" | "version" | "smtp" | "turnstile" | "ngrok" | "siteLog";
 
 const tabIcons: Record<SettingsTab, typeof Globe> = {
   language: Globe,
@@ -47,6 +49,7 @@ const tabIcons: Record<SettingsTab, typeof Globe> = {
   version: Tag,
   smtp: Mail,
   turnstile: ShieldCheck,
+  ngrok: Radio,
   siteLog: ClipboardList,
 };
 
@@ -156,6 +159,7 @@ export function SettingsPanel({ role }: { role: "admin" | "staff" }) {
     version: t.settings.version.section,
     smtp: t.settings.smtp.section,
     turnstile: t.settings.turnstile.section,
+    ngrok: t.settings.ngrok.section,
     siteLog: t.settings.logs.section,
   };
 
@@ -367,6 +371,13 @@ export function SettingsPanel({ role }: { role: "admin" | "staff" }) {
           <section className="flex flex-col gap-3">
             <p className="text-sm text-muted">{t.settings.turnstile.description}</p>
             <TurnstileSettingsForm />
+          </section>
+        )}
+
+        {activeTab === "ngrok" && (
+          <section className="flex flex-col gap-3">
+            <p className="text-sm text-muted">{t.settings.ngrok.description}</p>
+            <NgrokSettingsForm />
           </section>
         )}
 

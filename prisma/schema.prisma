@@ -355,6 +355,26 @@ model TurnstileConfig {
   @@map("turnstile_config")
 }
 
+// Singleton ngrok tunnel configuration for local dev testing — lets an admin
+// expose `next dev` over HTTPS to test the participant flow's geolocation
+// (which requires a secure context) from a real phone. The authtoken is
+// stored AES-256-GCM encrypted via lib/crypto.ts. `domain` is an optional
+// ngrok reserved/static domain (free accounts get one) so the tunnel's
+// hostname stays constant across restarts — see TUNNEL_HOST in
+// next.config.ts, which needs a stable hostname to allow it as a dev origin.
+// A single row (id = "default") is used; settings are upserted. Dev-only:
+// the start/stop API routes refuse to run in production (lib/env.ts isVercel()
+// / NODE_ENV) since spawning a tunnel against an already-public deployment
+// makes no sense.
+model NgrokConfig {
+  id                 String   @id @default("default")
+  authtokenEncrypted String?  @map("authtoken_encrypted") @db.VarChar(512)
+  domain             String?  @db.VarChar(255)
+  updatedAt          DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("ngrok_config")
+}
+
 // One-time password reset token for admin account recovery. The raw token is
 // only ever sent by email; only its SHA-256 hash is stored. Tokens expire and
 // are single-use (usedAt).
