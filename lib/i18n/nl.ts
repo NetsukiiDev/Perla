@@ -40,7 +40,7 @@ export const nl: Dictionary = {
       updateStarted: "Update gestart. De app kan tijdens het herstarten kort onbereikbaar zijn.",
       updateFailed: "Update mislukt: {error}",
       notConfigured: "Automatisch updaten is niet geconfigureerd op deze server. Stel DEPLOY_HOOK_URL of SELF_UPDATE_ENABLED in bij de omgevingsvariabelen.",
-      confirmSelfUpdate: "Versie {version} wordt gedownload en de app herstart: er is een korte onderbreking. Doorgaan?",
+      confirmSelfUpdate: "Versie {version} wordt opgehaald en de app bijgewerkt; als de server deze automatisch herstart, kan er een korte onderbreking zijn. Doorgaan?",
       confirmDeployHook: "Er wordt een nieuwe deploy naar versie {version} gestart via de geconfigureerde webhook. Doorgaan?",
     },
     info: {

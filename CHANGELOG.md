@@ -1,5 +1,10 @@
 # Changelog
 
+## Non rilasciato
+
+### Changed
+- **"Aggiorna ora"** ora funziona senza configurazione: l'auto-update via `git pull` è attivo di default (prima richiedeva `SELF_UPDATE_ENABLED=true`); `SELF_UPDATE_ENABLED=false` per disattivarlo. Fuori produzione salta la build/riavvio (evita di rompere `next dev`, che ricarica da solo i file scaricati); `npm ci` gira solo se il pull tocca `package.json`/`package-lock.json`
+
 ## 0.1.5 — 2026-07-16
 
 ### Added

@@ -34,8 +34,8 @@ openssl rand -hex 32      # the other secrets
 | `TOLL_ESTIMATE_EUR_PER_KM` | `0.08` | Average tariff for the [toll estimate](Toll-Estimate) |
 | `LOCATION_RETENTION_HOURS` | `24` | TTL for temporary positions |
 | `SETUP_DISABLED` | — | `"true"` to bypass the wizard (serverless/prod) |
-| `DEPLOY_HOOK_URL` | — | Webhook POSTed by the Settings **"Update now"** button (see [Versioning](Versioning)) |
-| `SELF_UPDATE_ENABLED` | — | `"true"` to let **"Update now"** run `git pull` + rebuild in-process (needs a process manager to restart on exit — see [Versioning](Versioning)) |
+| `DEPLOY_HOOK_URL` | — | Webhook POSTed by the Settings **"Update now"** button, taking priority over self-update (see [Versioning](Versioning)) |
+| `SELF_UPDATE_ENABLED` | `"true"` (self-update is the zero-config default) | Set to `"false"` to disable **"Update now"**'s built-in `git pull` + rebuild instead of using it (see [Versioning](Versioning)) |
 
 ## Database
 

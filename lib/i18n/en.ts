@@ -40,7 +40,7 @@ export const en: Dictionary = {
       updateStarted: "Update started. The app may be briefly unreachable while it restarts.",
       updateFailed: "Update failed: {error}",
       notConfigured: "Auto-update isn't configured on this server. Set DEPLOY_HOOK_URL or SELF_UPDATE_ENABLED in the environment variables.",
-      confirmSelfUpdate: "This will pull version {version} and restart the app: there will be a brief interruption. Continue?",
+      confirmSelfUpdate: "This will pull version {version} and update the app; if the server restarts it automatically there may be a brief interruption. Continue?",
       confirmDeployHook: "This will trigger a new deploy to version {version} via the configured webhook. Continue?",
     },
     info: {

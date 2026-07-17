@@ -40,7 +40,7 @@ export const pt: Dictionary = {
       updateStarted: "Atualização iniciada. O aplicativo pode ficar brevemente indisponível durante a reinicialização.",
       updateFailed: "Falha na atualização: {error}",
       notConfigured: "A atualização automática não está configurada neste servidor. Defina DEPLOY_HOOK_URL ou SELF_UPDATE_ENABLED nas variáveis de ambiente.",
-      confirmSelfUpdate: "A versão {version} será baixada e o aplicativo será reiniciado: haverá uma breve interrupção. Continuar?",
+      confirmSelfUpdate: "A versão {version} será baixada e o aplicativo atualizado; se o servidor reiniciá-lo automaticamente, pode haver uma breve interrupção. Continuar?",
       confirmDeployHook: "Um novo deploy para a versão {version} será iniciado via webhook configurado. Continuar?",
     },
     info: {

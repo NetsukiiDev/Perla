@@ -1,16 +1,22 @@
-// Two opt-in "Update now" mechanisms — both off unless explicitly configured,
-// so adding this feature can't cause anything to happen on its own:
+// Two "Update now" mechanisms:
 //
 //  - DEPLOY_HOOK_URL: POST to any external deploy webhook (a Vercel Deploy
 //    Hook, a custom CI/CD trigger, the same kind of webhook used to deploy
 //    other apps on this box). PERLA itself never touches the filesystem or
 //    the running process — whatever's on the other end owns the rebuild.
-//    Takes priority when both are set.
-//  - SELF_UPDATE_ENABLED=true: runs `git pull` + `npm ci` + `npm run build`
-//    in this process, then exits. Only sensible when PERLA runs under a
-//    process manager (systemd, PM2, …) configured to restart on exit — in
-//    any other setup this just kills the server. Skips the exit outside
-//    production so a stray env var can't kill a local `next dev`.
+//    Takes priority when set.
+//  - Self-update (default when DEPLOY_HOOK_URL isn't set, unless explicitly
+//    disabled with SELF_UPDATE_ENABLED=false): runs `git pull` in this
+//    process and, only when dependencies actually changed, `npm ci`.
+//      - In production it also rebuilds and exits, relying on a process
+//        manager (systemd, PM2, …) to restart it with the new build — in a
+//        setup without one this just kills the server, which is the
+//        deliberate tradeoff for "click Update, it's live" with no extra
+//        config.
+//      - Outside production (e.g. `next dev`) it deliberately skips the
+//        build/exit: the dev server's own file watcher picks up the pulled
+//        changes on its own, and running `next build` concurrently would
+//        fight over the same .next directory and corrupt the dev server.
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 
@@ -20,8 +26,8 @@ export type UpdateMode = "deploy-hook" | "self-update" | null;
 
 export function updateModeConfigured(): UpdateMode {
   if (process.env.DEPLOY_HOOK_URL) return "deploy-hook";
-  if (process.env.SELF_UPDATE_ENABLED === "true") return "self-update";
-  return null;
+  if (process.env.SELF_UPDATE_ENABLED === "false") return null;
+  return "self-update";
 }
 
 export type UpdateResult = { ok: true } | { ok: false; error: string };
@@ -66,19 +72,23 @@ function describeExecError(err: unknown): string {
 
 async function runSelfUpdate(): Promise<UpdateResult> {
   const cwd = process.cwd();
+  const isProduction = process.env.NODE_ENV === "production";
   try {
-    await execFileAsync("git", ["pull", "--ff-only"], { cwd, timeout: 60_000 });
-    await execFileAsync("npm", ["ci"], { cwd, timeout: 300_000 });
-    await execFileAsync("npm", ["run", "build"], { cwd, timeout: 300_000 });
+    const { stdout } = await execFileAsync("git", ["pull", "--ff-only"], { cwd, timeout: 60_000 });
+    const depsChanged = /package(-lock)?\.json/.test(stdout);
+    if (depsChanged) {
+      await execFileAsync("npm", ["ci"], { cwd, timeout: 300_000 });
+    }
+    if (isProduction) {
+      await execFileAsync("npm", ["run", "build"], { cwd, timeout: 300_000 });
+    }
   } catch (err) {
     return { ok: false, error: describeExecError(err) };
   }
 
-  // Only a process manager restarting us on exit makes this useful; outside
-  // production, leave the (now up to date, rebuilt) process running instead
-  // of killing a dev server.
-  if (process.env.NODE_ENV === "production") {
-    // Give the HTTP response time to flush to the client before exiting.
+  if (isProduction) {
+    // Only a process manager restarting us on exit makes this useful. Give
+    // the HTTP response time to flush to the client before exiting.
     setTimeout(() => process.exit(0), 500);
   }
   return { ok: true };

@@ -40,7 +40,7 @@ export const de: Dictionary = {
       updateStarted: "Update gestartet. Die App ist während des Neustarts möglicherweise kurzzeitig nicht erreichbar.",
       updateFailed: "Update fehlgeschlagen: {error}",
       notConfigured: "Automatische Updates sind auf diesem Server nicht konfiguriert. Setzen Sie DEPLOY_HOOK_URL oder SELF_UPDATE_ENABLED in den Umgebungsvariablen.",
-      confirmSelfUpdate: "Version {version} wird heruntergeladen und die App neu gestartet: Es gibt eine kurze Unterbrechung. Fortfahren?",
+      confirmSelfUpdate: "Version {version} wird heruntergeladen und die App aktualisiert; falls der Server sie automatisch neu startet, kann es zu einer kurzen Unterbrechung kommen. Fortfahren?",
       confirmDeployHook: "Ein neues Deployment auf Version {version} wird über den konfigurierten Webhook gestartet. Fortfahren?",
     },
     info: {

@@ -40,7 +40,7 @@ export const fr: Dictionary = {
       updateStarted: "Mise à jour lancée. L'application peut être brièvement indisponible pendant le redémarrage.",
       updateFailed: "Échec de la mise à jour : {error}",
       notConfigured: "La mise à jour automatique n'est pas configurée sur ce serveur. Définissez DEPLOY_HOOK_URL ou SELF_UPDATE_ENABLED dans les variables d'environnement.",
-      confirmSelfUpdate: "La version {version} sera téléchargée et l'application redémarrera : il y aura une brève interruption. Continuer ?",
+      confirmSelfUpdate: "La version {version} sera téléchargée et l'application mise à jour ; si le serveur la redémarre automatiquement, il pourra y avoir une brève interruption. Continuer ?",
       confirmDeployHook: "Un nouveau déploiement vers la version {version} sera lancé via le webhook configuré. Continuer ?",
     },
     info: {

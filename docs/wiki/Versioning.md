@@ -33,14 +33,14 @@ To surface "update available", publish a new **release/tag** on GitHub (e.g. `v0
 
 ## Update now (auto-update)
 
-When an update is available, admins (not staff) see an **"Update now"** button next to the notice. It's a thin wrapper (`POST /api/admin/update`) around whichever mechanism is configured via environment variable — **both are off by default**, so adding this feature doesn't make anything happen on its own:
+When an update is available, admins (not staff) see an **"Update now"** button next to the notice. It's a thin wrapper (`POST /api/admin/update`) around whichever mechanism is active:
 
-| Env var | Behavior |
-|---|---|
-| `DEPLOY_HOOK_URL` | POSTs to this URL and returns. Point it at a Vercel **Deploy Hook**, or any other CI/CD webhook that owns the actual rebuild — PERLA never touches the filesystem or process in this mode. Takes priority if both vars are set. |
-| `SELF_UPDATE_ENABLED=true` | Runs `git pull --ff-only` → `npm ci` → `npm run build` in the running process, then exits. **Only use this if PERLA runs under a process manager (systemd, PM2, …) configured to restart on exit** — otherwise this just kills the server with nothing to bring it back. To avoid accidents, the process only exits when `NODE_ENV=production`; elsewhere it rebuilds but leaves the process running. |
+| Mode | When | Behavior |
+|---|---|---|
+| Deploy hook | `DEPLOY_HOOK_URL` is set | POSTs to this URL and returns. Point it at a Vercel **Deploy Hook**, or any other CI/CD webhook that owns the actual rebuild — PERLA never touches the filesystem or process in this mode. Takes priority over self-update. |
+| Self-update | **Default** — active unless `DEPLOY_HOOK_URL` is set or `SELF_UPDATE_ENABLED=false` | Runs `git pull --ff-only`, then `npm ci` only if the pull touched `package.json`/`package-lock.json`. In **production** it also runs `npm run build` and exits, relying on a process manager (systemd, PM2, …) to restart it — **if nothing restarts the process, this kills the server**, the deliberate tradeoff for a zero-config "click Update, it's live". Outside production (e.g. local `next dev`) it skips the build/exit: the dev server's own file watcher picks up the pulled files, and running `next build` concurrently would corrupt the shared `.next` directory. |
 
-If neither is set, the button is replaced with a note explaining how to enable one. Every attempt (success or failure) is written to the admin access log.
+Set `SELF_UPDATE_ENABLED=false` to disable self-update entirely (e.g. a hardened deployment where the app shouldn't be able to modify itself) and fall back to the "not configured" state. Every attempt (success or failure) is written to the admin access log.
 
 ## Build info
 
