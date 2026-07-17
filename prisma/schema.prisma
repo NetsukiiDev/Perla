@@ -152,6 +152,7 @@ model Event {
 model Announcement {
   id        String   @id @default(cuid())
   eventId   String   @map("event_id")
+  title     String   @default("") @db.VarChar(200)
   message   String   @db.VarChar(2000)
   imageData Bytes?   @map("image_data")
   imageType String?  @map("image_type") @db.VarChar(64)

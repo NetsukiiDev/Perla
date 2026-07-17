@@ -90,6 +90,34 @@ export interface Dictionary {
       horizontal: string;
       sidebar: string;
     };
+    ngrok: {
+      section: string;
+      description: string;
+      authtokenLabel: string;
+      authtokenHint: string;
+      domainLabel: string;
+      domainPlaceholder: string;
+      domainHint: string;
+      save: string;
+      saving: string;
+      saved: string;
+      start: string;
+      starting: string;
+      stop: string;
+      stopping: string;
+      running: string;
+      stopped: string;
+      urlLabel: string;
+      shareHint: string;
+      notConfigured: string;
+      errors: {
+        saveFailed: string;
+        notConfigured: string;
+        devOnly: string;
+        startFailed: string;
+        startFailedWithDetail: string;
+      };
+    };
   };
 
   account: {
@@ -327,6 +355,9 @@ export interface Dictionary {
   announcements: {
     nav: string;
     composerTitle: string;
+    editTitle: string;
+    titleLabel: string;
+    titlePlaceholder: string;
     messageLabel: string;
     messagePlaceholder: string;
     imageLabel: string;
@@ -334,9 +365,24 @@ export interface Dictionary {
     removeImage: string;
     send: string;
     sending: string;
+    save: string;
+    saving: string;
+    cancel: string;
+    edit: string;
+    delete: string;
+    confirmDelete: string;
     recent: string;
     empty: string;
     feedTitle: string;
-    errors: { messageRequired: string; imageTooLarge: string; generic: string };
+    open: string;
+    close: string;
+    errors: {
+      titleRequired: string;
+      messageRequired: string;
+      imageTooLarge: string;
+      generic: string;
+      updateFailed: string;
+      deleteFailed: string;
+    };
   };
 }

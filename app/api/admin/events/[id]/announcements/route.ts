@@ -16,12 +16,13 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     where: { eventId: id },
     orderBy: { createdAt: "desc" },
     take: 20,
-    select: { id: true, message: true, createdAt: true, imageType: true },
+    select: { id: true, title: true, message: true, createdAt: true, imageType: true },
   });
 
   return NextResponse.json({
     announcements: announcements.map((a) => ({
       id: a.id,
+      title: a.title,
       message: a.message,
       createdAt: a.createdAt.toISOString(),
       imageUrl: a.imageType ? `/api/announcements/${a.id}/image` : null,
@@ -38,7 +39,8 @@ function decodeDataUrl(dataUrl: string): { type: string; data: Buffer } | null {
   return { type, data: buffer };
 }
 
-export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {  const auth = await requireAdminUser();
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireAdminUser();
   if ("response" in auth) return auth.response;
 
   const { id } = await params;
@@ -67,6 +69,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const announcement = await prisma.announcement.create({
     data: {
       eventId: id,
+      title: parsed.data.title,
       message: parsed.data.message,
       imageData: imageData ? new Uint8Array(imageData) : null,
       imageType,

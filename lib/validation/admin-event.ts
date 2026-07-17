@@ -45,6 +45,7 @@ const ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif
 // `image` is an optional data URL ("data:<mime>;base64,..."). The API decodes
 // and stores the raw bytes; an empty/invalid value means "no image".
 export const announcementSchema = z.object({
+  title: z.string().trim().min(1).max(200),
   message: z.string().trim().min(1).max(2000),
   image: z
     .string()

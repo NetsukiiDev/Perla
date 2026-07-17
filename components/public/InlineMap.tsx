@@ -24,7 +24,7 @@ export function InlineMap({ lat, lng }: InlineMapProps) {
   const [mapStyle, setMapStyle] = useState<MapStyle>("dark");
 
   return (
-    <div className="relative overflow-hidden rounded-lg border border-surface-border h-[44vh] max-h-80 sm:h-[200px]">
+    <div className="relative z-0 overflow-hidden rounded-lg border border-surface-border h-[44vh] max-h-80 sm:h-[200px]">
       <MapContainer
         center={[lat, lng]}
         zoom={15}

@@ -15,6 +15,7 @@ export async function GET() {
     take: 20,
     select: {
       id: true,
+      title: true,
       message: true,
       createdAt: true,
       imageType: true,
@@ -24,6 +25,7 @@ export async function GET() {
   return NextResponse.json({
     announcements: announcements.map((a) => ({
       id: a.id,
+      title: a.title,
       message: a.message,
       createdAt: a.createdAt.toISOString(),
       imageUrl: a.imageType ? `/api/announcements/${a.id}/image` : null,
