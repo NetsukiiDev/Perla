@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.2 — 2026-07-18
+
+### Fixed
+- Se il token ngrok salvato non è più leggibile (es. dopo una rigenerazione della chiave di cifratura), ora appare un messaggio chiaro che invita a salvarlo di nuovo, invece di un errore generico
+
 ## 0.2.1 — 2026-07-18
 
 ### Fixed
