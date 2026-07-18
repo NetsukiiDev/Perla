@@ -119,8 +119,8 @@ export function NgrokSettingsForm() {
         setUrl(data.url ?? null);
       } else if (data.error === "not_configured") {
         setError(t.settings.ngrok.errors.notConfigured);
-      } else if (data.error === "dev_only") {
-        setError(t.settings.ngrok.errors.devOnly);
+      } else if (data.error === "vercel_unsupported") {
+        setError(t.settings.ngrok.errors.vercelUnsupported);
       } else if (!data.error) {
         setError(t.settings.ngrok.errors.startFailed);
       } else {

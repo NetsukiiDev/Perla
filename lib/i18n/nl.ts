@@ -149,7 +149,7 @@ export const nl: Dictionary = {
       errors: {
         saveFailed: "Opslaan mislukt.",
         notConfigured: "Configureer eerst de authtoken.",
-        devOnly: "Alleen beschikbaar in lokale ontwikkeling, niet op een productieomgeving.",
+        vercelUnsupported: "Niet beschikbaar op Vercel: serverless functies hebben geen permanent proces om de tunnel actief te houden.",
         startFailed: "Starten van de tunnel mislukt. Controleer of ngrok is geïnstalleerd en de authtoken correct is.",
         startFailedWithDetail: "Starten van de tunnel mislukt: {error}",
       },

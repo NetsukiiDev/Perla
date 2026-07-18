@@ -149,7 +149,7 @@ export const es: Dictionary = {
       errors: {
         saveFailed: "Error al guardar.",
         notConfigured: "Configura primero el authtoken.",
-        devOnly: "Solo disponible en desarrollo local, no en un despliegue de producción.",
+        vercelUnsupported: "No disponible en Vercel: las funciones serverless no tienen un proceso persistente para mantener activo el túnel.",
         startFailed: "No se pudo iniciar el túnel. Comprueba que ngrok esté instalado y el authtoken sea correcto.",
         startFailedWithDetail: "No se pudo iniciar el túnel: {error}",
       },

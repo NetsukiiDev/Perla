@@ -113,7 +113,7 @@ export interface Dictionary {
       errors: {
         saveFailed: string;
         notConfigured: string;
-        devOnly: string;
+        vercelUnsupported: string;
         startFailed: string;
         startFailedWithDetail: string;
       };

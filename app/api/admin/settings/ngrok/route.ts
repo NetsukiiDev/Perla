@@ -40,7 +40,8 @@ export async function PUT(req: Request) {
       create: { id: "default", authtokenEncrypted, domain: domain || null },
       update: { authtokenEncrypted, domain: domain || null },
     });
-  } catch {
+  } catch (err) {
+    console.error("Failed to save ngrok config", err instanceof Error ? err.message : err);
     return NextResponse.json({ error: "save_failed" }, { status: 500 });
   }
 

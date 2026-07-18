@@ -1,7 +1,10 @@
-// POST /api/admin/settings/ngrok/start — spawn an ngrok tunnel to this dev
-// server using the saved config. Refuses outside local development: tunneling
-// an already-public production deployment makes no sense, and serverless
-// platforms can't spawn long-lived child processes anyway.
+// POST /api/admin/settings/ngrok/start — spawn an ngrok tunnel to this
+// server using the saved config. Refuses on Vercel specifically: serverless
+// functions have no persistent process to keep a tunnel listener alive.
+// Self-hosted deployments (a VPS running this under systemd/pm2, same as
+// `next dev`) are a normal long-running Node process and can support it —
+// e.g. running it alongside an existing Cloudflare Tunnel is a deliberate
+// choice some deployments make, not something this route should block.
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdminUser } from "@/lib/admin-guard";
@@ -15,8 +18,8 @@ export async function POST() {
   const auth = await requireAdminUser();
   if ("response" in auth) return auth.response;
 
-  if (isVercel() || process.env.NODE_ENV === "production") {
-    return NextResponse.json({ error: "dev_only" }, { status: 400 });
+  if (isVercel()) {
+    return NextResponse.json({ error: "vercel_unsupported" }, { status: 400 });
   }
 
   const cfg = await prisma.ngrokConfig.findUnique({ where: { id: "default" } });
