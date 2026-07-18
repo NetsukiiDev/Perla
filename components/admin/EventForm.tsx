@@ -26,6 +26,13 @@ export interface EventFormValues {
   showTotalDuration: boolean;
   showTollInfo: boolean;
   notes: string | null;
+  createdById: string | null;
+}
+
+export interface EventFormOwner {
+  id: string;
+  email: string;
+  role: "admin" | "organizer";
 }
 
 const STATUS_OPTIONS = ["draft", "scheduled", "active", "closed", "archived"] as const;
@@ -54,12 +61,21 @@ function formatCoord(value: number): string {
   return value.toFixed(6).replace(/0+$/, "").replace(/\.$/, "");
 }
 
-export function EventForm({ initial }: { initial?: EventFormValues }) {
+export function EventForm({
+  initial,
+  canReassignOwner = false,
+  owners = [],
+}: {
+  initial?: EventFormValues;
+  canReassignOwner?: boolean;
+  owners?: EventFormOwner[];
+}) {
   const router = useRouter();
   const t = useT();
   const isEdit = Boolean(initial?.id);
 
   const [internalName, setInternalName] = useState(initial?.internalName ?? "");
+  const [createdById, setCreatedById] = useState(initial?.createdById ?? "");
   const [destinationLat, setDestinationLat] = useState(initial ? String(initial.destinationLat) : "");
   const [destinationLng, setDestinationLng] = useState(initial ? String(initial.destinationLng) : "");
   const [revealAt, setRevealAt] = useState(toLocalInput(initial?.revealAt ?? null));
@@ -95,6 +111,7 @@ export function EventForm({ initial }: { initial?: EventFormValues }) {
       showTollInfo,
       notes: notes || null,
       ...(isEdit ? { status } : {}),
+      ...(isEdit && canReassignOwner ? { createdById: createdById || null } : {}),
     };
 
     try {
@@ -263,6 +280,22 @@ export function EventForm({ initial }: { initial?: EventFormValues }) {
           />
         </div>
       </div>
+
+      {isEdit && canReassignOwner && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="flex flex-col gap-1">
+            <label className={labelClass}>{t.events.form.labels.owner}</label>
+            <select value={createdById} onChange={(e) => setCreatedById(e.target.value)} className={inputClass}>
+              <option value="">{t.events.form.ownerUnassigned}</option>
+              {owners.map((o) => (
+                <option key={o.id} value={o.id}>
+                  {o.email}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-wrap gap-6">
         <label className="flex items-center gap-2 text-sm">

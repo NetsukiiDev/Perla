@@ -9,10 +9,13 @@ import { EventsTable } from "@/components/admin/EventsTable";
 export const dynamic = "force-dynamic";
 
 export default async function EventsPage() {
-  await requireAdminPage();
+  const user = await requireAdminPage();
   const t = getDictionary(await getLocale());
 
-  const events = await prisma.event.findMany({ orderBy: { createdAt: "desc" } });
+  const events = await prisma.event.findMany({
+    where: user.role === "admin" ? {} : { createdById: user.id },
+    orderBy: { createdAt: "desc" },
+  });
 
   return (
     <AdminContainer>

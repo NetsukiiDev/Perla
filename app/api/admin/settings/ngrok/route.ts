@@ -1,51 +1,36 @@
-// GET /api/admin/settings/ngrok — current ngrok config (authtoken never returned)
-// PUT /api/admin/settings/ngrok — create/update the singleton ngrok config
+// GET /api/admin/settings/ngrok — admin-only overview of every admin/organizer's
+// ngrok tunnel (config presence + live running status), so an admin can see
+// and manage tunnels on behalf of other users. Distinct from
+// /api/admin/account/ngrok, which is the self-service endpoint each user
+// uses for their own config.
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdminUser } from "@/lib/admin-guard";
-import { ngrokConfigSchema } from "@/lib/validation/admin-auth";
-import { encrypt } from "@/lib/crypto";
-import { writeAccessLog } from "@/lib/access-log";
+import { getTunnelStatus } from "@/lib/ngrok-tunnel";
 
 export const runtime = "nodejs";
 
 export async function GET() {
-  const auth = await requireAdminUser();
+  const auth = await requireAdminUser(["admin"]);
   if ("response" in auth) return auth.response;
 
-  const cfg = await prisma.ngrokConfig.findUnique({ where: { id: "default" } });
-  if (!cfg) return NextResponse.json({ configured: false });
-  return NextResponse.json({
-    configured: true,
-    hasAuthtoken: Boolean(cfg.authtokenEncrypted),
-    domain: cfg.domain,
+  const users = await prisma.adminUser.findMany({
+    select: { id: true, email: true, role: true, ngrokConfig: { select: { authtokenEncrypted: true, domain: true } } },
+    orderBy: { email: "asc" },
   });
-}
 
-export async function PUT(req: Request) {
-  const auth = await requireAdminUser();
-  if ("response" in auth) return auth.response;
+  const tunnels = users.map((u) => {
+    const status = getTunnelStatus(u.id);
+    return {
+      userId: u.id,
+      email: u.email,
+      role: u.role,
+      hasAuthtoken: Boolean(u.ngrokConfig?.authtokenEncrypted),
+      domain: u.ngrokConfig?.domain ?? null,
+      running: status.running,
+      url: status.url,
+    };
+  });
 
-  const body = await req.json().catch(() => null);
-  const parsed = ngrokConfigSchema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: "invalid", issues: parsed.error.issues }, { status: 400 });
-
-  const { authtoken, domain } = parsed.data;
-
-  try {
-    const existing = await prisma.ngrokConfig.findUnique({ where: { id: "default" } });
-    const authtokenEncrypted = authtoken && authtoken.length > 0 ? encrypt(authtoken) : existing?.authtokenEncrypted ?? null;
-
-    await prisma.ngrokConfig.upsert({
-      where: { id: "default" },
-      create: { id: "default", authtokenEncrypted, domain: domain || null },
-      update: { authtokenEncrypted, domain: domain || null },
-    });
-  } catch (err) {
-    console.error("Failed to save ngrok config", err instanceof Error ? err.message : err);
-    return NextResponse.json({ error: "save_failed" }, { status: 500 });
-  }
-
-  await writeAccessLog({ type: "admin_action", metadata: { action: "Configurazione ngrok salvata" } });
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ tunnels });
 }

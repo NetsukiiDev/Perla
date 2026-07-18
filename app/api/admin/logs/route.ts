@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireAdmin } from "@/lib/admin-guard";
+import { requireAdminUser } from "@/lib/admin-guard";
 
 export const runtime = "nodejs";
 
@@ -8,7 +8,7 @@ const adminTypes = ["admin_login", "admin_login_failed", "admin_action", "passwo
 const eventTypes = ["code_verify_success", "code_verify_invalid", "code_verify_already_used", "code_not_yet_available", "code_not_available", "site_opened", "geolocation_denied", "session_started", "location_update", "step_unlocked", "arrived", "routing_error"] as const;
 
 export async function GET(req: Request) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminUser(["admin"]);
   if ("response" in auth) return auth.response;
 
   const url = new URL(req.url);

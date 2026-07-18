@@ -7,7 +7,7 @@ import { IconButton } from "./IconButton";
 import { PearlIcon } from "./PearlIcon";
 import { useT } from "@/lib/i18n/context";
 
-export function Nav({ role, version }: { role: "admin" | "staff"; version: string }) {
+export function Nav({ role, version }: { role: "admin" | "organizer"; version: string }) {
   const t = useT();
   const [open, setOpen] = useState(false);
 
@@ -20,7 +20,7 @@ export function Nav({ role, version }: { role: "admin" | "staff"; version: strin
     { href: "/admin/events", label: t.nav.events, icon: CalendarDays },
     ...(role === "admin" ? [{ href: "/admin/users", label: t.nav.users, icon: Users }] : []),
     { href: "/admin/account", label: t.nav.account, icon: UserCircle },
-    { href: "/admin/settings", label: t.nav.settings, icon: Settings },
+    ...(role === "admin" ? [{ href: "/admin/settings", label: t.nav.settings, icon: Settings }] : []),
   ];
 
   return (

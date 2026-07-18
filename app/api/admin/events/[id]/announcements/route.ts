@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireAdminUser } from "@/lib/admin-guard";
+import { requireEventAccess } from "@/lib/admin-guard";
 import { writeAccessLog } from "@/lib/access-log";
 import { AccessLogType } from "@/lib/generated/prisma/client";
 import { announcementSchema, ANNOUNCEMENT_MAX_IMAGE_BYTES } from "@/lib/validation/admin-event";
@@ -8,10 +8,10 @@ import { announcementSchema, ANNOUNCEMENT_MAX_IMAGE_BYTES } from "@/lib/validati
 export const runtime = "nodejs";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await requireAdminUser();
+  const { id } = await params;
+  const auth = await requireEventAccess(id);
   if ("response" in auth) return auth.response;
 
-  const { id } = await params;
   const announcements = await prisma.announcement.findMany({
     where: { eventId: id },
     orderBy: { createdAt: "desc" },
@@ -40,12 +40,9 @@ function decodeDataUrl(dataUrl: string): { type: string; data: Buffer } | null {
 }
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await requireAdminUser();
-  if ("response" in auth) return auth.response;
-
   const { id } = await params;
-  const event = await prisma.event.findUnique({ where: { id } });
-  if (!event) return NextResponse.json({ error: "not_found" }, { status: 404 });
+  const auth = await requireEventAccess(id);
+  if ("response" in auth) return auth.response;
 
   const body = await req.json().catch(() => null);
   const parsed = announcementSchema.safeParse(body);

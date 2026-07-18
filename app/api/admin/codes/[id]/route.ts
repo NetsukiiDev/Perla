@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireAdmin } from "@/lib/admin-guard";
+import { requireAdmin, assertOwnsEvent } from "@/lib/admin-guard";
 import { codeUpdateSchema } from "@/lib/validation/admin-codes";
 import { buildCodeRecord } from "@/lib/invite-code";
 import { getLocale, getDictionary } from "@/lib/i18n/server";
@@ -20,8 +20,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     return NextResponse.json({ error: "invalid", issues: parsed.error.issues }, { status: 400 });
   }
 
-  const existing = await prisma.inviteCode.findUnique({ where: { id } });
-  if (!existing) {
+  const existing = await prisma.inviteCode.findUnique({ where: { id }, include: { event: true } });
+  if (!existing || !assertOwnsEvent(auth.session, existing.event)) {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
 
@@ -61,8 +61,8 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   if ("response" in auth) return auth.response;
   const { id } = await params;
 
-  const existing = await prisma.inviteCode.findUnique({ where: { id } });
-  if (!existing) {
+  const existing = await prisma.inviteCode.findUnique({ where: { id }, include: { event: true } });
+  if (!existing || !assertOwnsEvent(auth.session, existing.event)) {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
 

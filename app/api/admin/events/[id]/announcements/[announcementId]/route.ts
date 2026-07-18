@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireAdminUser } from "@/lib/admin-guard";
+import { requireEventAccess } from "@/lib/admin-guard";
 import { writeAccessLog } from "@/lib/access-log";
 import { AccessLogType } from "@/lib/generated/prisma/client";
 import { announcementSchema, ANNOUNCEMENT_MAX_IMAGE_BYTES } from "@/lib/validation/admin-event";
@@ -17,10 +17,10 @@ function decodeDataUrl(dataUrl: string): { type: string; data: Buffer } | null {
 }
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string; announcementId: string }> }) {
-  const auth = await requireAdminUser();
+  const { id, announcementId } = await params;
+  const auth = await requireEventAccess(id);
   if ("response" in auth) return auth.response;
 
-  const { id, announcementId } = await params;
   const existing = await prisma.announcement.findFirst({ where: { id: announcementId, eventId: id } });
   if (!existing) return NextResponse.json({ error: "not_found" }, { status: 404 });
 
@@ -66,10 +66,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 }
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string; announcementId: string }> }) {
-  const auth = await requireAdminUser();
+  const { id, announcementId } = await params;
+  const auth = await requireEventAccess(id);
   if ("response" in auth) return auth.response;
 
-  const { id, announcementId } = await params;
   const existing = await prisma.announcement.findFirst({ where: { id: announcementId, eventId: id } });
   if (!existing) return NextResponse.json({ error: "not_found" }, { status: 404 });
 

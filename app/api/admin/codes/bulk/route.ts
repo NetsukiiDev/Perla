@@ -1,17 +1,17 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireAdmin } from "@/lib/admin-guard";
+import { requireEventAccess } from "@/lib/admin-guard";
 import { codeBulkDeleteSchema } from "@/lib/validation/admin-codes";
 
 export async function DELETE(req: Request) {
-  const auth = await requireAdmin();
-  if ("response" in auth) return auth.response;
-
   const body = await req.json().catch(() => null);
   const parsed = codeBulkDeleteSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: "invalid_body", issues: parsed.error.issues }, { status: 400 });
   }
+
+  const auth = await requireEventAccess(parsed.data.eventId);
+  if ("response" in auth) return auth.response;
 
   const codes = await prisma.inviteCode.findMany({
     where: { eventId: parsed.data.eventId, id: { in: parsed.data.codeIds } },

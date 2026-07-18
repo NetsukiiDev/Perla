@@ -32,6 +32,10 @@ export function eventUpdateSchema(t: Dictionary) {
     .partial()
     .extend({
       status: z.enum(["draft", "scheduled", "active", "closed", "archived"]).optional(),
+      // Only applied server-side when the caller is an admin — see
+      // app/api/admin/events/[id]/route.ts. Lets an admin (re)assign an
+      // event to an organizer, including legacy events with no owner.
+      createdById: z.string().min(1).optional().nullable(),
     })
     .refine((d) => !d.startsAt || !d.endsAt || d.endsAt.getTime() > d.startsAt.getTime(), {
       message: t.validation.event.endAfterStart,

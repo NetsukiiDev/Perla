@@ -2,15 +2,18 @@
 // on the same session/device binding (e.g. participant got lost).
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireAdmin } from "@/lib/admin-guard";
+import { requireAdmin, assertOwnsEvent } from "@/lib/admin-guard";
 
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const auth = await requireAdmin();
   if ("response" in auth) return auth.response;
   const { id } = await params;
 
-  const session = await prisma.session.findUnique({ where: { id } });
-  if (!session) {
+  const session = await prisma.session.findUnique({
+    where: { id },
+    include: { inviteCode: { include: { event: true } } },
+  });
+  if (!session || !assertOwnsEvent(auth.session, session.inviteCode.event)) {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
 

@@ -155,10 +155,17 @@ export const fr: Dictionary = {
         startFailedWithDetail: "Échec du démarrage du tunnel : {error}",
       },
     },
+    ngrokAdmin: {
+      section: "Tous les tunnels",
+      description: "Consultez et gérez le tunnel ngrok de chaque admin et organisateur.",
+      table: { user: "Utilisateur", role: "Rôle", status: "Statut" },
+      notConfigured: "Non configuré",
+    },
   },
 
   account: {
     title: "Mon compte",
+    tabs: { profile: "Profil", preferences: "Préférences" },
     email: "E-mail",
     currentPassword: "Mot de passe actuel",
     newPassword: "Nouveau mot de passe",
@@ -204,6 +211,7 @@ export const fr: Dictionary = {
         steps: "Nombre d'étapes",
         unlockRadius: "Rayon de déverrouillage (m)",
         notes: "Notes internes",
+        owner: "Propriétaire",
         showTotalDistance: "Afficher la distance totale",
         showTotalDuration: "Afficher la durée totale",
         showTollInfo: "Afficher les infos autoroute et péage",
@@ -224,6 +232,7 @@ export const fr: Dictionary = {
         deleteFailed: "Impossible de supprimer l'événement.",
       },
       confirmDelete: "Supprimer définitivement l'événement \"{name}\" ? Cette action est irréversible.",
+      ownerUnassigned: "Aucun (admin uniquement)",
     },
     overview: {
       stats: {
@@ -378,11 +387,11 @@ export const fr: Dictionary = {
 
   users: {
     title: "Utilisateurs admin",
-    form: { email: "E-mail", password: "Mot de passe", role: "Rôle", staff: "Staff", admin: "Admin", createButton: "Créer un compte" },
+    form: { email: "E-mail", password: "Mot de passe", role: "Rôle", organizer: "Organisateur", admin: "Admin", createButton: "Créer un compte" },
     errors: { passwordTooShort: "Le mot de passe doit contenir au moins 8 caractères.", emailInUse: "Cet e-mail est déjà utilisé.", createFailed: "Impossible de créer le compte.", generic: "Une erreur s'est produite. Veuillez réessayer." },
     table: { email: "E-mail", role: "Rôle" },
     you: "(vous)",
-    roleActions: { makeStaff: "Passer en staff", makeAdmin: "Passer en admin", resetPassword: "Réinitialiser le mot de passe", delete: "Supprimer" },
+    roleActions: { makeOrganizer: "Passer en organisateur", makeAdmin: "Passer en admin", resetPassword: "Réinitialiser le mot de passe", delete: "Supprimer" },
     confirmDelete: "Supprimer le compte \"{email}\" ?",
     alerts: { lastAdmin: "Impossible de supprimer le dernier admin.", selfDelete: "Vous ne pouvez pas supprimer votre propre compte.", passwordUpdated: "Mot de passe mis à jour.", passwordInvalid: "Mot de passe invalide (min. 8 caractères) ou opération échouée.", operationFailed: "L'opération a échoué." },
     resetPrompt: "Nouveau mot de passe (min. 8 caractères) :",

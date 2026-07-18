@@ -2,15 +2,20 @@
 // explicit admin requirement and /block alone can't satisfy it.
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireAdmin } from "@/lib/admin-guard";
+import { requireAdmin, assertOwnsEvent } from "@/lib/admin-guard";
 
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const auth = await requireAdmin();
   if ("response" in auth) return auth.response;
   const { id } = await params;
 
-  const existing = await prisma.session.findUnique({ where: { id } });
-  if (!existing) return NextResponse.json({ error: "not_found" }, { status: 404 });
+  const existing = await prisma.session.findUnique({
+    where: { id },
+    include: { inviteCode: { include: { event: true } } },
+  });
+  if (!existing || !assertOwnsEvent(auth.session, existing.inviteCode.event)) {
+    return NextResponse.json({ error: "not_found" }, { status: 404 });
+  }
   if (existing.status === "completed" || existing.status === "expired") {
     return NextResponse.json({ error: "not_reactivatable" }, { status: 409 });
   }

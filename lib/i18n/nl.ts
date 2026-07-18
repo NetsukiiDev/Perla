@@ -155,10 +155,17 @@ export const nl: Dictionary = {
         startFailedWithDetail: "Starten van de tunnel mislukt: {error}",
       },
     },
+    ngrokAdmin: {
+      section: "Alle tunnels",
+      description: "Bekijk en beheer de ngrok-tunnel van elke admin en organisator.",
+      table: { user: "Gebruiker", role: "Rol", status: "Status" },
+      notConfigured: "Niet geconfigureerd",
+    },
   },
 
   account: {
     title: "Mijn account",
+    tabs: { profile: "Profiel", preferences: "Voorkeuren" },
     email: "E-mail",
     currentPassword: "Huidig wachtwoord",
     newPassword: "Nieuw wachtwoord",
@@ -204,6 +211,7 @@ export const nl: Dictionary = {
         steps: "Aantal stappen",
         unlockRadius: "Ontgrendelradius (m)",
         notes: "Interne notities",
+        owner: "Eigenaar",
         showTotalDistance: "Totale afstand tonen",
         showTotalDuration: "Totale duur tonen",
         showTollInfo: "Snelweg- en tolinfo tonen",
@@ -224,6 +232,7 @@ export const nl: Dictionary = {
         deleteFailed: "Kan evenement niet verwijderen.",
       },
       confirmDelete: "Evenement \"{name}\" permanent verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
+      ownerUnassigned: "Geen (alleen admin)",
     },
     overview: {
       stats: {
@@ -378,11 +387,11 @@ export const nl: Dictionary = {
 
   users: {
     title: "Admin-gebruikers",
-    form: { email: "E-mail", password: "Wachtwoord", role: "Rol", staff: "Medewerker", admin: "Admin", createButton: "Account aanmaken" },
+    form: { email: "E-mail", password: "Wachtwoord", role: "Rol", organizer: "Organisator", admin: "Admin", createButton: "Account aanmaken" },
     errors: { passwordTooShort: "Het wachtwoord moet minstens 8 tekens bevatten.", emailInUse: "Deze e-mail is al in gebruik.", createFailed: "Kan account niet aanmaken.", generic: "Er is iets misgegaan. Probeer het opnieuw." },
     table: { email: "E-mail", role: "Rol" },
     you: "(u)",
-    roleActions: { makeStaff: "Maak medewerker", makeAdmin: "Maak admin", resetPassword: "Wachtwoord resetten", delete: "Verwijderen" },
+    roleActions: { makeOrganizer: "Maak organisator", makeAdmin: "Maak admin", resetPassword: "Wachtwoord resetten", delete: "Verwijderen" },
     confirmDelete: "Account \"{email}\" verwijderen?",
     alerts: { lastAdmin: "De laatste admin kan niet worden verwijderd.", selfDelete: "U kunt uw eigen account niet verwijderen.", passwordUpdated: "Wachtwoord bijgewerkt.", passwordInvalid: "Ongeldig wachtwoord (min. 8 tekens) of bewerking mislukt.", operationFailed: "Bewerking mislukt." },
     resetPrompt: "Nieuw wachtwoord (min. 8 tekens):",

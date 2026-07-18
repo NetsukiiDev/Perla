@@ -12,14 +12,14 @@ export function createUserSchema(t: Dictionary) {
   return z.object({
     email: z.string().trim().email(),
     password: z.string().min(8, t.validation.users.passwordLength),
-    role: z.enum(["admin", "staff"]),
+    role: z.enum(["admin", "organizer"]),
   });
 }
 
 export function updateUserSchema(t: Dictionary) {
   return z
     .object({
-      role: z.enum(["admin", "staff"]).optional(),
+      role: z.enum(["admin", "organizer"]).optional(),
       newPassword: z.string().min(8, t.validation.users.passwordLength).optional(),
     })
     .refine((d) => d.role !== undefined || d.newPassword !== undefined, {

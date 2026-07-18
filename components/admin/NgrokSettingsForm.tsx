@@ -36,7 +36,7 @@ export function NgrokSettingsForm() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch("/api/admin/settings/ngrok");
+        const res = await fetch("/api/admin/account/ngrok");
         if (res.ok) {
           const data = await res.json();
           if (!cancelled && data.configured) {
@@ -59,7 +59,7 @@ export function NgrokSettingsForm() {
     let cancelled = false;
     async function poll() {
       try {
-        const res = await fetch("/api/admin/settings/ngrok/status");
+        const res = await fetch("/api/admin/account/ngrok/status");
         if (res.ok && !cancelled) {
           const data = await res.json();
           setRunning(Boolean(data.running));
@@ -89,7 +89,7 @@ export function NgrokSettingsForm() {
     setSaved(false);
     setSaving(true);
     try {
-      const res = await fetch("/api/admin/settings/ngrok", {
+      const res = await fetch("/api/admin/account/ngrok", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ authtoken: form.authtoken || null, domain: form.domain || null }),
@@ -112,7 +112,7 @@ export function NgrokSettingsForm() {
     setError(null);
     setStarting(true);
     try {
-      const res = await fetch("/api/admin/settings/ngrok/start", { method: "POST" });
+      const res = await fetch("/api/admin/account/ngrok/start", { method: "POST" });
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
         setRunning(true);
@@ -138,7 +138,7 @@ export function NgrokSettingsForm() {
   async function handleStop() {
     setStopping(true);
     try {
-      await fetch("/api/admin/settings/ngrok/stop", { method: "POST" });
+      await fetch("/api/admin/account/ngrok/stop", { method: "POST" });
     } finally {
       setRunning(false);
       setUrl(null);

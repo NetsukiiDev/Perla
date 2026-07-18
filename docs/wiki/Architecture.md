@@ -97,5 +97,5 @@ See the dedicated page: **[Security](Security)**.
 
 - **In-memory rate limiting** (`lib/rate-limit.ts`) — single-instance only. For multi-instance/serverless, replace with a shared store (e.g. Upstash Redis).
 - **Admin 2FA** — schema is ready (`totpSecret`/`totpEnabled`) but TOTP verification is not implemented yet.
-- **Roles `admin`/`staff`** — user management (`/admin/users`) is admin-only; you cannot delete your own account or the last admin.
+- **Roles `admin`/`organizer`** — organizers create and manage only their own events (`Event.createdById`) and have no access to `/admin/settings`; admins see every event and manage everything. User management (`/admin/users`) is admin-only; you cannot delete your own account or the last admin.
 - **Mobile-first** on the public experience; the admin dashboard is desktop-first.

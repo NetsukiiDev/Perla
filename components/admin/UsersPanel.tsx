@@ -10,11 +10,11 @@ import { useT } from "@/lib/i18n/context";
 interface AdminUserRow {
   id: string;
   email: string;
-  role: "admin" | "staff";
+  role: "admin" | "organizer";
   createdAt: string;
 }
 
-const ROLE_LABELS: Record<string, (t: ReturnType<typeof useT>) => string> = { admin: (t) => t.users.form.admin, staff: (t) => t.users.form.staff };
+const ROLE_LABELS: Record<string, (t: ReturnType<typeof useT>) => string> = { admin: (t) => t.users.form.admin, organizer: (t) => t.users.form.organizer };
 const inputClass = "rounded-lg border border-surface-border bg-background px-3 py-2 text-sm text-foreground";
 
 export function UsersPanel({
@@ -28,7 +28,7 @@ export function UsersPanel({
   const [users, setUsers] = useState(initialUsers);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<"admin" | "staff">("staff");
+  const [role, setRole] = useState<"admin" | "organizer">("organizer");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -51,7 +51,7 @@ export function UsersPanel({
         setUsers((prev) => [...prev, data.user]);
         setEmail("");
         setPassword("");
-        setRole("staff");
+        setRole("organizer");
         return;
       }
       setError(data?.error === "email_taken" ? t.users.errors.emailInUse : t.users.errors.createFailed);
@@ -62,7 +62,7 @@ export function UsersPanel({
     }
   }
 
-  async function changeRole(id: string, newRole: "admin" | "staff") {
+  async function changeRole(id: string, newRole: "admin" | "organizer") {
     const res = await fetch(`/api/admin/users/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -125,8 +125,8 @@ export function UsersPanel({
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs uppercase tracking-wide text-muted">{t.users.form.role}</label>
-          <select value={role} onChange={(e) => setRole(e.target.value as "admin" | "staff")} className={inputClass}>
-            <option value="staff">{t.users.form.staff}</option>
+          <select value={role} onChange={(e) => setRole(e.target.value as "admin" | "organizer")} className={inputClass}>
+            <option value="organizer">{t.users.form.organizer}</option>
             <option value="admin">{t.users.form.admin}</option>
           </select>
         </div>
@@ -165,8 +165,8 @@ export function UsersPanel({
                   <div className="flex justify-end gap-3">
                     <IconButton
                       icon={u.role === "admin" ? UserCog : Shield}
-                      label={u.role === "admin" ? t.users.roleActions.makeStaff : t.users.roleActions.makeAdmin}
-                      onClick={() => changeRole(u.id, u.role === "admin" ? "staff" : "admin")}
+                      label={u.role === "admin" ? t.users.roleActions.makeOrganizer : t.users.roleActions.makeAdmin}
+                      onClick={() => changeRole(u.id, u.role === "admin" ? "organizer" : "admin")}
                     />
                     <IconButton icon={KeyRound} label={t.users.roleActions.resetPassword} onClick={() => resetPassword(u.id)} />
                     {u.id !== currentUserId && (

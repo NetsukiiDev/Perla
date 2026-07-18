@@ -1,18 +1,17 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireAdmin } from "@/lib/admin-guard";
+import { requireEventAccess } from "@/lib/admin-guard";
 import { participantCreateSchema } from "@/lib/validation/admin-participant";
 import { buildCodeRecord } from "@/lib/invite-code";
 import { DEFAULTS } from "@/lib/constants";
 
 export async function GET(req: Request) {
-  const auth = await requireAdmin();
-  if ("response" in auth) return auth.response;
-
   const eventId = new URL(req.url).searchParams.get("eventId");
   if (!eventId) {
     return NextResponse.json({ error: "missing_event_id" }, { status: 400 });
   }
+  const auth = await requireEventAccess(eventId);
+  if ("response" in auth) return auth.response;
 
   const participants = await prisma.participant.findMany({
     where: { eventId },
@@ -22,19 +21,14 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const auth = await requireAdmin();
-  if ("response" in auth) return auth.response;
-
   const body = await req.json().catch(() => null);
   const parsed = participantCreateSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: "invalid_body", issues: parsed.error.issues }, { status: 400 });
   }
 
-  const event = await prisma.event.findUnique({ where: { id: parsed.data.eventId } });
-  if (!event) {
-    return NextResponse.json({ error: "event_not_found" }, { status: 404 });
-  }
+  const auth = await requireEventAccess(parsed.data.eventId);
+  if ("response" in auth) return auth.response;
 
   // Each participant gets a code automatically. Retry on the (astronomically
   // unlikely) hash collision.

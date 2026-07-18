@@ -25,7 +25,7 @@ datasource db {
 
 enum AdminRole {
   admin
-  staff
+  organizer
 }
 
 enum EventStatus {
@@ -96,7 +96,7 @@ model AdminUser {
   id           String    @id @default(cuid())
   email        String    @unique @db.VarChar(255)
   passwordHash String    @map("password_hash")
-  role         AdminRole @default(staff)
+  role         AdminRole @default(organizer)
 
   // Reserved for future TOTP 2FA support; unused for now.
   totpSecret  String? @map("totp_secret")
@@ -106,6 +106,8 @@ model AdminUser {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   passwordResetTokens PasswordResetToken[]
+  events              Event[]
+  ngrokConfig         NgrokConfig?
 
   @@map("admin_users")
 }
@@ -134,6 +136,13 @@ model Event {
 
   notes String? @db.Text
 
+  // Nullable: events created before this field existed have no known owner
+  // and are only visible/manageable by admins (see lib/admin-guard.ts
+  // assertOwnsEvent). SetNull so deleting the creating user doesn't cascade
+  // into deleting their events.
+  createdById String?    @map("created_by_id")
+  createdBy   AdminUser? @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -143,6 +152,7 @@ model Event {
   announcements Announcement[]
 
   @@index([status])
+  @@index([createdById])
   @@map("events")
 }
 
@@ -366,11 +376,15 @@ model TurnstileConfig {
 // the start/stop API routes refuse to run in production (lib/env.ts isVercel()
 // / NODE_ENV) since spawning a tunnel against an already-public deployment
 // makes no sense.
+// One tunnel config per admin user — each admin/organizer runs their own
+// ngrok tunnel (own account/authtoken) against the same local dev server.
 model NgrokConfig {
-  id                 String   @id @default("default")
-  authtokenEncrypted String?  @map("authtoken_encrypted") @db.VarChar(512)
-  domain             String?  @db.VarChar(255)
-  updatedAt          DateTime @default(now()) @updatedAt @map("updated_at")
+  id                 String    @id @default(cuid())
+  adminUserId        String    @unique @map("admin_user_id")
+  adminUser          AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  authtokenEncrypted String?   @map("authtoken_encrypted") @db.VarChar(512)
+  domain             String?   @db.VarChar(255)
+  updatedAt          DateTime  @default(now()) @updatedAt @map("updated_at")
 
   @@map("ngrok_config")
 }

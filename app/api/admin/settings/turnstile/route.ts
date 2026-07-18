@@ -8,7 +8,7 @@ import { writeAccessLog } from "@/lib/access-log";
 export const runtime = "nodejs";
 
 export async function GET() {
-  const auth = await requireAdminUser();
+  const auth = await requireAdminUser(["admin"]);
   if ("response" in auth) return auth.response;
 
   const cfg = await prisma.turnstileConfig.findUnique({ where: { id: "default" } });
@@ -24,7 +24,7 @@ export async function GET() {
 }
 
 export async function PUT(req: Request) {
-  const auth = await requireAdminUser();
+  const auth = await requireAdminUser(["admin"]);
   if ("response" in auth) return auth.response;
 
   const body = await req.json().catch(() => null);

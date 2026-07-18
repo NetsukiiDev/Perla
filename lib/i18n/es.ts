@@ -155,10 +155,17 @@ export const es: Dictionary = {
         startFailedWithDetail: "No se pudo iniciar el túnel: {error}",
       },
     },
+    ngrokAdmin: {
+      section: "Todos los túneles",
+      description: "Consulta y gestiona el túnel ngrok de cada admin y organizador.",
+      table: { user: "Usuario", role: "Rol", status: "Estado" },
+      notConfigured: "Sin configurar",
+    },
   },
 
   account: {
     title: "Mi cuenta",
+    tabs: { profile: "Perfil", preferences: "Preferencias" },
     email: "Correo",
     currentPassword: "Contraseña actual",
     newPassword: "Nueva contraseña",
@@ -204,6 +211,7 @@ export const es: Dictionary = {
         steps: "Número de pasos",
         unlockRadius: "Radio de desbloqueo (m)",
         notes: "Notas internas",
+        owner: "Propietario",
         showTotalDistance: "Mostrar distancia total",
         showTotalDuration: "Mostrar duración total",
         showTollInfo: "Mostrar info de autopista y peajes",
@@ -224,6 +232,7 @@ export const es: Dictionary = {
         deleteFailed: "No se pudo eliminar el evento.",
       },
       confirmDelete: "¿Eliminar permanentemente el evento \"{name}\"? Esta acción no se puede deshacer.",
+      ownerUnassigned: "Ninguno (solo admin)",
     },
     overview: {
       stats: {
@@ -378,11 +387,11 @@ export const es: Dictionary = {
 
   users: {
     title: "Usuarios admin",
-    form: { email: "Correo", password: "Contraseña", role: "Rol", staff: "Staff", admin: "Admin", createButton: "Crear cuenta" },
+    form: { email: "Correo", password: "Contraseña", role: "Rol", organizer: "Organizador", admin: "Admin", createButton: "Crear cuenta" },
     errors: { passwordTooShort: "La contraseña debe tener al menos 8 caracteres.", emailInUse: "El correo ya está en uso.", createFailed: "No se pudo crear la cuenta.", generic: "Algo salió mal. Por favor, inténtalo de nuevo." },
     table: { email: "Correo", role: "Rol" },
     you: "(tú)",
-    roleActions: { makeStaff: "Hacer staff", makeAdmin: "Hacer admin", resetPassword: "Restablecer contraseña", delete: "Eliminar" },
+    roleActions: { makeOrganizer: "Hacer organizador", makeAdmin: "Hacer admin", resetPassword: "Restablecer contraseña", delete: "Eliminar" },
     confirmDelete: "¿Eliminar cuenta \"{email}\"?",
     alerts: { lastAdmin: "No se puede eliminar el último admin.", selfDelete: "No puedes eliminar tu propia cuenta.", passwordUpdated: "Contraseña actualizada.", passwordInvalid: "Contraseña inválida (mín. 8 caracteres) u operación fallida.", operationFailed: "La operación falló." },
     resetPrompt: "Nueva contraseña (mín. 8 caracteres):",

@@ -119,10 +119,17 @@ export interface Dictionary {
         startFailedWithDetail: string;
       };
     };
+    ngrokAdmin: {
+      section: string;
+      description: string;
+      table: { user: string; role: string; status: string };
+      notConfigured: string;
+    };
   };
 
   account: {
     title: string;
+    tabs: { profile: string; preferences: string };
     email: string;
     currentPassword: string;
     newPassword: string;
@@ -142,12 +149,13 @@ export interface Dictionary {
       labels: {
         internalName: string; location: string; destLat: string; destLng: string;
         activationTime: string; startTime: string; endTime: string; status: string;
-        steps: string; unlockRadius: string; notes: string;
+        steps: string; unlockRadius: string; notes: string; owner: string;
         showTotalDistance: string; showTotalDuration: string; showTollInfo: string;
       };
       buttons: { save: string; saving: string; create: string; creating: string; edit: string; delete: string; deleting: string };
       errors: { coordinate: string; saveFailed: string; generic: string; deleteFailed: string };
       confirmDelete: string;
+      ownerUnassigned: string;
     };
     overview: {
       stats: { codes: string; inactive: string; live: string; traveling: string; arrived: string; steps: string };
@@ -208,11 +216,11 @@ export interface Dictionary {
 
   users: {
     title: string;
-    form: { email: string; password: string; role: string; staff: string; admin: string; createButton: string };
+    form: { email: string; password: string; role: string; organizer: string; admin: string; createButton: string };
     errors: { passwordTooShort: string; emailInUse: string; createFailed: string; generic: string };
     table: { email: string; role: string };
     you: string;
-    roleActions: { makeStaff: string; makeAdmin: string; resetPassword: string; delete: string };
+    roleActions: { makeOrganizer: string; makeAdmin: string; resetPassword: string; delete: string };
     confirmDelete: string;
     alerts: { lastAdmin: string; selfDelete: string; passwordUpdated: string; passwordInvalid: string; operationFailed: string };
     resetPrompt: string;

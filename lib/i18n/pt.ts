@@ -155,10 +155,17 @@ export const pt: Dictionary = {
         startFailedWithDetail: "Falha ao iniciar o túnel: {error}",
       },
     },
+    ngrokAdmin: {
+      section: "Todos os túneis",
+      description: "Veja e gerencie o túnel ngrok de cada admin e organizador.",
+      table: { user: "Usuário", role: "Função", status: "Status" },
+      notConfigured: "Não configurado",
+    },
   },
 
   account: {
     title: "Minha conta",
+    tabs: { profile: "Perfil", preferences: "Preferências" },
     email: "E-mail",
     currentPassword: "Senha atual",
     newPassword: "Nova senha",
@@ -204,6 +211,7 @@ export const pt: Dictionary = {
         steps: "Número de etapas",
         unlockRadius: "Raio de desbloqueio (m)",
         notes: "Notas internas",
+        owner: "Proprietário",
         showTotalDistance: "Mostrar distância total",
         showTotalDuration: "Mostrar duração total",
         showTollInfo: "Mostrar informações de rodovia e pedágio",
@@ -224,6 +232,7 @@ export const pt: Dictionary = {
         deleteFailed: "Não foi possível excluir o evento.",
       },
       confirmDelete: "Excluir permanentemente o evento \"{name}\"? Esta ação não pode ser desfeita.",
+      ownerUnassigned: "Nenhum (somente admin)",
     },
     overview: {
       stats: {
@@ -378,11 +387,11 @@ export const pt: Dictionary = {
 
   users: {
     title: "Usuários admin",
-    form: { email: "E-mail", password: "Senha", role: "Função", staff: "Equipe", admin: "Admin", createButton: "Criar conta" },
+    form: { email: "E-mail", password: "Senha", role: "Função", organizer: "Organizador", admin: "Admin", createButton: "Criar conta" },
     errors: { passwordTooShort: "A senha deve ter pelo menos 8 caracteres.", emailInUse: "Este e-mail já está em uso.", createFailed: "Não foi possível criar a conta.", generic: "Algo deu errado. Por favor, tente novamente." },
     table: { email: "E-mail", role: "Função" },
     you: "(você)",
-    roleActions: { makeStaff: "Tornar equipe", makeAdmin: "Tornar admin", resetPassword: "Redefinir senha", delete: "Excluir" },
+    roleActions: { makeOrganizer: "Tornar organizador", makeAdmin: "Tornar admin", resetPassword: "Redefinir senha", delete: "Excluir" },
     confirmDelete: "Excluir conta \"{email}\"?",
     alerts: { lastAdmin: "Não é possível excluir o último admin.", selfDelete: "Você não pode excluir sua própria conta.", passwordUpdated: "Senha atualizada.", passwordInvalid: "Senha inválida (mín. 8 caracteres) ou operação falhou.", operationFailed: "A operação falhou." },
     resetPrompt: "Nova senha (mín. 8 caracteres):",

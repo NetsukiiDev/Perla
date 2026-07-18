@@ -153,10 +153,17 @@ export const en: Dictionary = {
         startFailedWithDetail: "Failed to start the tunnel: {error}",
       },
     },
+    ngrokAdmin: {
+      section: "All tunnels",
+      description: "View and manage every admin's and organizer's ngrok tunnel.",
+      table: { user: "User", role: "Role", status: "Status" },
+      notConfigured: "Not configured",
+    },
   },
 
   account: {
     title: "My account",
+    tabs: { profile: "Profile", preferences: "Preferences" },
     email: "Email",
     currentPassword: "Current password",
     newPassword: "New password",
@@ -202,6 +209,7 @@ export const en: Dictionary = {
         steps: "Number of steps",
         unlockRadius: "Unlock radius (m)",
         notes: "Internal notes",
+        owner: "Owner",
         showTotalDistance: "Show total distance",
         showTotalDuration: "Show total duration",
         showTollInfo: "Show highway & toll info",
@@ -222,6 +230,7 @@ export const en: Dictionary = {
         deleteFailed: "Unable to delete event.",
       },
       confirmDelete: "Permanently delete event \"{name}\"? This action cannot be undone.",
+      ownerUnassigned: "None (admin only)",
     },
     overview: {
       stats: {
@@ -376,11 +385,11 @@ export const en: Dictionary = {
 
   users: {
     title: "Admin users",
-    form: { email: "Email", password: "Password", role: "Role", staff: "Staff", admin: "Admin", createButton: "Create account" },
+    form: { email: "Email", password: "Password", role: "Role", organizer: "Organizer", admin: "Admin", createButton: "Create account" },
     errors: { passwordTooShort: "Password must be at least 8 characters.", emailInUse: "Email already in use.", createFailed: "Unable to create account.", generic: "Something went wrong. Please try again." },
     table: { email: "Email", role: "Role" },
     you: "(you)",
-    roleActions: { makeStaff: "Make staff", makeAdmin: "Make admin", resetPassword: "Reset password", delete: "Delete" },
+    roleActions: { makeOrganizer: "Make organizer", makeAdmin: "Make admin", resetPassword: "Reset password", delete: "Delete" },
     confirmDelete: "Delete account \"{email}\"?",
     alerts: { lastAdmin: "Cannot remove the last admin.", selfDelete: "You cannot delete your own account.", passwordUpdated: "Password updated.", passwordInvalid: "Invalid password (min 8 chars) or operation failed.", operationFailed: "Operation failed." },
     resetPrompt: "New password (min 8 characters):",

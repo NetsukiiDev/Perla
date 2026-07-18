@@ -155,10 +155,17 @@ export const de: Dictionary = {
         startFailedWithDetail: "Tunnel konnte nicht gestartet werden: {error}",
       },
     },
+    ngrokAdmin: {
+      section: "Alle Tunnel",
+      description: "Ngrok-Tunnel aller Admins und Organisatoren einsehen und verwalten.",
+      table: { user: "Benutzer", role: "Rolle", status: "Status" },
+      notConfigured: "Nicht konfiguriert",
+    },
   },
 
   account: {
     title: "Mein Konto",
+    tabs: { profile: "Profil", preferences: "Präferenzen" },
     email: "E-Mail",
     currentPassword: "Aktuelles Passwort",
     newPassword: "Neues Passwort",
@@ -204,6 +211,7 @@ export const de: Dictionary = {
         steps: "Anzahl der Schritte",
         unlockRadius: "Freischaltradius (m)",
         notes: "Interne Notizen",
+        owner: "Eigentümer",
         showTotalDistance: "Gesamtdistanz anzeigen",
         showTotalDuration: "Gesamtdauer anzeigen",
         showTollInfo: "Autobahn- und Mautinfo anzeigen",
@@ -224,6 +232,7 @@ export const de: Dictionary = {
         deleteFailed: "Veranstaltung konnte nicht gelöscht werden.",
       },
       confirmDelete: "Veranstaltung \"{name}\" endgültig löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+      ownerUnassigned: "Keiner (nur Admin)",
     },
     overview: {
       stats: {
@@ -378,11 +387,11 @@ export const de: Dictionary = {
 
   users: {
     title: "Admin-Benutzer",
-    form: { email: "E-Mail", password: "Passwort", role: "Rolle", staff: "Mitarbeiter", admin: "Admin", createButton: "Konto erstellen" },
+    form: { email: "E-Mail", password: "Passwort", role: "Rolle", organizer: "Organisator", admin: "Admin", createButton: "Konto erstellen" },
     errors: { passwordTooShort: "Das Passwort muss mindestens 8 Zeichen lang sein.", emailInUse: "Diese E-Mail wird bereits verwendet.", createFailed: "Konto konnte nicht erstellt werden.", generic: "Etwas ist schiefgelaufen. Bitte erneut versuchen." },
     table: { email: "E-Mail", role: "Rolle" },
     you: "(Sie)",
-    roleActions: { makeStaff: "Zu Mitarbeiter machen", makeAdmin: "Zu Admin machen", resetPassword: "Passwort zurücksetzen", delete: "Löschen" },
+    roleActions: { makeOrganizer: "Zu Organisator machen", makeAdmin: "Zu Admin machen", resetPassword: "Passwort zurücksetzen", delete: "Löschen" },
     confirmDelete: "Konto \"{email}\" löschen?",
     alerts: { lastAdmin: "Der letzte Admin kann nicht gelöscht werden.", selfDelete: "Sie können Ihr eigenes Konto nicht löschen.", passwordUpdated: "Passwort aktualisiert.", passwordInvalid: "Ungültiges Passwort (min. 8 Zeichen) oder Vorgang fehlgeschlagen.", operationFailed: "Vorgang fehlgeschlagen." },
     resetPrompt: "Neues Passwort (min. 8 Zeichen):",

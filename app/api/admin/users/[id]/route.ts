@@ -33,7 +33,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   }
 
   // Never allow demoting the last remaining admin (would lock out user mgmt).
-  if (parsed.data.role === "staff" && target.role === "admin" && (await adminCount()) <= 1) {
+  if (parsed.data.role === "organizer" && target.role === "admin" && (await adminCount()) <= 1) {
     return NextResponse.json({ error: "last_admin" }, { status: 409 });
   }
 

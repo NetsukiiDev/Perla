@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireAdmin } from "@/lib/admin-guard";
+import { requireAdmin, assertOwnsEvent } from "@/lib/admin-guard";
 import { AccessLogType } from "@/lib/generated/prisma/client";
 import { writeAccessLog } from "@/lib/access-log";
 
@@ -13,7 +13,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     where: { id },
     include: { inviteCode: { include: { event: true } } },
   });
-  if (!session) {
+  if (!session || !assertOwnsEvent(auth.session, session.inviteCode.event)) {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
 

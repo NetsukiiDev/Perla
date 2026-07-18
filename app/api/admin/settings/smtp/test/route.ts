@@ -11,7 +11,7 @@ import { sendMail } from "@/lib/mailer";
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
-  const auth = await requireAdminUser();
+  const auth = await requireAdminUser(["admin"]);
   if ("response" in auth) return auth.response;
 
   const locale = await getLocale();

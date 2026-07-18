@@ -3,7 +3,7 @@
 // plaintext is returned once in this response.
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireAdmin } from "@/lib/admin-guard";
+import { requireAdmin, assertOwnsEvent } from "@/lib/admin-guard";
 import { codeGenerateSchema } from "@/lib/validation/admin-codes";
 import { buildCodeRecord } from "@/lib/invite-code";
 import { DEFAULTS } from "@/lib/constants";
@@ -24,8 +24,8 @@ export async function POST(req: Request) {
   }
   const { participantId, expiresAt } = parsed.data;
 
-  const participant = await prisma.participant.findUnique({ where: { id: participantId } });
-  if (!participant) {
+  const participant = await prisma.participant.findUnique({ where: { id: participantId }, include: { event: true } });
+  if (!participant || !assertOwnsEvent(auth.session, participant.event)) {
     return NextResponse.json({ error: "participant_not_found" }, { status: 404 });
   }
 

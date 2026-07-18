@@ -33,7 +33,7 @@ To surface "update available", publish a new **release/tag** on GitHub (e.g. `v0
 
 ## Update now (auto-update)
 
-When an update is available, admins (not staff) see an **"Update now"** button next to the notice. It's a thin wrapper (`POST /api/admin/update`) around whichever mechanism is active:
+When an update is available, admins (not organizers) see an **"Update now"** button next to the notice — it's on the Impostazioni page, which organizers can't reach at all. It's a thin wrapper (`POST /api/admin/update`) around whichever mechanism is active:
 
 | Mode | When | Behavior |
 |---|---|---|

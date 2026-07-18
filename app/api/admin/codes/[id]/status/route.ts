@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireAdmin } from "@/lib/admin-guard";
+import { requireAdmin, assertOwnsEvent } from "@/lib/admin-guard";
 import { codeStatusUpdateSchema } from "@/lib/validation/admin-codes";
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -14,8 +14,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     return NextResponse.json({ error: "invalid", issues: parsed.error.issues }, { status: 400 });
   }
 
-  const existing = await prisma.inviteCode.findUnique({ where: { id } });
-  if (!existing) {
+  const existing = await prisma.inviteCode.findUnique({ where: { id }, include: { event: true } });
+  if (!existing || !assertOwnsEvent(auth.session, existing.event)) {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
 

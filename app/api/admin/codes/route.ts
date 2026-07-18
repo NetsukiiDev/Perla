@@ -1,16 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireAdmin } from "@/lib/admin-guard";
+import { requireEventAccess } from "@/lib/admin-guard";
 import { decrypt } from "@/lib/crypto";
 
 export async function GET(req: Request) {
-  const auth = await requireAdmin();
-  if ("response" in auth) return auth.response;
-
   const eventId = new URL(req.url).searchParams.get("eventId");
   if (!eventId) {
     return NextResponse.json({ error: "missing_event_id" }, { status: 400 });
   }
+  const auth = await requireEventAccess(eventId);
+  if ("response" in auth) return auth.response;
 
   const codes = await prisma.inviteCode.findMany({
     where: { eventId },

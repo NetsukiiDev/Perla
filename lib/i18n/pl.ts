@@ -155,10 +155,17 @@ export const pl: Dictionary = {
         startFailedWithDetail: "Nie udało się uruchomić tunelu: {error}",
       },
     },
+    ngrokAdmin: {
+      section: "Wszystkie tunele",
+      description: "Przeglądaj i zarządzaj tunelem ngrok każdego admina i organizatora.",
+      table: { user: "Użytkownik", role: "Rola", status: "Status" },
+      notConfigured: "Nieskonfigurowany",
+    },
   },
 
   account: {
     title: "Moje konto",
+    tabs: { profile: "Profil", preferences: "Preferencje" },
     email: "E-mail",
     currentPassword: "Bieżące hasło",
     newPassword: "Nowe hasło",
@@ -204,6 +211,7 @@ export const pl: Dictionary = {
         steps: "Liczba etapów",
         unlockRadius: "Promień odblokowania (m)",
         notes: "Notatki wewnętrzne",
+        owner: "Właściciel",
         showTotalDistance: "Pokaż całkowity dystans",
         showTotalDuration: "Pokaż całkowity czas",
         showTollInfo: "Pokaż informacje o autostradzie i opłatach",
@@ -224,6 +232,7 @@ export const pl: Dictionary = {
         deleteFailed: "Nie udało się usunąć wydarzenia.",
       },
       confirmDelete: "Trwale usunąć wydarzenie \"{name}\"? Tej czynności nie można cofnąć.",
+      ownerUnassigned: "Brak (tylko admin)",
     },
     overview: {
       stats: {
@@ -378,11 +387,11 @@ export const pl: Dictionary = {
 
   users: {
     title: "Użytkownicy admin",
-    form: { email: "E-mail", password: "Hasło", role: "Rola", staff: "Personel", admin: "Admin", createButton: "Utwórz konto" },
+    form: { email: "E-mail", password: "Hasło", role: "Rola", organizer: "Organizator", admin: "Admin", createButton: "Utwórz konto" },
     errors: { passwordTooShort: "Hasło musi mieć co najmniej 8 znaków.", emailInUse: "Ten e-mail jest już używany.", createFailed: "Nie udało się utworzyć konta.", generic: "Coś poszło nie tak. Spróbuj ponownie." },
     table: { email: "E-mail", role: "Rola" },
     you: "(ty)",
-    roleActions: { makeStaff: "Ustaw jako personel", makeAdmin: "Ustaw jako admin", resetPassword: "Zresetuj hasło", delete: "Usuń" },
+    roleActions: { makeOrganizer: "Ustaw jako organizator", makeAdmin: "Ustaw jako admin", resetPassword: "Zresetuj hasło", delete: "Usuń" },
     confirmDelete: "Usunąć konto \"{email}\"?",
     alerts: { lastAdmin: "Nie można usunąć ostatniego admina.", selfDelete: "Nie możesz usunąć własnego konta.", passwordUpdated: "Hasło zaktualizowane.", passwordInvalid: "Nieprawidłowe hasło (min. 8 znaków) lub operacja się nie powiodła.", operationFailed: "Operacja nie powiodła się." },
     resetPrompt: "Nowe hasło (min. 8 znaków):",

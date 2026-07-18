@@ -2,11 +2,11 @@
 // (which requires a secure context for geolocation) can be tested from a
 // real phone instead of just localhost.
 //
-// Reads the ngrok authtoken/domain saved via the admin panel (Impostazioni →
-// Tunnel ngrok) — the same NgrokConfig row the /api/admin/settings/ngrok/*
-// routes use — so there's a single place to configure it. Uses the
-// @ngrok/ngrok SDK (bundled native binary, no separate system-wide ngrok
-// CLI install required).
+// Reads the ngrok authtoken/domain saved via the admin panel (Account →
+// Tunnel ngrok) — the same NgrokConfig row the /api/admin/account/ngrok/*
+// routes use. Config is per admin user, so pass which one to use as an
+// argument (`npm run dev:tunnel -- you@example.com`); if only one admin
+// user has a saved config, it's picked automatically.
 //
 // Starts the tunnel first so its hostname is known before `next dev` boots,
 // then passes it through TUNNEL_HOST so next.config.ts can add it to
@@ -22,12 +22,33 @@ import { prisma } from "../lib/db.ts";
 import { decrypt } from "../lib/crypto.ts";
 
 const PORT = Number(process.env.PORT || 3000);
+const emailArg = process.argv[2];
 
-const cfg = await prisma.ngrokConfig.findUnique({ where: { id: "default" } });
-if (!cfg?.authtokenEncrypted) {
-  console.error(
-    "No ngrok authtoken configured. Save one first in the admin panel under Impostazioni → Tunnel ngrok.",
-  );
+let cfg;
+if (emailArg) {
+  cfg = await prisma.ngrokConfig.findFirst({ where: { adminUser: { email: emailArg } } });
+  if (!cfg) {
+    console.error(`No ngrok config saved for ${emailArg}. Save one first in the admin panel under Account → Tunnel ngrok.`);
+    process.exit(1);
+  }
+} else {
+  const all = await prisma.ngrokConfig.findMany({ include: { adminUser: true } });
+  if (all.length === 0) {
+    console.error("No ngrok config saved yet. Save one first in the admin panel under Account → Tunnel ngrok.");
+    process.exit(1);
+  }
+  if (all.length > 1) {
+    console.error(
+      "Multiple users have a saved ngrok config. Specify which one to use:\n" +
+        all.map((c) => `  npm run dev:tunnel -- ${c.adminUser.email}`).join("\n"),
+    );
+    process.exit(1);
+  }
+  cfg = all[0];
+}
+
+if (!cfg.authtokenEncrypted) {
+  console.error("Saved ngrok config has no authtoken. Save one first in the admin panel under Account → Tunnel ngrok.");
   process.exit(1);
 }
 

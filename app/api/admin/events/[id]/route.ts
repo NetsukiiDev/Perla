@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireAdmin } from "@/lib/admin-guard";
+import { requireEventAccess } from "@/lib/admin-guard";
 import { getLocale, getDictionary } from "@/lib/i18n/server";
 import { eventUpdateSchema } from "@/lib/validation/admin-event";
 import { decryptCoord, encryptCoord } from "@/lib/crypto";
@@ -10,9 +10,10 @@ import { writeAccessLog } from "@/lib/access-log";
 import { recomputeActiveSessionsForEvent } from "@/lib/recompute-sessions";
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await requireAdmin();
-  if ("response" in auth) return auth.response;
   const { id } = await params;
+  const auth = await requireEventAccess(id);
+  if ("response" in auth) return auth.response;
+  const { session, event: existing } = auth;
 
   const locale = await getLocale();
   const t = getDictionary(locale);
@@ -22,11 +23,6 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     return NextResponse.json({ error: "invalid_body", issues: parsed.error.issues }, { status: 400 });
   }
   const data = parsed.data;
-
-  const existing = await prisma.event.findUnique({ where: { id } });
-  if (!existing) {
-    return NextResponse.json({ error: "not_found" }, { status: 404 });
-  }
 
   const destinationLat =
     data.destinationLat !== undefined ? data.destinationLat : decryptCoord(existing.destinationLatEncrypted);
@@ -57,6 +53,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       ...(data.showTollInfo !== undefined ? { showTollInfo: data.showTollInfo } : {}),
       ...(data.notes !== undefined ? { notes: data.notes } : {}),
       ...(data.status !== undefined ? { status: data.status } : {}),
+      // Organizers can edit their own event but never reassign its owner —
+      // silently ignore the field rather than error, since the UI never
+      // sends it for non-admins anyway.
+      ...(data.createdById !== undefined && session.role === "admin" ? { createdById: data.createdById } : {}),
     },
   });
 
@@ -103,15 +103,14 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 }
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await requireAdmin();
-  if ("response" in auth) return auth.response;
   const { id } = await params;
+  const auth = await requireEventAccess(id);
+  if ("response" in auth) return auth.response;
 
-  const event = await prisma.event.findUnique({ where: { id }, select: { internalName: true } });
   await prisma.event.delete({ where: { id } }).catch(() => null);
   await writeAccessLog({
     type: "admin_action",
-    metadata: { action: "Evento eliminato", detail: event?.internalName ?? id },
+    metadata: { action: "Evento eliminato", detail: auth.event.internalName },
   });
   return NextResponse.json({ ok: true });
 }

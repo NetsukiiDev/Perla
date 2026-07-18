@@ -11,7 +11,10 @@ export async function GET() {
   const auth = await requireAdmin();
   if ("response" in auth) return auth.response;
 
-  const events = await prisma.event.findMany({ orderBy: { createdAt: "desc" } });
+  const events = await prisma.event.findMany({
+    where: auth.session.role === "admin" ? {} : { createdById: auth.session.userId },
+    orderBy: { createdAt: "desc" },
+  });
   return NextResponse.json({ events });
 }
 
@@ -48,6 +51,7 @@ export async function POST(req: Request) {
       showTollInfo: data.showTollInfo,
       notes: data.notes ?? null,
       status: "draft",
+      createdById: auth.session.userId,
     },
   });
 

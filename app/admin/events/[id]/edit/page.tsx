@@ -8,11 +8,16 @@ import { EventForm } from "@/components/admin/EventForm";
 export const dynamic = "force-dynamic";
 
 export default async function EditEventPage({ params }: { params: Promise<{ id: string }> }) {
-  await requireAdminPage();
+  const user = await requireAdminPage();
 
   const { id } = await params;
   const event = await prisma.event.findUnique({ where: { id } });
   if (!event) notFound();
+
+  const isAdmin = user.role === "admin";
+  const owners = isAdmin
+    ? await prisma.adminUser.findMany({ select: { id: true, email: true, role: true }, orderBy: { email: "asc" } })
+    : [];
 
   return (
     <PageWithSubNav
@@ -21,6 +26,8 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
       header={<h1 className="mb-2 text-xl font-semibold">{event.internalName}</h1>}
     >
       <EventForm
+        canReassignOwner={isAdmin}
+        owners={owners}
         initial={{
           id: event.id,
           internalName: event.internalName,
@@ -36,6 +43,7 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
           showTotalDuration: event.showTotalDuration,
           showTollInfo: event.showTollInfo,
           notes: event.notes,
+          createdById: event.createdById,
         }}
       />
     </PageWithSubNav>

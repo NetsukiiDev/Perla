@@ -2,7 +2,7 @@
 // the live dashboard. Decrypts admin-only event and participant locations.
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireAdmin } from "@/lib/admin-guard";
+import { requireEventAccess } from "@/lib/admin-guard";
 import { decrypt, decryptCoord } from "@/lib/crypto";
 import { deriveDisplayStatus, type DisplayStatus } from "@/lib/status";
 
@@ -17,14 +17,10 @@ const STATUS_ORDER: Record<DisplayStatus, number> = {
 };
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await requireAdmin();
-  if ("response" in auth) return auth.response;
   const { id: eventId } = await params;
-
-  const event = await prisma.event.findUnique({ where: { id: eventId } });
-  if (!event) {
-    return NextResponse.json({ error: "not_found" }, { status: 404 });
-  }
+  const auth = await requireEventAccess(eventId);
+  if ("response" in auth) return auth.response;
+  const { event } = auth;
 
   const participants = await prisma.participant.findMany({
     where: { eventId },
