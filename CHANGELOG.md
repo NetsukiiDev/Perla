@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.1 — 2026-07-18
+
+### Fixed
+- Il tunnel ngrok ora si può avviare anche su un deploy in produzione self-hosted (es. un VPS), utile per chi vuole tenere sia un Cloudflare Tunnel sia ngrok attivi contemporaneamente. Resta bloccato solo su Vercel, dove non c'è un processo persistente in grado di mantenere il tunnel attivo
+- Il salvataggio della configurazione ngrok ora registra l'errore reale nei log del server invece di mostrare solo un messaggio generico
+
 ## 0.2.0 — 2026-07-17
 
 ### Added
