@@ -148,6 +148,7 @@ export const en: Dictionary = {
         saveFailed: "Failed to save.",
         notConfigured: "Configure the authtoken first.",
         vercelUnsupported: "Not available on Vercel: serverless functions have no persistent process to keep the tunnel alive.",
+        decryptFailed: "The saved token can no longer be read (the encryption key changed). Save it again.",
         startFailed: "Failed to start the tunnel. Check that ngrok is installed and the authtoken is correct.",
         startFailedWithDetail: "Failed to start the tunnel: {error}",
       },

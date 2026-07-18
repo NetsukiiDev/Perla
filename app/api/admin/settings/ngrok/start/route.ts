@@ -27,7 +27,16 @@ export async function POST() {
     return NextResponse.json({ error: "not_configured" }, { status: 400 });
   }
 
-  const authtoken = decrypt(cfg.authtokenEncrypted);
+  let authtoken: string;
+  try {
+    authtoken = decrypt(cfg.authtokenEncrypted);
+  } catch {
+    // Stored value was encrypted with a since-rotated ENCRYPTION_KEY (e.g.
+    // after a key regeneration) — it can never be read back, not a transient
+    // failure. Surface this distinctly so the UI can point at re-entering it,
+    // instead of a generic "start failed" that looks retriable.
+    return NextResponse.json({ error: "decrypt_failed" }, { status: 400 });
+  }
   const result = await startTunnel({ authtoken, domain: cfg.domain, port: Number(process.env.PORT) || 3000 });
   if (!result.ok) return NextResponse.json({ error: result.error }, { status: 502 });
   return NextResponse.json({ ok: true, url: result.url });

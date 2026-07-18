@@ -150,6 +150,7 @@ export const fr: Dictionary = {
         saveFailed: "Échec de l'enregistrement.",
         notConfigured: "Configurez d'abord l'authtoken.",
         vercelUnsupported: "Non disponible sur Vercel : les fonctions serverless n'ont pas de processus persistant pour maintenir le tunnel actif.",
+        decryptFailed: "Le token enregistré n'est plus lisible (la clé de chiffrement a changé). Enregistrez-le à nouveau.",
         startFailed: "Échec du démarrage du tunnel. Vérifiez que ngrok est installé et que l'authtoken est correct.",
         startFailedWithDetail: "Échec du démarrage du tunnel : {error}",
       },

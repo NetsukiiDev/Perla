@@ -31,10 +31,11 @@ export async function PUT(req: Request) {
   if (!parsed.success) return NextResponse.json({ error: "invalid", issues: parsed.error.issues }, { status: 400 });
 
   const { authtoken, domain } = parsed.data;
-  const existing = await prisma.ngrokConfig.findUnique({ where: { id: "default" } });
-  const authtokenEncrypted = authtoken && authtoken.length > 0 ? encrypt(authtoken) : existing?.authtokenEncrypted ?? null;
 
   try {
+    const existing = await prisma.ngrokConfig.findUnique({ where: { id: "default" } });
+    const authtokenEncrypted = authtoken && authtoken.length > 0 ? encrypt(authtoken) : existing?.authtokenEncrypted ?? null;
+
     await prisma.ngrokConfig.upsert({
       where: { id: "default" },
       create: { id: "default", authtokenEncrypted, domain: domain || null },

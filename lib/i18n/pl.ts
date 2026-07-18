@@ -150,6 +150,7 @@ export const pl: Dictionary = {
         saveFailed: "Zapis nie powiódł się.",
         notConfigured: "Najpierw skonfiguruj authtoken.",
         vercelUnsupported: "Niedostępne na Vercel: funkcje serverless nie mają trwałego procesu, aby utrzymać tunel aktywny.",
+        decryptFailed: "Zapisany token nie jest już czytelny (klucz szyfrowania się zmienił). Zapisz go ponownie.",
         startFailed: "Nie udało się uruchomić tunelu. Sprawdź, czy ngrok jest zainstalowany i czy authtoken jest poprawny.",
         startFailedWithDetail: "Nie udało się uruchomić tunelu: {error}",
       },

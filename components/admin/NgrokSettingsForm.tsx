@@ -121,6 +121,8 @@ export function NgrokSettingsForm() {
         setError(t.settings.ngrok.errors.notConfigured);
       } else if (data.error === "vercel_unsupported") {
         setError(t.settings.ngrok.errors.vercelUnsupported);
+      } else if (data.error === "decrypt_failed") {
+        setError(t.settings.ngrok.errors.decryptFailed);
       } else if (!data.error) {
         setError(t.settings.ngrok.errors.startFailed);
       } else {

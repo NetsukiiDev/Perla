@@ -114,6 +114,7 @@ export interface Dictionary {
         saveFailed: string;
         notConfigured: string;
         vercelUnsupported: string;
+        decryptFailed: string;
         startFailed: string;
         startFailedWithDetail: string;
       };
