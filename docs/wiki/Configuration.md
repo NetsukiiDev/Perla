@@ -36,6 +36,7 @@ openssl rand -hex 32      # the other secrets
 | `SETUP_DISABLED` | — | `"true"` to bypass the wizard (serverless/prod) |
 | `DEPLOY_HOOK_URL` | — | Webhook POSTed by the Settings **"Update now"** button, taking priority over self-update (see [Versioning](Versioning)) |
 | `SELF_UPDATE_ENABLED` | `"true"` (self-update is the zero-config default) | Set to `"false"` to disable **"Update now"**'s built-in `git pull` + rebuild instead of using it (see [Versioning](Versioning)) |
+| `APP_URL` | — | Public origin (e.g. `https://example.com`) to use when building links (password-reset emails, redirects) if the app can't tell it from request headers — needed behind a reverse proxy that connects to the origin over `localhost` (e.g. Cloudflare Tunnel), where the `Host` header would otherwise be `localhost:PORT` |
 
 ## Database
 
