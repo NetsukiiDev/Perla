@@ -57,13 +57,17 @@ export async function POST(req: Request) {
   const text =
     `${t.login.forgotPassword.description}\n\n` +
     `${resetUrl.toString()}\n\n` +
-    t.login.resetPassword.errors.expired;
+    t.login.forgotPassword.emailExpiryHint;
+  // Matches the app's always-dark palette (app/globals.css) so the email
+  // doesn't look like a different, unrelated product.
   const html = `
-    <div style="font-family:Arial,Helvetica,sans-serif;max-width:480px;margin:0 auto">
-      <h2>${t.login.resetPassword.title}</h2>
-      <p>${t.login.forgotPassword.description}</p>
-      <p><a href="${resetUrl.toString()}" style="display:inline-block;padding:10px 16px;background:#111827;color:#fff;border-radius:8px;text-decoration:none">${t.login.resetPassword.submit}</a></p>
-      <p style="color:#6b7280;font-size:13px">${t.login.resetPassword.errors.expired}</p>
+    <div style="background:#0a0a0b;padding:32px 16px;font-family:Arial,Helvetica,sans-serif">
+      <div style="max-width:480px;margin:0 auto;background:#15151a;border:1px solid #27272e;border-radius:16px;padding:32px">
+        <h2 style="color:#e8e8ec;margin:0 0 16px">${t.login.resetPassword.title}</h2>
+        <p style="color:#e8e8ec;margin:0 0 24px">${t.login.forgotPassword.description}</p>
+        <p style="margin:0 0 16px"><a href="${resetUrl.toString()}" style="display:inline-block;padding:12px 20px;background:#e8e8ec;color:#0a0a0b;border-radius:8px;text-decoration:none;font-weight:600">${t.login.resetPassword.submit}</a></p>
+        <p style="color:#8b8b96;font-size:13px;margin:0">${t.login.forgotPassword.emailExpiryHint}</p>
+      </div>
     </div>`;
 
   const sent = await sendMail({ to: user.email, subject, text, html });

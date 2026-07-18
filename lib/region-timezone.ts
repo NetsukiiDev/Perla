@@ -31,6 +31,7 @@ const COUNTRY_TIME_ZONE: Record<string, string> = {
   EE: "Europe/Tallinn",
   LV: "Europe/Riga",
   HR: "Europe/Zagreb",
+  SI: "Europe/Ljubljana",
   BG: "Europe/Sofia",
   RO: "Europe/Bucharest",
   RS: "Europe/Belgrade",

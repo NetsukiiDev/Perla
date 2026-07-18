@@ -32,6 +32,9 @@ export async function POST(req: Request) {
   });
 
   if (!result.ok) {
+    if (result.decryptFailed) {
+      return NextResponse.json({ error: "decrypt_failed" }, { status: 400 });
+    }
     return NextResponse.json({ error: "test_failed", detail: result.error ?? null }, { status: 502 });
   }
   return NextResponse.json({ ok: true });

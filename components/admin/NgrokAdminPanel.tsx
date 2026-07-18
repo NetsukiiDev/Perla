@@ -98,7 +98,13 @@ export function NgrokAdminPanel() {
     <div className="flex flex-col gap-3">
       {error && <p className="text-sm text-danger">{error}</p>}
       <div className="overflow-x-auto rounded-lg border border-surface-border">
-        <table className="w-full text-sm">
+        <table className="w-full table-fixed text-sm">
+          <colgroup>
+            <col className="w-[32%]" />
+            <col className="w-[14%]" />
+            <col />
+            <col className="w-[110px]" />
+          </colgroup>
           <thead className="bg-surface text-left text-xs uppercase tracking-wide text-muted">
             <tr>
               <th className="px-4 py-2 font-medium">{t.settings.ngrokAdmin.table.user}</th>
@@ -110,19 +116,27 @@ export function NgrokAdminPanel() {
           <tbody className="divide-y divide-surface-border">
             {tunnels.map((tunnel) => (
               <tr key={tunnel.userId}>
-                <td className="px-4 py-3">{tunnel.email}</td>
+                <td className="truncate px-4 py-3" title={tunnel.email}>
+                  {tunnel.email}
+                </td>
                 <td className="px-4 py-3">
                   <StatusBadge value={tunnel.role} label={tunnel.role === "admin" ? t.users.form.admin : t.users.form.organizer} />
                 </td>
                 <td className="px-4 py-3">
-                  <div className="flex flex-col gap-1">
+                  <div className="flex min-w-0 flex-col gap-1">
                     <span className="inline-flex items-center gap-2">
-                      <span className={`h-2 w-2 rounded-full ${tunnel.running ? "bg-emerald-400" : "bg-muted"}`} aria-hidden="true" />
+                      <span className={`h-2 w-2 shrink-0 rounded-full ${tunnel.running ? "bg-emerald-400" : "bg-muted"}`} aria-hidden="true" />
                       {tunnel.running ? t.settings.ngrok.running : tunnel.hasAuthtoken ? t.settings.ngrok.stopped : t.settings.ngrokAdmin.notConfigured}
                     </span>
                     {tunnel.url && (
-                      <div className="flex items-center gap-2">
-                        <a href={tunnel.url} target="_blank" rel="noopener noreferrer" className="truncate text-xs text-blue-400 hover:text-blue-300">
+                      <div className="flex min-w-0 items-center gap-1.5">
+                        <a
+                          href={tunnel.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title={tunnel.url}
+                          className="min-w-0 truncate text-xs text-blue-400 hover:text-blue-300"
+                        >
                           {tunnel.url}
                         </a>
                         <CopyButton value={tunnel.url} />
@@ -136,7 +150,7 @@ export function NgrokAdminPanel() {
                       type="button"
                       onClick={() => void handleStop(tunnel.userId)}
                       disabled={pending === tunnel.userId}
-                      className="inline-flex items-center gap-2 rounded-lg border border-surface-border px-3 py-1.5 text-xs text-muted hover:text-foreground disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-surface-border px-3 py-1.5 text-xs text-muted hover:text-foreground disabled:opacity-50"
                     >
                       {pending === tunnel.userId ? (
                         <Loader2 size={12} className="animate-spin" aria-hidden="true" />
@@ -150,7 +164,7 @@ export function NgrokAdminPanel() {
                       type="button"
                       onClick={() => void handleStart(tunnel.userId)}
                       disabled={pending === tunnel.userId || !tunnel.hasAuthtoken}
-                      className="inline-flex items-center gap-2 rounded-lg border border-surface-border px-3 py-1.5 text-xs text-muted hover:text-foreground disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-surface-border px-3 py-1.5 text-xs text-muted hover:text-foreground disabled:opacity-50"
                     >
                       {pending === tunnel.userId ? (
                         <Loader2 size={12} className="animate-spin" aria-hidden="true" />

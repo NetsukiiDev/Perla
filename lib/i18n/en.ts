@@ -74,6 +74,7 @@ export const en: Dictionary = {
         testSent: "Test email sent successfully.",
         invalid: "Fill in host, port and sender email.",
         testError: "SMTP error: {error}",
+        decryptFailed: "The saved password can no longer be read (the encryption key changed). Save it again — until then, password recovery emails won't work.",
       },
     },
     logs: {
@@ -125,13 +126,12 @@ export const en: Dictionary = {
     },
     ngrok: {
       section: "ngrok tunnel",
-      description: "Expose the dev server over a public HTTPS URL to test the participant flow's geolocation from a real phone.",
+      description: "Ngrok is used to securely expose the dev server through a secondary domain, so you avoid sharing your main domain.",
       authtokenLabel: "Authtoken",
       authtokenHint: "Free, no credit card — get it from dashboard.ngrok.com/get-started/your-authtoken after creating an account.",
       domainLabel: "Static domain (optional)",
       domainPlaceholder: "your-domain.ngrok-free.app",
-      domainHint:
-        "Free accounts can reserve one fixed domain so the URL doesn't change on every restart. If you use one, also set TUNNEL_HOST in .env to the same value, so the dev server accepts it without needing a restart.",
+      domainHint: "Free accounts can reserve a fixed domain, so the URL doesn't change on every restart.",
       save: "Save",
       saving: "Saving…",
       saved: "Settings saved.",
@@ -224,7 +224,7 @@ export const en: Dictionary = {
         deleting: "Deleting…",
       },
       errors: {
-        coordinate: "Coordinates not recognized in a supported region (Italy, Spain). Check latitude and longitude.",
+        coordinate: "Coordinates fall outside any supported region. Check latitude and longitude.",
         saveFailed: "Unable to save event. Check the fields.",
         generic: "Something went wrong. Please try again.",
         deleteFailed: "Unable to delete event.",
@@ -410,6 +410,7 @@ export const en: Dictionary = {
       submitting: "Sending…",
       sent: "If the email is associated with an account, you'll receive the reset link shortly.",
       backToLogin: "Back to login",
+      emailExpiryHint: "This link is valid for 1 hour.",
       errors: { generic: "Something went wrong. Please try again.", rateLimited: "Too many attempts. Try again in a few minutes." },
     },
     resetPassword: {
@@ -520,7 +521,7 @@ export const en: Dictionary = {
     notYetAvailable: "Positions are not yet available. Try again at {time}.",
   },
 
-  eventInfo: { start: "Start", end: "End", region: "Region", na: "N/A" },
+  eventInfo: { start: "Start", end: "End", region: "Region", country: "Country", na: "N/A" },
 
   common: {
     na: "N/A", copied: "Copied", copy: "Copy",

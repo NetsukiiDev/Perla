@@ -31,11 +31,17 @@ export async function getSmtpConfig(): Promise<SmtpConfig | null> {
   }
 }
 
-// Builds a configured transporter from the stored config. Returns null when
-// SMTP is disabled or the config/secret is unusable.
-export async function buildSmtpTransport(): Promise<Transporter | null> {
+// Builds a configured transporter from the stored config.
+// { transport: null, reason: "not_configured" } when SMTP is disabled/unset;
+// { transport: null, reason: "decrypt_failed" } when the stored password was
+// encrypted with a since-rotated ENCRYPTION_KEY and can never be read back —
+// distinct from other failures so callers (password-reset, the Settings test
+// button) can point the admin at re-entering it instead of a generic error.
+export async function buildSmtpTransport(): Promise<
+  { transport: Transporter; reason?: undefined } | { transport: null; reason: "not_configured" | "decrypt_failed" }
+> {
   const cfg = await getSmtpConfig();
-  if (!cfg || !cfg.enabled) return null;
+  if (!cfg || !cfg.enabled) return { transport: null, reason: "not_configured" };
 
   let pass: string | undefined;
   if (cfg.passwordEncrypted) {
@@ -46,11 +52,11 @@ export async function buildSmtpTransport(): Promise<Transporter | null> {
       // this doesn't look identical to "SMTP disabled" in the server logs;
       // the fix is re-entering the password from Settings.
       console.error("Stored SMTP password is unreadable (ENCRYPTION_KEY mismatch?)", err instanceof Error ? err.message : err);
-      return null;
+      return { transport: null, reason: "decrypt_failed" };
     }
   }
 
-  return nodemailer.createTransport({
+  const transport = nodemailer.createTransport({
     host: cfg.host,
     port: cfg.port,
     secure: cfg.secure,
@@ -59,6 +65,7 @@ export async function buildSmtpTransport(): Promise<Transporter | null> {
     requireTLS: !cfg.secure,
     auth: cfg.user ? { user: cfg.user, pass } : undefined,
   });
+  return { transport };
 }
 
 export interface SendMailInput {
@@ -77,14 +84,20 @@ export function smtpFromAddress(cfg: SmtpConfig): string {
 export interface SendMailResult {
   ok: boolean;
   error?: string;
+  /** Set only when the stored SMTP password can't be decrypted — see buildSmtpTransport. */
+  decryptFailed?: boolean;
 }
 
 // Sends a single email using the configured SMTP server. Returns { ok: false }
 // when SMTP is not usable (disabled, not configured, or a transient send error).
 export async function sendMail(input: SendMailInput): Promise<SendMailResult> {
-  const transport = await buildSmtpTransport();
-  const cfg = await getSmtpConfig();
-  if (!transport || !cfg) return { ok: false, error: "SMTP not configured or disabled" };
+  const [{ transport, reason }, cfg] = await Promise.all([buildSmtpTransport(), getSmtpConfig()]);
+  if (!transport || !cfg) {
+    if (reason === "decrypt_failed") {
+      return { ok: false, error: "SMTP password is unreadable (ENCRYPTION_KEY mismatch)", decryptFailed: true };
+    }
+    return { ok: false, error: "SMTP not configured or disabled" };
+  }
 
   try {
     await transport.sendMail({

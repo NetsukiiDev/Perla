@@ -74,6 +74,7 @@ export const it: Dictionary = {
         testSent: "Email di test inviata correttamente.",
         invalid: "Compila host, porta ed email mittente.",
         testError: "Errore SMTP: {error}",
+        decryptFailed: "La password salvata non è più leggibile (la chiave di cifratura è cambiata). Salvala di nuovo — finché non lo fai, il recupero password via email non funzionerà.",
       },
     },
     logs: {
@@ -126,14 +127,13 @@ export const it: Dictionary = {
     ngrok: {
       section: "Tunnel ngrok",
       description:
-        "Esponi il server di sviluppo su un URL HTTPS pubblico per testare il flusso partecipante (geolocalizzazione) da un telefono reale.",
+        "Ngrok serve a esporre il server di sviluppo in modo sicuro tramite un dominio secondario, evitando così di condividere il tuo dominio principale.",
       authtokenLabel: "Authtoken",
       authtokenHint:
         "Gratuito, senza carta di credito — recuperalo su dashboard.ngrok.com/get-started/your-authtoken dopo aver creato un account.",
       domainLabel: "Dominio statico (facoltativo)",
       domainPlaceholder: "tuo-dominio.ngrok-free.app",
-      domainHint:
-        "Con un account gratuito puoi riservare un dominio fisso: evita che l'URL cambi a ogni avvio. Se lo usi, imposta anche TUNNEL_HOST nel file .env con lo stesso valore, così il server di sviluppo lo accetta senza bisogno di riavvii.",
+      domainHint: "Con un account gratuito puoi riservare un dominio fisso, così l'URL non cambia a ogni avvio.",
       save: "Salva",
       saving: "Salvataggio…",
       saved: "Impostazioni salvate.",
@@ -226,7 +226,7 @@ export const it: Dictionary = {
         deleting: "Eliminazione…",
       },
       errors: {
-        coordinate: "Coordinate non riconosciute in una regione supportata (Italia, Spagna). Controlla latitudine e longitudine.",
+        coordinate: "Coordinate fuori da qualsiasi regione supportata. Controlla latitudine e longitudine.",
         saveFailed: "Impossibile salvare l'evento. Controlla i campi.",
         generic: "Si è verificato un errore. Riprova.",
         deleteFailed: "Impossibile eliminare l'evento.",
@@ -412,6 +412,7 @@ export const it: Dictionary = {
       submitting: "Invio…",
       sent: "Se l'email è associata a un account, riceverai a breve il link di recupero.",
       backToLogin: "Torna al login",
+      emailExpiryHint: "Il link è valido per 1 ora.",
       errors: { generic: "Si è verificato un errore. Riprova.", rateLimited: "Troppi tentativi. Riprova tra qualche minuto." },
     },
     resetPassword: {
@@ -522,7 +523,7 @@ export const it: Dictionary = {
     notYetAvailable: "Le posizioni non sono ancora disponibili. Riprova alle {time}.",
   },
 
-  eventInfo: { start: "Inizio", end: "Fine", region: "Regione", na: "N/D" },
+  eventInfo: { start: "Inizio", end: "Fine", region: "Regione", country: "Stato", na: "N/D" },
 
   common: {
     na: "N/D", copied: "Copiato", copy: "Copia",

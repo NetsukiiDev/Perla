@@ -139,7 +139,7 @@ export function SettingsPanel() {
         })}
       </div>
 
-      <div className="max-w-xl">
+      <div className={activeTab === "ngrokAdmin" ? "max-w-3xl" : "max-w-xl"}>
         {activeTab === "version" && (
           <section className="flex flex-col gap-3">
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-surface-border p-3">

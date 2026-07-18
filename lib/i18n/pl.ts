@@ -74,6 +74,7 @@ export const pl: Dictionary = {
         testSent: "E-mail testowy wysłany pomyślnie.",
         invalid: "Wypełnij host, port i e-mail nadawcy.",
         testError: "Błąd SMTP: {error}",
+        decryptFailed: "Zapisane hasło nie jest już czytelne (klucz szyfrowania się zmienił). Zapisz je ponownie — do tego czasu e-maile do odzyskiwania hasła nie będą działać.",
       },
     },
     logs: {
@@ -126,14 +127,13 @@ export const pl: Dictionary = {
     ngrok: {
       section: "Tunel ngrok",
       description:
-        "Udostępnij serwer deweloperski przez publiczny adres HTTPS, aby przetestować geolokalizację w przebiegu uczestnika na prawdziwym telefonie.",
+        "Ngrok służy do bezpiecznego udostępniania serwera deweloperskiego przez domenę dodatkową, dzięki czemu nie musisz udostępniać swojej głównej domeny.",
       authtokenLabel: "Authtoken",
       authtokenHint:
         "Darmowe, bez karty kredytowej — znajdziesz je na dashboard.ngrok.com/get-started/your-authtoken po założeniu konta.",
       domainLabel: "Stała domena (opcjonalnie)",
       domainPlaceholder: "twoja-domena.ngrok-free.app",
-      domainHint:
-        "Darmowe konto pozwala zarezerwować jedną stałą domenę, dzięki czemu adres URL nie zmienia się przy każdym uruchomieniu. Jeśli jej używasz, ustaw też TUNNEL_HOST w pliku .env na tę samą wartość, aby serwer deweloperski akceptował ją bez ponownego uruchamiania.",
+      domainHint: "Darmowe konto pozwala zarezerwować stałą domenę, dzięki czemu adres URL nie zmienia się przy każdym uruchomieniu.",
       save: "Zapisz",
       saving: "Zapisywanie…",
       saved: "Ustawienia zapisane.",
@@ -226,7 +226,7 @@ export const pl: Dictionary = {
         deleting: "Usuwanie…",
       },
       errors: {
-        coordinate: "Nie rozpoznano współrzędnych w obsługiwanym regionie (Włochy, Hiszpania). Sprawdź szerokość i długość geograficzną.",
+        coordinate: "Współrzędne znajdują się poza jakimkolwiek obsługiwanym regionem. Sprawdź szerokość i długość geograficzną.",
         saveFailed: "Nie udało się zapisać wydarzenia. Sprawdź pola.",
         generic: "Coś poszło nie tak. Spróbuj ponownie.",
         deleteFailed: "Nie udało się usunąć wydarzenia.",
@@ -412,6 +412,7 @@ export const pl: Dictionary = {
       submitting: "Wysyłanie…",
       sent: "Jeśli e-mail jest powiązany z kontem, wkrótce otrzymasz link resetujący.",
       backToLogin: "Powrót do logowania",
+      emailExpiryHint: "Ten link jest ważny przez 1 godzinę.",
       errors: { generic: "Coś poszło nie tak. Spróbuj ponownie.", rateLimited: "Zbyt wiele prób. Spróbuj ponownie za kilka minut." },
     },
     resetPassword: {
@@ -522,7 +523,7 @@ export const pl: Dictionary = {
     notYetAvailable: "Pozycje nie są jeszcze dostępne. Spróbuj ponownie o {time}.",
   },
 
-  eventInfo: { start: "Start", end: "Koniec", region: "Region", na: "Brak danych" },
+  eventInfo: { start: "Start", end: "Koniec", region: "Region", country: "Kraj", na: "Brak danych" },
 
   common: {
     na: "Brak danych", copied: "Skopiowano", copy: "Kopiuj",

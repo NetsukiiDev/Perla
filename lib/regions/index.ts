@@ -21,6 +21,7 @@ import { LT } from "./lt";
 import { EE } from "./ee";
 import { LV } from "./lv";
 import { HR } from "./hr";
+import { SI } from "./si";
 import { BG } from "./bg";
 import { RO } from "./ro";
 import { RS } from "./rs";
@@ -51,7 +52,7 @@ import { TR } from "./tr";
 // regardless of where they appear here) -- add new countries in any order.
 export const COUNTRIES: CountryRegions[] = [
   IT, ES, DE, AT, PL, NL, BE, CH, CZ, SK, DK, PT,
-  FR, GB, NO, SE, FI, IS, LT, EE, LV, HR, BG, RO, RS, BA, ME, MK, AL, XK,
+  FR, GB, NO, SE, FI, IS, LT, EE, LV, HR, SI, BG, RO, RS, BA, ME, MK, AL, XK,
   UA, BY, MD, GE, AM, AZ, AD, MC, SM, VA, LI, MT, CY, LU, RU, TR,
 ];
 

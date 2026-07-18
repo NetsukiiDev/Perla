@@ -21,8 +21,11 @@ export async function proxy(req: NextRequest) {
   }
 
   const { pathname } = req.nextUrl;
-  // /admin/login and /admin/setup are the only unauthenticated admin pages.
-  if (!pathname.startsWith("/admin") || pathname === "/admin/login" || pathname === "/admin/setup") {
+  // Unauthenticated admin pages: login/setup, plus the password-recovery
+  // flow — someone who forgot their password is by definition not logged
+  // in, so gating these behind a session would make them unreachable.
+  const PUBLIC_ADMIN_PATHS = new Set(["/admin/login", "/admin/setup", "/admin/forgot-password", "/admin/reset-password"]);
+  if (!pathname.startsWith("/admin") || PUBLIC_ADMIN_PATHS.has(pathname)) {
     return NextResponse.next();
   }
 

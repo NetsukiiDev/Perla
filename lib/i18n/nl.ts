@@ -74,6 +74,7 @@ export const nl: Dictionary = {
         testSent: "Testmail succesvol verzonden.",
         invalid: "Vul host, poort en afzender-e-mail in.",
         testError: "SMTP-fout: {error}",
+        decryptFailed: "Het opgeslagen wachtwoord is niet meer leesbaar (de coderingssleutel is gewijzigd). Sla het opnieuw op — tot die tijd werken e-mails voor wachtwoordherstel niet.",
       },
     },
     logs: {
@@ -126,14 +127,13 @@ export const nl: Dictionary = {
     ngrok: {
       section: "ngrok-tunnel",
       description:
-        "Stel de dev-server bloot via een openbare HTTPS-URL om de geolocatie van de deelnemersflow op een echte telefoon te testen.",
+        "Ngrok wordt gebruikt om de ontwikkelserver veilig te ontsluiten via een tweede domein, zodat je je hoofddomein niet hoeft te delen.",
       authtokenLabel: "Authtoken",
       authtokenHint:
         "Gratis, geen creditcard nodig — te vinden op dashboard.ngrok.com/get-started/your-authtoken na het aanmaken van een account.",
       domainLabel: "Vast domein (optioneel)",
       domainPlaceholder: "jouw-domein.ngrok-free.app",
-      domainHint:
-        "Met een gratis account kun je één vast domein reserveren, zodat de URL niet bij elke herstart verandert. Stel bij gebruik ook TUNNEL_HOST in .env in op dezelfde waarde, zodat de dev-server het accepteert zonder herstart.",
+      domainHint: "Met een gratis account kun je een vast domein reserveren, zodat de URL niet bij elke herstart verandert.",
       save: "Opslaan",
       saving: "Opslaan…",
       saved: "Instellingen opgeslagen.",
@@ -226,7 +226,7 @@ export const nl: Dictionary = {
         deleting: "Verwijderen…",
       },
       errors: {
-        coordinate: "Coördinaten niet herkend in een ondersteunde regio (Italië, Spanje). Controleer breedte- en lengtegraad.",
+        coordinate: "De coördinaten liggen buiten elke ondersteunde regio. Controleer breedte- en lengtegraad.",
         saveFailed: "Kan evenement niet opslaan. Controleer de velden.",
         generic: "Er is iets misgegaan. Probeer het opnieuw.",
         deleteFailed: "Kan evenement niet verwijderen.",
@@ -412,6 +412,7 @@ export const nl: Dictionary = {
       submitting: "Verzenden…",
       sent: "Als de e-mail aan een account is gekoppeld, ontvangt u binnenkort de herstellink.",
       backToLogin: "Terug naar inloggen",
+      emailExpiryHint: "Deze link is 1 uur geldig.",
       errors: { generic: "Er is iets misgegaan. Probeer het opnieuw.", rateLimited: "Te veel pogingen. Probeer het over een paar minuten opnieuw." },
     },
     resetPassword: {
@@ -522,7 +523,7 @@ export const nl: Dictionary = {
     notYetAvailable: "Posities zijn nog niet beschikbaar. Probeer het om {time} opnieuw.",
   },
 
-  eventInfo: { start: "Start", end: "Einde", region: "Regio", na: "N.v.t." },
+  eventInfo: { start: "Start", end: "Einde", region: "Regio", country: "Land", na: "N.v.t." },
 
   common: {
     na: "N.v.t.", copied: "Gekopieerd", copy: "Kopiëren",

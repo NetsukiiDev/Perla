@@ -41,7 +41,7 @@ export interface Dictionary {
       sendingTest: string;
       testSent: string;
       notConfigured: string;
-      errors: { saveFailed: string; testFailed: string; testSent: string; invalid: string; testError: string };
+      errors: { saveFailed: string; testFailed: string; testSent: string; invalid: string; testError: string; decryptFailed: string };
     };
     logs: {
       section: string;
@@ -239,6 +239,7 @@ export interface Dictionary {
       submitting: string;
       sent: string;
       backToLogin: string;
+      emailExpiryHint: string;
       errors: { generic: string; rateLimited: string };
     };
     resetPassword: {
@@ -297,7 +298,7 @@ export interface Dictionary {
     notYetAvailable: string;
   };
 
-  eventInfo: { start: string; end: string; region: string; na: string };
+  eventInfo: { start: string; end: string; region: string; country: string; na: string };
 
   common: {
     na: string; copied: string; copy: string; openInMaps: string;

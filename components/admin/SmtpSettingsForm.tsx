@@ -129,8 +129,12 @@ export function SmtpSettingsForm() {
       if (res.ok) setTestDone(true);
       else {
         const body = await res.json().catch(() => null);
-        const detail = body?.detail;
-        setError(detail ? t.settings.smtp.errors.testError.replace("{error}", detail) : t.settings.smtp.errors.testFailed);
+        if (body?.error === "decrypt_failed") {
+          setError(t.settings.smtp.errors.decryptFailed);
+        } else {
+          const detail = body?.detail;
+          setError(detail ? t.settings.smtp.errors.testError.replace("{error}", detail) : t.settings.smtp.errors.testFailed);
+        }
       }
     } catch {
       setError(t.settings.smtp.errors.testFailed);

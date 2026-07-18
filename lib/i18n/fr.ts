@@ -74,6 +74,7 @@ export const fr: Dictionary = {
         testSent: "E-mail de test envoyé avec succès.",
         invalid: "Renseignez l'hôte, le port et l'e-mail de l'expéditeur.",
         testError: "Erreur SMTP : {error}",
+        decryptFailed: "Le mot de passe enregistré n'est plus lisible (la clé de chiffrement a changé). Enregistrez-le à nouveau — en attendant, les e-mails de récupération de mot de passe ne fonctionneront pas.",
       },
     },
     logs: {
@@ -126,14 +127,13 @@ export const fr: Dictionary = {
     ngrok: {
       section: "Tunnel ngrok",
       description:
-        "Exposer le serveur de développement via une URL HTTPS publique pour tester la géolocalisation du parcours participant depuis un vrai téléphone.",
+        "Ngrok sert à exposer le serveur de développement de manière sécurisée via un domaine secondaire, évitant ainsi de partager votre domaine principal.",
       authtokenLabel: "Authtoken",
       authtokenHint:
         "Gratuit, sans carte bancaire — récupérez-le sur dashboard.ngrok.com/get-started/your-authtoken après avoir créé un compte.",
       domainLabel: "Domaine statique (facultatif)",
       domainPlaceholder: "votre-domaine.ngrok-free.app",
-      domainHint:
-        "Un compte gratuit permet de réserver un domaine fixe pour que l'URL ne change pas à chaque redémarrage. Si vous l'utilisez, définissez aussi TUNNEL_HOST dans .env avec la même valeur, pour que le serveur de développement l'accepte sans redémarrage.",
+      domainHint: "Un compte gratuit permet de réserver un domaine fixe, pour que l'URL ne change pas à chaque redémarrage.",
       save: "Enregistrer",
       saving: "Enregistrement…",
       saved: "Paramètres enregistrés.",
@@ -226,7 +226,7 @@ export const fr: Dictionary = {
         deleting: "Suppression…",
       },
       errors: {
-        coordinate: "Coordonnées non reconnues dans une région prise en charge (Italie, Espagne). Vérifiez la latitude et la longitude.",
+        coordinate: "Les coordonnées se situent en dehors de toute région prise en charge. Vérifiez la latitude et la longitude.",
         saveFailed: "Impossible d'enregistrer l'événement. Vérifiez les champs.",
         generic: "Une erreur s'est produite. Veuillez réessayer.",
         deleteFailed: "Impossible de supprimer l'événement.",
@@ -412,6 +412,7 @@ export const fr: Dictionary = {
       submitting: "Envoi…",
       sent: "Si l'e-mail est associé à un compte, vous recevrez le lien de réinitialisation sous peu.",
       backToLogin: "Retour à la connexion",
+      emailExpiryHint: "Ce lien est valable 1 heure.",
       errors: { generic: "Une erreur s'est produite. Veuillez réessayer.", rateLimited: "Trop de tentatives. Réessayez dans quelques minutes." },
     },
     resetPassword: {
@@ -522,7 +523,7 @@ export const fr: Dictionary = {
     notYetAvailable: "Les positions ne sont pas encore disponibles. Réessayez à {time}.",
   },
 
-  eventInfo: { start: "Début", end: "Fin", region: "Région", na: "N/D" },
+  eventInfo: { start: "Début", end: "Fin", region: "Région", country: "Pays", na: "N/D" },
 
   common: {
     na: "N/D", copied: "Copié", copy: "Copier",

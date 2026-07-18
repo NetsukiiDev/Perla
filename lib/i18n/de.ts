@@ -74,6 +74,7 @@ export const de: Dictionary = {
         testSent: "Test-E-Mail erfolgreich gesendet.",
         invalid: "Host, Port und Absender-E-Mail ausfüllen.",
         testError: "SMTP-Fehler: {error}",
+        decryptFailed: "Das gespeicherte Passwort kann nicht mehr gelesen werden (der Verschlüsselungsschlüssel hat sich geändert). Bitte erneut speichern — bis dahin funktionieren E-Mails zur Passwort-Wiederherstellung nicht.",
       },
     },
     logs: {
@@ -126,14 +127,13 @@ export const de: Dictionary = {
     ngrok: {
       section: "ngrok-Tunnel",
       description:
-        "Den Dev-Server über eine öffentliche HTTPS-URL freigeben, um den Teilnehmer-Flow (Geolokalisierung) auf einem echten Smartphone zu testen.",
+        "Ngrok macht den Entwicklungsserver über eine Zweitdomain sicher zugänglich, sodass du deine Hauptdomain nicht teilen musst.",
       authtokenLabel: "Authtoken",
       authtokenHint:
         "Kostenlos, keine Kreditkarte nötig — nach der Kontoerstellung zu finden unter dashboard.ngrok.com/get-started/your-authtoken.",
       domainLabel: "Feste Domain (optional)",
       domainPlaceholder: "deine-domain.ngrok-free.app",
-      domainHint:
-        "Mit einem kostenlosen Konto kannst du eine feste Domain reservieren, damit sich die URL bei jedem Neustart nicht ändert. Falls genutzt, setze zusätzlich TUNNEL_HOST in .env auf denselben Wert, damit der Dev-Server sie ohne Neustart akzeptiert.",
+      domainHint: "Mit einem kostenlosen Konto kannst du eine feste Domain reservieren, damit sich die URL bei jedem Neustart nicht ändert.",
       save: "Speichern",
       saving: "Wird gespeichert…",
       saved: "Einstellungen gespeichert.",
@@ -226,7 +226,7 @@ export const de: Dictionary = {
         deleting: "Wird gelöscht…",
       },
       errors: {
-        coordinate: "Koordinaten in keiner unterstützten Region erkannt (Italien, Spanien). Breiten- und Längengrad prüfen.",
+        coordinate: "Die Koordinaten liegen außerhalb jeder unterstützten Region. Breiten- und Längengrad prüfen.",
         saveFailed: "Veranstaltung konnte nicht gespeichert werden. Felder prüfen.",
         generic: "Etwas ist schiefgelaufen. Bitte erneut versuchen.",
         deleteFailed: "Veranstaltung konnte nicht gelöscht werden.",
@@ -412,6 +412,7 @@ export const de: Dictionary = {
       submitting: "Wird gesendet…",
       sent: "Falls die E-Mail einem Konto zugeordnet ist, erhalten Sie in Kürze den Link zum Zurücksetzen.",
       backToLogin: "Zurück zur Anmeldung",
+      emailExpiryHint: "Dieser Link ist 1 Stunde lang gültig.",
       errors: { generic: "Etwas ist schiefgelaufen. Bitte erneut versuchen.", rateLimited: "Zu viele Versuche. In einigen Minuten erneut versuchen." },
     },
     resetPassword: {
@@ -522,7 +523,7 @@ export const de: Dictionary = {
     notYetAvailable: "Positionen sind noch nicht verfügbar. Versuchen Sie es um {time} erneut.",
   },
 
-  eventInfo: { start: "Beginn", end: "Ende", region: "Region", na: "N/V" },
+  eventInfo: { start: "Beginn", end: "Ende", region: "Region", country: "Land", na: "N/V" },
 
   common: {
     na: "N/V", copied: "Kopiert", copy: "Kopieren",
