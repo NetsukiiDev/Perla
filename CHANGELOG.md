@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.5 — 2026-07-18
+
+### Fixed
+- Il supporto a Cloudflare Tunnel (evitare redirect HTTPS in loop) e la nuova variabile `APP_URL` (per costruire link corretti dietro un reverse proxy che si connette in locale, es. Cloudflare Tunnel) erano finora una patch locale non versionata su una singola installazione self-hosted — ogni aggiornamento che toccava `proxy.ts` falliva lì con un conflitto Git. Ora fanno parte del codice normale, documentate in [Configuration](docs/wiki/Configuration.md)
+
 ## 0.2.4 — 2026-07-18
 
 ### Added
