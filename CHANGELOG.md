@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.2.3 — 2026-07-18
+
+### Added
+- Il ruolo **Staff** è stato sostituito da **Organizzatore**: ogni organizzatore crea e gestisce solo i propri eventi (dati, partecipanti, biglietti/codici, annunci, live, sessioni) — non vede né può accedere agli eventi di altri organizzatori (404, non un generico "accesso negato"). Gli admin continuano a vedere e gestire tutto
+- Gli organizzatori non hanno più accesso alla pagina **Impostazioni** (bloccata sia lato pagina che su tutte le route API sottostanti); i controlli **Lingua** e **Layout navigazione**, prima dentro Impostazioni, sono stati spostati nella pagina **Account**, raggiungibile da tutti
+- Pagina di modifica evento: gli admin possono ora (ri)assegnare il **Proprietario** di un evento da un menu a tendina — utile anche per gli eventi creati prima di questo aggiornamento, che non hanno un proprietario noto e per default sono visibili solo agli admin
+- Il **Tunnel ngrok** è ora per-utente invece che condiviso: ogni admin e ogni organizzatore configura ed avvia il proprio tunnel in modo indipendente (proprio authtoken/dominio, propria sessione avviata/fermata), spostato da Impostazioni alla pagina **Account** così anche gli organizzatori possono usarlo per testare la geolocalizzazione da un telefono reale
+- Impostazioni → nuova scheda **Tutti i tunnel**: gli admin vedono lo stato del tunnel ngrok di ogni admin e organizzatore (configurato o no, attivo o no, URL pubblico) e possono avviarlo/fermarlo per conto loro, usando il token già salvato da quell'utente
+- Pagina **Account** riorganizzata in schede (Profilo, Preferenze, Tunnel ngrok) invece di un unico elenco verticale
+
+### Breaking change per installazioni self-hosted
+Questo aggiornamento include la prima modifica di schema del database realmente "breaking" mai distribuita tramite l'auto-update: l'enum dei ruoli passa da `admin`/`staff` a `admin`/`organizer`, la tabella eventi guadagna una colonna proprietario, e la configurazione ngrok passa da una riga singola condivisa a una riga per utente. Il self-update (`git pull` + rigenerazione del client Prisma) **non** esegue mai `npm run db:push` in autonomia — dopo aver aggiornato un'installazione self-hosted esistente, va lanciato manualmente:
+```
+npm run db:push
+```
+Se il database ha già utenti con ruolo `staff`, prima di restringere l'enum va eseguita una migrazione dati (allargare l'enum a `('admin','staff','organizer')`, `UPDATE admin_users SET role='organizer' WHERE role='staff'`, poi restringere). Se esiste già una configurazione ngrok salvata (riga con `id='default'` nella tabella `ngrok_config`), va assegnata manualmente a un admin esistente prima di restringere la nuova colonna `admin_user_id` (altrimenti `db:push` la segnala come perdita di dati e la riga va persa). Chi parte da un'installazione nuova, senza utenti `staff` o senza una configurazione ngrok già salvata non deve fare nulla di più del solito `db:push`.
+
 ## 0.2.2 — 2026-07-18
 
 ### Fixed
