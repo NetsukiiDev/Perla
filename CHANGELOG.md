@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.2.4 — 2026-07-18
+
+### Added
+- La schermata di consenso posizione del partecipante mostra ora anche lo **Stato** (es. "Germania"), oltre alla Regione — solo testo, senza una seconda silhouette
+
+### Fixed
+- La **Slovenia** era l'unico paese UE mancante dal rilevamento regione (introdotto nella v0.1.5): le coordinate al suo interno restituivano sempre "regione non riconosciuta", bloccando la creazione di eventi lì
+- Il messaggio d'errore "coordinate non riconosciute" non menziona più solo Italia/Spagna, ormai fuorviante con tutti i paesi supportati
+- Se la password SMTP salvata non è più leggibile (es. dopo una rigenerazione della chiave di cifratura), l'email di recupero password falliva in silenzio — l'admin vedeva sempre "email inviata" ma il messaggio non arrivava mai. Ora il pulsante "Invia email di test" in Impostazioni mostra un errore chiaro che invita a salvare di nuovo la password, invece di un errore SMTP criptico
+- **"Password dimenticata?" non faceva nulla**: `/admin/forgot-password` e `/admin/reset-password` erano bloccate dietro l'autenticazione come le altre pagine admin, quindi chi non riusciva ad accedere veniva rimandato dritto al login invece di poter richiedere il reset — ora sono pubbliche, come `/admin/login`
+
+### Changed
+- Tabella "Tutti i tunnel" (Impostazioni → admin): colonne a larghezza fissa così il pulsante Avvia/Ferma resta sempre visibile senza dover scorrere orizzontalmente, anche con URL ngrok lunghi
+- Testi della sezione Tunnel ngrok (Account) riscritti per spiegare più chiaramente lo scopo (esporre il server tramite un dominio secondario, senza condividere il dominio principale) e senza più menzionare `.env`
+- Nella card di consenso posizione del partecipante, Stato ora sopra e Regione sotto
+- L'email di recupero password ha ora lo stesso tema scuro del resto dell'app invece di uno sfondo bianco generico; corretto anche il testo in fondo, che riusava per errore il messaggio "link scaduto" invece di indicare la validità di 1 ora
+
 ## 0.2.3 — 2026-07-18
 
 ### Added
