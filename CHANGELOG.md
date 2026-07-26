@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.9 — 2026-07-26
+
+### Fixed
+- Lo **switch di branch** ora elenca anche i branch remote (non solo locali): sul VPS dove il repo ha solo `master` come branch locale, la `Dev` ora appare come opzione disponibile
+
 ## 0.2.8 — 2026-07-26
 
 _Version bump — vedi 0.2.7 per le novità di questa release._
