@@ -3,6 +3,7 @@
 ## Non rilasciato
 
 ### Changed
+- Aggiornate tre dipendenze npm segnalate da Dependabot per vulnerabilità note (incluse `next` 16.2.9 → 16.2.11 e `prisma` 7.8 → 7.9)
 - **Lo switch di branch è stato rifatto: l'elenco ora arriva dall'API di GitHub**, non più da `git branch -a`. Quello locale mostra solo ciò che l'ultimo `fetch` aveva portato: su questa installazione elencava sei branch, di cui **quattro inesistenti su GitHub** (una `dependabot` già mergiata e cancellata, due `vercel/…`) più una voce spuria `origin` — mentre una branch pushata cinque minuti prima non sarebbe comparsa affatto. Il pannello si aggiorna da solo ogni 20 secondi, ha un pulsante per forzare il refresh, mostra il commit di ogni branch e segnala quando la copia locale è su un commit diverso da GitHub. Se GitHub non è raggiungibile ripiega sull'elenco locale, dicendolo esplicitamente
 - Il cambio branch ora esegue prima `git fetch`, così funziona anche verso una branch **mai clonata in locale**, e allinea con `git merge --ff-only`: se la copia locale ha commit che il remoto non ha, si ferma con un errore invece di scartarli o creare un merge. Opzionale `GITHUB_TOKEN` per alzare il limite di richieste all'API GitHub (60/ora per IP senza autenticazione)
 
