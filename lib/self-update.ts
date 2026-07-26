@@ -113,13 +113,20 @@ export async function getBranches(): Promise<{ ok: true; data: BranchInfo } | { 
   try {
     const [{ stdout: current }, { stdout: list }] = await Promise.all([
       execFileAsync("git", ["rev-parse", "--abbrev-ref", "HEAD"], { cwd, timeout: 10_000 }),
-      execFileAsync("git", ["branch", "--format=%(refname:short)"], { cwd, timeout: 10_000 }),
+      execFileAsync("git", ["branch", "-a", "--no-color"], { cwd, timeout: 10_000 }),
     ]);
-    const branches = list
-      .split("\n")
-      .map((b) => b.trim())
-      .filter(Boolean);
-    return { ok: true, data: { current: current.trim(), branches } };
+    const seen = new Set<string>();
+    const branches: string[] = [];
+    for (const line of list.split("\n")) {
+      const raw = line.replace(/^\*?\s+/, "").trim();
+      if (!raw || raw.includes("HEAD")) continue;
+      const name = raw.replace(/^remotes\/origin\//, "");
+      if (name && !seen.has(name)) {
+        seen.add(name);
+        branches.push(name);
+      }
+    }
+    return { ok: true, data: { current: current.trim(), branches: branches.sort() } };
   } catch (err) {
     return { ok: false, error: describeExecError(err) };
   }
