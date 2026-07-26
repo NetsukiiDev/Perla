@@ -70,13 +70,32 @@ function describeExecError(err: unknown): string {
   return stderr ? `${e.message}\n${stderr.slice(0, 500)}` : e.message ?? String(err);
 }
 
+async function currentSha(cwd: string): Promise<string> {
+  const { stdout } = await execFileAsync("git", ["rev-parse", "HEAD"], { cwd, timeout: 10_000 });
+  return stdout.trim();
+}
+
+// Whether moving from `fromSha` to the current HEAD touched the dependency
+// manifests. Asked of git rather than read out of `git pull`'s printed
+// diffstat, which only describes what the *pull* brought in: after a branch
+// checkout the pull can report "Already up to date." while the checkout
+// itself swapped package.json underneath us, and npm ci would be skipped.
+async function dependenciesChangedSince(cwd: string, fromSha: string): Promise<boolean> {
+  const { stdout } = await execFileAsync(
+    "git",
+    ["diff", "--name-only", `${fromSha}..HEAD`, "--", "package.json", "package-lock.json"],
+    { cwd, timeout: 10_000 },
+  );
+  return stdout.trim().length > 0;
+}
+
 async function runSelfUpdate(): Promise<UpdateResult> {
   const cwd = process.cwd();
   const isProduction = process.env.NODE_ENV === "production";
   try {
-    const { stdout } = await execFileAsync("git", ["pull", "--ff-only"], { cwd, timeout: 60_000 });
-    const depsChanged = /package(-lock)?\.json/.test(stdout);
-    if (depsChanged) {
+    const before = await currentSha(cwd);
+    await execFileAsync("git", ["pull", "--ff-only"], { cwd, timeout: 60_000 });
+    if (await dependenciesChangedSince(cwd, before)) {
       await execFileAsync("npm", ["ci"], { cwd, timeout: 300_000 });
     }
     // The generated Prisma client (gitignored — see lib/db.ts) must be
@@ -133,17 +152,26 @@ export async function getBranches(): Promise<{ ok: true; data: BranchInfo } | { 
 }
 
 export async function switchBranch(branch: string): Promise<UpdateResult> {
+  // `branch` reaches git as an argv element (no shell), so there's nothing to
+  // inject — but an unchecked value is still handed to `git checkout`, where
+  // "-f" would discard the working tree and any commit-ish would leave the
+  // repo detached with the ff-only pull below failing right after. Only names
+  // git itself just listed are accepted.
+  const known = await getBranches();
+  if (!known.ok) return { ok: false, error: known.error };
+  if (!known.data.branches.includes(branch)) return { ok: false, error: "unknown_branch" };
+
   if (branchInProgress) return { ok: false, error: "already_running" };
   branchInProgress = true;
   try {
     const cwd = process.cwd();
     const isProduction = process.env.NODE_ENV === "production";
 
+    const before = await currentSha(cwd);
     await execFileAsync("git", ["checkout", branch], { cwd, timeout: 30_000 });
-    const { stdout } = await execFileAsync("git", ["pull", "--ff-only"], { cwd, timeout: 60_000 });
+    await execFileAsync("git", ["pull", "--ff-only"], { cwd, timeout: 60_000 });
 
-    const depsChanged = /package(-lock)?\.json/.test(stdout);
-    if (depsChanged) {
+    if (await dependenciesChangedSince(cwd, before)) {
       await execFileAsync("npm", ["ci"], { cwd, timeout: 300_000 });
     }
     await execFileAsync("npm", ["run", "db:generate"], { cwd, timeout: 60_000 });

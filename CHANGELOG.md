@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.10 — 2026-07-26
+
+### Fixed
+- **Lo switch di branch poteva ricostruire con le dipendenze sbagliate.** Per decidere se rilanciare `npm ci` veniva letto l'output di `git pull`, che però descrive solo ciò che il pull ha portato: dopo `git checkout <altra-branch>` il pull dice quasi sempre "Already up to date." mentre è stato il checkout a cambiare `package.json`. In produzione il rebuild partiva con i `node_modules` della branch precedente. Ora la differenza viene chiesta a git, tra il commit di partenza e HEAD — vale anche per il normale "Aggiorna ora"
+- Il nome della branch arrivava a `git checkout` senza controlli: viaggiava come argomento separato (nessuna shell, quindi niente injection), ma `-f` avrebbe scartato le modifiche locali e uno SHA qualsiasi avrebbe lasciato il repo in detached HEAD con il `git pull --ff-only` successivo in errore. Ora sono accettati solo i nomi che git stesso ha appena elencato
+- L'avviso "`APP_URL` non impostata" veniva scritto nei log a ogni richiesta proveniente da un indirizzo locale — cioè a ogni redirect al login durante un normale `next dev`, dove peraltro non esiste un indirizzo pubblico da indicare. Ora compare una sola volta per processo, come warning e non come errore
+
 ## 0.2.9 — 2026-07-26
 
 ### Fixed
