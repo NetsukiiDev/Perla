@@ -20,6 +20,8 @@ export interface Dictionary {
       available: string; availableTo: string; viewOnGithub: string; failed: string; upToDate: string;
       update: string; updating: string; updateStarted: string; updateFailed: string; notConfigured: string;
       confirmSelfUpdate: string; confirmDeployHook: string;
+      branch: string; switchTo: string; switching: string; switched: string;
+      switchFailed: string; onlyOne: string;
     };
     info: { section: string; environment: string; commit: string; notAvailable: string };
     smtp: {

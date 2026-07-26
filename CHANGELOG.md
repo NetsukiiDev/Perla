@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.7 — 2026-07-26
+
+### Added
+- Impostazioni → Versione: lo **switch di branch** (es. Dev ↔ master). Mostra la branch attuale e un pulsante per passare all'altra branch disponibile. Il cambio esegue `git checkout` + `git pull`, rigenera Prisma e, in produzione, riavvia il server con la nuova versione
+
+### Fixed
+- **`APP_URL` veniva ignorata quando l'host non era localhost.** Il reverse proxy sul VPS (nginx, Caddy) termina HTTPS e si connette a Next.js su HTTP — l'header `X-Forwarded-Proto` mancava o era `http`, quindi `requestOrigin` costruiva URL `http://` anche quando il dominio pubblico era HTTPS. Ora `APP_URL` ha priorità assoluta quando è impostata, indipendentemente dall'host della richiesta. Per attivare il bot Telegram sul VPS, aggiungi `APP_URL=https://perla.netsukii.it` al `.env`
+
 ## 0.2.6 — 2026-07-26
 
 ### Added
