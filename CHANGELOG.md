@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.8 — 2026-07-26
+
+_Version bump — vedi 0.2.7 per le novità di questa release._
+
 ## 0.2.7 — 2026-07-26
 
 ### Added
