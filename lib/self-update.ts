@@ -19,6 +19,7 @@
 //        fight over the same .next directory and corrupt the dev server.
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import { COMMIT_SHA } from "@/lib/version";
 
 const execFileAsync = promisify(execFile);
 
@@ -73,6 +74,22 @@ function describeExecError(err: unknown): string {
 async function currentSha(cwd: string): Promise<string> {
   const { stdout } = await execFileAsync("git", ["rev-parse", "HEAD"], { cwd, timeout: 10_000 });
   return stdout.trim();
+}
+
+// The commit actually running, for Settings → Version. Vercel injects it as
+// an env var; a self-hosted checkout has to ask git, and used to just show
+// "N/A" — which is the one place it matters most now that the same panel can
+// switch branches. Lives here rather than in lib/version.ts because that
+// module is also imported by app/admin/layout.tsx, and shelling out to git
+// has no business being reachable from a layout.
+export async function getCommitSha(): Promise<string | null> {
+  if (COMMIT_SHA) return COMMIT_SHA;
+  try {
+    return await currentSha(process.cwd());
+  } catch {
+    // Not a git checkout (a tarball deploy, a container without .git).
+    return null;
+  }
 }
 
 // Whether moving from `fromSha` to the current HEAD touched the dependency

@@ -10,6 +10,7 @@
     "lint": "eslint",
     "vercel-build": "DATABASE_URL=postgresql://localhost:5432/dummy node scripts/prisma-provider.mjs && DATABASE_URL=postgresql://localhost:5432/dummy prisma generate && next build",
     "lmcode": "node scripts/lmcode-agent.mjs",
+    "release": "node scripts/release.mjs",
     "db:provider": "node scripts/prisma-provider.mjs",
     "db:generate": "node scripts/prisma-provider.mjs && prisma generate",
     "db:migrate": "node scripts/prisma-provider.mjs && prisma migrate dev",

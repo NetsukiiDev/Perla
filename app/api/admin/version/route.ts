@@ -3,8 +3,8 @@
 // Fails gracefully: if GitHub is unreachable, `checkFailed` is true.
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-guard";
-import { APP_NAME, APP_VERSION, BUILD_ENV, COMMIT_SHA, GITHUB_REPO, isNewerVersion } from "@/lib/version";
-import { updateModeConfigured, getBranches } from "@/lib/self-update";
+import { APP_NAME, APP_VERSION, BUILD_ENV, GITHUB_REPO, isNewerVersion } from "@/lib/version";
+import { updateModeConfigured, getBranches, getCommitSha } from "@/lib/self-update";
 
 export const runtime = "nodejs";
 
@@ -47,7 +47,7 @@ export async function GET() {
   const auth = await requireAdmin();
   if ("response" in auth) return auth.response;
 
-  const [latest, branchRes] = await Promise.all([fetchLatestVersion(), getBranches()]);
+  const [latest, branchRes, commit] = await Promise.all([fetchLatestVersion(), getBranches(), getCommitSha()]);
   const updateAvailable = latest ? isNewerVersion(latest, APP_VERSION) : false;
 
   return NextResponse.json({
@@ -56,7 +56,7 @@ export async function GET() {
     latest,
     updateAvailable,
     checkFailed: latest === null,
-    commit: COMMIT_SHA,
+    commit,
     env: BUILD_ENV,
     repoUrl: `https://github.com/${GITHUB_REPO}`,
     updateMode: updateModeConfigured(),

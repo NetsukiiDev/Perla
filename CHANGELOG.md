@@ -1,5 +1,14 @@
 # Changelog
 
+## Non rilasciato
+
+### Added
+- **`npm run release <versione>`**: controlla che l'albero sia pulito e che la versione sia davvero successiva, data l'intestazione `## Non rilasciato` del changelog, scrive `package.json` e `VERSION` e crea gli stessi due commit di ogni rilascio. `npm run release -- --publish` fa il resto: push del branch, merge su `master`, tag **sul commit di merge** (dove stanno tutti i tag precedenti), push del tag e release GitHub con le note generate. Finora erano nove passaggi a mano, con il dettaglio non ovvio che un tag messo sul branch di sviluppo non sarebbe raggiungibile da `master` — vedi [Versioning](docs/wiki/Versioning.md)
+
+### Fixed
+- **Il file `VERSION` era una seconda fonte di verità che nessuno leggeva**: non veniva usato dal codice (`lib/version.ts` legge `package.json`), né dai docs, né dalla CI, né da script di deploy — ma andava aggiornato a mano a ogni rilascio, quindi prima o poi sarebbe divergito in silenzio. Ora lo scrive solo `npm run release`, insieme a `package.json`
+- Impostazioni → Versione mostrava sempre **"N/A" come commit** nelle installazioni self-hosted: veniva letto solo da `VERCEL_GIT_COMMIT_SHA`, che esiste soltanto su Vercel. Ora, fuori da Vercel, il commit viene chiesto a git — cioè proprio dove serve, ora che dallo stesso pannello si cambia branch
+
 ## 0.2.10 — 2026-07-26
 
 ### Fixed

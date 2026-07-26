@@ -5,7 +5,30 @@ The **Settings** page (`/admin/settings`) shows the **current version**, checks 
 ## Version source
 
 - There is a **single** version: the `version` field of `package.json` (exposed by `lib/version.ts`).
+- `VERSION` is a plain-text mirror of it, for anything outside the app that wants the version without parsing JSON. **Never edit it by hand** — `npm run release` writes both, so the two can't drift.
 - `CHANGELOG.md` documents changes following [SemVer](https://semver.org/).
+
+## Cutting a release
+
+While you work, put entries under a `## Non rilasciato` heading at the top of `CHANGELOG.md`. Then, from the development branch:
+
+```bash
+npm run release 0.2.11
+```
+
+That checks the working tree is clean and the version is really newer, dates the `Non rilasciato` heading, writes `package.json` + `VERSION`, and makes the same two commits every release has (`docs: finalize … changelog entry`, then `v…`). It stops there so you can review and run `npm run build`.
+
+Then publish:
+
+```bash
+npm run release -- --publish
+```
+
+That pushes the branch, merges it into `master`, pushes `master`, tags **the merge commit** (where every previous release tag lives — a tag on the development branch would not be reachable from `master`), pushes the tag, and creates the GitHub release with generated notes. It returns you to the branch you started from.
+
+A bump with nothing to document (a re-tag, a build-only fix) needs `npm run release 0.2.11 --allow-empty-changelog`, which writes the heading with a "version bump" note rather than leaving the version missing from the changelog.
+
+Publishing the release is what makes other installations see **"update available"**: the check below reads the *latest GitHub release*, not the branch.
 
 ## Update check
 
