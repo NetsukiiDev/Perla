@@ -35,6 +35,8 @@ interface VersionInfo {
   env: string;
   repoUrl: string;
   updateMode: UpdateMode;
+  branch: string | null;
+  branches: string[];
 }
 
 // This whole panel is admin-only — see app/admin/settings/page.tsx
@@ -60,6 +62,8 @@ export function SettingsPanel() {
   const [loadingVersion, setLoadingVersion] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [updateMessage, setUpdateMessage] = useState<{ ok: boolean; text: string } | null>(null);
+  const [switchingBranch, setSwitchingBranch] = useState(false);
+  const [branchMessage, setBranchMessage] = useState<{ ok: boolean; text: string } | null>(null);
 
   const loadVersion = useCallback(async () => {
     setLoadingVersion(true);
@@ -108,6 +112,31 @@ export function SettingsPanel() {
       setUpdateMessage({ ok: false, text: t.settings.version.updateFailed.replace("{error}", "?") });
     } finally {
       setUpdating(false);
+    }
+  }
+
+  async function switchToBranch(branch: string) {
+    setSwitchingBranch(true);
+    setBranchMessage(null);
+    try {
+      const res = await fetch("/api/admin/branch", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ branch }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setBranchMessage({ ok: true, text: t.settings.version.switched });
+      } else {
+        setBranchMessage({
+          ok: false,
+          text: t.settings.version.switchFailed.replace("{error}", data.error ?? `HTTP ${res.status}`),
+        });
+      }
+    } catch {
+      setBranchMessage({ ok: false, text: t.settings.version.switchFailed.replace("{error}", "?") });
+    } finally {
+      setSwitchingBranch(false);
     }
   }
 
@@ -229,6 +258,39 @@ export function SettingsPanel() {
                 <dd className="font-mono">{info?.commit ? info.commit.slice(0, 7) : t.settings.info.notAvailable}</dd>
               </div>
             </dl>
+            {info?.branch && (
+              <div className="flex flex-col gap-2 rounded-lg border border-surface-border p-3 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs uppercase tracking-wide text-muted">{t.settings.version.branch}</span>
+                  <span className="font-mono font-semibold">{info.branch}</span>
+                </div>
+                {info.branches.length > 1 ? (
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {info.branches
+                      .filter((b) => b !== info.branch)
+                      .map((b) => (
+                        <button
+                          key={b}
+                          type="button"
+                          disabled={switchingBranch}
+                          onClick={() => void switchToBranch(b)}
+                          className="inline-flex items-center gap-2 rounded-lg border border-surface-border px-3 py-1.5 text-sm text-muted hover:text-foreground disabled:opacity-50"
+                        >
+                          {switchingBranch && <Loader2 size={12} className="animate-spin" aria-hidden="true" />}
+                          {t.settings.version.switchTo.replace("{branch}", b)}
+                        </button>
+                      ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted">{t.settings.version.onlyOne}</p>
+                )}
+                {branchMessage && (
+                  <p className={`text-sm ${branchMessage.ok ? "text-emerald-300" : "text-danger"}`}>
+                    {branchMessage.text}
+                  </p>
+                )}
+              </div>
+            )}
             {info && (
               <a
                 href={info.repoUrl}

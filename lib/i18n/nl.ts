@@ -42,6 +42,12 @@ export const nl: Dictionary = {
       notConfigured: "Automatisch updaten is niet geconfigureerd op deze server. Stel DEPLOY_HOOK_URL of SELF_UPDATE_ENABLED in bij de omgevingsvariabelen.",
       confirmSelfUpdate: "Versie {version} wordt opgehaald en de app bijgewerkt; als de server deze automatisch herstart, kan er een korte onderbreking zijn. Doorgaan?",
       confirmDeployHook: "Er wordt een nieuwe deploy naar versie {version} gestart via de geconfigureerde webhook. Doorgaan?",
+      branch: "Branch",
+      switchTo: "Wissel naar {branch}",
+      switching: "Branch wordt gewisseld…",
+      switched: "Branch gewijzigd: de server start opnieuw op met de nieuwe versie.",
+      switchFailed: "Branch-wissel mislukt: {error}",
+      onlyOne: "Slechts één branch beschikbaar.",
     },
     info: {
       section: "Info",

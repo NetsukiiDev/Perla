@@ -98,3 +98,59 @@ async function runSelfUpdate(): Promise<UpdateResult> {
   }
   return { ok: true };
 }
+
+// ── Branch management ───────────────────────────────────────────────────
+
+export interface BranchInfo {
+  current: string;
+  branches: string[];
+}
+
+let branchInProgress = false;
+
+export async function getBranches(): Promise<{ ok: true; data: BranchInfo } | { ok: false; error: string }> {
+  const cwd = process.cwd();
+  try {
+    const [{ stdout: current }, { stdout: list }] = await Promise.all([
+      execFileAsync("git", ["rev-parse", "--abbrev-ref", "HEAD"], { cwd, timeout: 10_000 }),
+      execFileAsync("git", ["branch", "--format=%(refname:short)"], { cwd, timeout: 10_000 }),
+    ]);
+    const branches = list
+      .split("\n")
+      .map((b) => b.trim())
+      .filter(Boolean);
+    return { ok: true, data: { current: current.trim(), branches } };
+  } catch (err) {
+    return { ok: false, error: describeExecError(err) };
+  }
+}
+
+export async function switchBranch(branch: string): Promise<UpdateResult> {
+  if (branchInProgress) return { ok: false, error: "already_running" };
+  branchInProgress = true;
+  try {
+    const cwd = process.cwd();
+    const isProduction = process.env.NODE_ENV === "production";
+
+    await execFileAsync("git", ["checkout", branch], { cwd, timeout: 30_000 });
+    const { stdout } = await execFileAsync("git", ["pull", "--ff-only"], { cwd, timeout: 60_000 });
+
+    const depsChanged = /package(-lock)?\.json/.test(stdout);
+    if (depsChanged) {
+      await execFileAsync("npm", ["ci"], { cwd, timeout: 300_000 });
+    }
+    await execFileAsync("npm", ["run", "db:generate"], { cwd, timeout: 60_000 });
+    if (isProduction) {
+      await execFileAsync("npm", ["run", "build"], { cwd, timeout: 300_000 });
+    }
+
+    if (isProduction) {
+      setTimeout(() => process.exit(0), 500);
+    }
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: describeExecError(err) };
+  } finally {
+    branchInProgress = false;
+  }
+}

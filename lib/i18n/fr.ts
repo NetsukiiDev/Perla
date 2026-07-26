@@ -42,6 +42,12 @@ export const fr: Dictionary = {
       notConfigured: "La mise à jour automatique n'est pas configurée sur ce serveur. Définissez DEPLOY_HOOK_URL ou SELF_UPDATE_ENABLED dans les variables d'environnement.",
       confirmSelfUpdate: "La version {version} sera téléchargée et l'application mise à jour ; si le serveur la redémarre automatiquement, il pourra y avoir une brève interruption. Continuer ?",
       confirmDeployHook: "Un nouveau déploiement vers la version {version} sera lancé via le webhook configuré. Continuer ?",
+      branch: "Branche",
+      switchTo: "Passer à {branch}",
+      switching: "Changement de branche…",
+      switched: "Branche changée : le redémarre avec la nouvelle version.",
+      switchFailed: "Échec du changement de branche : {error}",
+      onlyOne: "Une seule branche disponible.",
     },
     info: {
       section: "Infos",

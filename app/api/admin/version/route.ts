@@ -4,7 +4,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-guard";
 import { APP_NAME, APP_VERSION, BUILD_ENV, COMMIT_SHA, GITHUB_REPO, isNewerVersion } from "@/lib/version";
-import { updateModeConfigured } from "@/lib/self-update";
+import { updateModeConfigured, getBranches } from "@/lib/self-update";
 
 export const runtime = "nodejs";
 
@@ -47,7 +47,7 @@ export async function GET() {
   const auth = await requireAdmin();
   if ("response" in auth) return auth.response;
 
-  const latest = await fetchLatestVersion();
+  const [latest, branchRes] = await Promise.all([fetchLatestVersion(), getBranches()]);
   const updateAvailable = latest ? isNewerVersion(latest, APP_VERSION) : false;
 
   return NextResponse.json({
@@ -60,5 +60,7 @@ export async function GET() {
     env: BUILD_ENV,
     repoUrl: `https://github.com/${GITHUB_REPO}`,
     updateMode: updateModeConfigured(),
+    branch: branchRes.ok ? branchRes.data.current : null,
+    branches: branchRes.ok ? branchRes.data.branches : [],
   });
 }
