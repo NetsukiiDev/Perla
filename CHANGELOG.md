@@ -1,6 +1,6 @@
 # Changelog
 
-## Non rilasciato
+## 0.2.11 — 2026-07-26
 
 ### Changed
 - Aggiornate tre dipendenze npm segnalate da Dependabot per vulnerabilità note (incluse `next` 16.2.9 → 16.2.11 e `prisma` 7.8 → 7.9)
