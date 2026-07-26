@@ -4,20 +4,10 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-guard";
 import { APP_NAME, APP_VERSION, BUILD_ENV, GITHUB_REPO, isNewerVersion } from "@/lib/version";
-import { updateModeConfigured, getBranches, getCommitSha } from "@/lib/self-update";
+import { updateModeConfigured, getCommitSha } from "@/lib/self-update";
+import { githubJson } from "@/lib/github";
 
 export const runtime = "nodejs";
-
-async function githubJson(path: string): Promise<unknown | null> {
-  // Plain fetch options only: Next's fetch instrumentation can throw
-  // "fetch failed" when combined with AbortSignal.timeout(); cache: "no-store"
-  // keeps the result fresh without opting into the caching path.
-  const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/${path}`, {
-    headers: { Accept: "application/vnd.github+json", "User-Agent": "PERLA" },
-    cache: "no-store",
-  });
-  return res.ok ? res.json() : null;
-}
 
 async function fetchLatestVersion(): Promise<string | null> {
   try {
@@ -47,7 +37,9 @@ export async function GET() {
   const auth = await requireAdmin();
   if ("response" in auth) return auth.response;
 
-  const [latest, branchRes, commit] = await Promise.all([fetchLatestVersion(), getBranches(), getCommitSha()]);
+  // Branch state is no longer bundled here: the Version tab's branch switcher
+  // polls /api/admin/branch on its own cadence (see components/admin/BranchSwitcher).
+  const [latest, commit] = await Promise.all([fetchLatestVersion(), getCommitSha()]);
   const updateAvailable = latest ? isNewerVersion(latest, APP_VERSION) : false;
 
   return NextResponse.json({
@@ -60,7 +52,5 @@ export async function GET() {
     env: BUILD_ENV,
     repoUrl: `https://github.com/${GITHUB_REPO}`,
     updateMode: updateModeConfigured(),
-    branch: branchRes.ok ? branchRes.data.current : null,
-    branches: branchRes.ok ? branchRes.data.branches : [],
   });
 }

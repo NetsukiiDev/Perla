@@ -136,57 +136,83 @@ async function runSelfUpdate(): Promise<UpdateResult> {
 }
 
 // ── Branch management ───────────────────────────────────────────────────
+//
+// The list of branches an admin can pick from comes from the GitHub API
+// (lib/github.ts), not from git: `git branch -a` only ever shows what the
+// last fetch happened to bring in, so a branch pushed five minutes ago
+// simply wasn't there. git is asked only what git alone knows — which branch
+// this checkout is on, and at which commit.
 
-export interface BranchInfo {
+export interface LocalBranchState {
   current: string;
-  branches: string[];
+  sha: string;
 }
 
 let branchInProgress = false;
 
-export async function getBranches(): Promise<{ ok: true; data: BranchInfo } | { ok: false; error: string }> {
+export async function getLocalBranchState(): Promise<{ ok: true; data: LocalBranchState } | { ok: false; error: string }> {
   const cwd = process.cwd();
   try {
-    const [{ stdout: current }, { stdout: list }] = await Promise.all([
+    const [{ stdout: current }, sha] = await Promise.all([
       execFileAsync("git", ["rev-parse", "--abbrev-ref", "HEAD"], { cwd, timeout: 10_000 }),
-      execFileAsync("git", ["branch", "-a", "--no-color"], { cwd, timeout: 10_000 }),
+      currentSha(cwd),
     ]);
-    const seen = new Set<string>();
-    const branches: string[] = [];
-    for (const line of list.split("\n")) {
-      const raw = line.replace(/^\*?\s+/, "").trim();
-      if (!raw || raw.includes("HEAD")) continue;
-      const name = raw.replace(/^remotes\/origin\//, "");
-      if (name && !seen.has(name)) {
-        seen.add(name);
-        branches.push(name);
-      }
-    }
-    return { ok: true, data: { current: current.trim(), branches: branches.sort() } };
+    return { ok: true, data: { current: current.trim(), sha } };
   } catch (err) {
+    // Not a git checkout (Vercel, a tarball deploy): branch switching simply
+    // doesn't apply there, and the caller reports it as unavailable.
     return { ok: false, error: describeExecError(err) };
   }
 }
 
-export async function switchBranch(branch: string): Promise<UpdateResult> {
+// Branch names known locally — remote-tracking refs included. Only used when
+// GitHub can't be reached, so the switcher degrades to "what we last saw"
+// instead of showing nothing at all.
+export async function listLocalBranches(): Promise<string[]> {
+  try {
+    // Full refnames, not %(refname:short): git shortens the symbolic
+    // refs/remotes/origin/HEAD to a bare "origin", which then looks exactly
+    // like a branch called "origin" once the prefix is stripped.
+    const { stdout } = await execFileAsync("git", ["for-each-ref", "--format=%(refname)", "refs/heads", "refs/remotes/origin"], {
+      cwd: process.cwd(),
+      timeout: 10_000,
+    });
+    const names = stdout
+      .split("\n")
+      .map((l) => l.trim())
+      .filter((ref) => ref && ref !== "refs/remotes/origin/HEAD")
+      .map((ref) => ref.replace(/^refs\/heads\//, "").replace(/^refs\/remotes\/origin\//, ""));
+    return [...new Set(names)].sort();
+  } catch {
+    return [];
+  }
+}
+
+export async function switchBranch(branch: string, allowed: string[]): Promise<UpdateResult> {
   // `branch` reaches git as an argv element (no shell), so there's nothing to
   // inject — but an unchecked value is still handed to `git checkout`, where
   // "-f" would discard the working tree and any commit-ish would leave the
-  // repo detached with the ff-only pull below failing right after. Only names
-  // git itself just listed are accepted.
-  const known = await getBranches();
-  if (!known.ok) return { ok: false, error: known.error };
-  if (!known.data.branches.includes(branch)) return { ok: false, error: "unknown_branch" };
+  // repo detached. Only names the caller just listed are accepted.
+  if (!allowed.includes(branch)) return { ok: false, error: "unknown_branch" };
 
   if (branchInProgress) return { ok: false, error: "already_running" };
   branchInProgress = true;
   try {
     const cwd = process.cwd();
     const isProduction = process.env.NODE_ENV === "production";
-
     const before = await currentSha(cwd);
+
+    // Fetch first: the target may exist only on GitHub (never cloned here),
+    // in which case checkout would fail outright — and even when it does
+    // exist locally, its remote-tracking ref is as old as the last fetch.
+    await execFileAsync("git", ["fetch", "--prune", "origin"], { cwd, timeout: 60_000 });
+    // Creates the local branch tracking origin/<branch> when it doesn't exist
+    // yet (git's DWIM), switches to it when it does.
     await execFileAsync("git", ["checkout", branch], { cwd, timeout: 30_000 });
-    await execFileAsync("git", ["pull", "--ff-only"], { cwd, timeout: 60_000 });
+    // --ff-only, never a merge commit or a reset: if the checkout has local
+    // commits the remote doesn't, this stops with an error instead of
+    // silently discarding or merging them.
+    await execFileAsync("git", ["merge", "--ff-only", `origin/${branch}`], { cwd, timeout: 60_000 });
 
     if (await dependenciesChangedSince(cwd, before)) {
       await execFileAsync("npm", ["ci"], { cwd, timeout: 300_000 });

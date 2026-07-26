@@ -65,6 +65,16 @@ When an update is available, admins (not organizers) see an **"Update now"** but
 
 Set `SELF_UPDATE_ENABLED=false` to disable self-update entirely (e.g. a hardened deployment where the app shouldn't be able to modify itself) and fall back to the "not configured" state. Every attempt (success or failure) is written to the admin access log.
 
+## Branch switcher
+
+Settings → Version also shows which branch this checkout is on and lets an admin switch (e.g. `master` ↔ `Dev`).
+
+The list comes from the **GitHub API**, not from `git branch -a`: the local answer is only ever as fresh as the last `git fetch`, so it both hides branches pushed since (they simply aren't there) and offers branches long deleted upstream. The panel refreshes itself every 20 seconds and has a manual refresh; the GitHub call behind it is cached for a minute server-side and shared across everyone with the tab open, which keeps it inside the unauthenticated rate limit (60/hour per IP — set [`GITHUB_TOKEN`](Configuration) to raise it). If GitHub can't be reached it falls back to the local list and says so.
+
+Switching runs `git fetch`, `git checkout <branch>` (creating the local branch when it only exists on GitHub), then `git merge --ff-only origin/<branch>` — never a reset or a merge commit, so local commits the remote doesn't have stop the switch with an error instead of being discarded. It then reinstalls dependencies if `package.json`/`package-lock.json` differ between the two commits, regenerates the Prisma client, and in production rebuilds and exits for the process manager to restart (same tradeoff as self-update above).
+
+It does **not** run `npm run db:push`: crossing a branch boundary that changes `prisma/schema.prisma` needs that by hand, exactly as an update does.
+
 ## Build info
 
 - **Environment**: `vercel` in production on Vercel, otherwise `NODE_ENV`.

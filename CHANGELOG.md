@@ -2,6 +2,10 @@
 
 ## Non rilasciato
 
+### Changed
+- **Lo switch di branch è stato rifatto: l'elenco ora arriva dall'API di GitHub**, non più da `git branch -a`. Quello locale mostra solo ciò che l'ultimo `fetch` aveva portato: su questa installazione elencava sei branch, di cui **quattro inesistenti su GitHub** (una `dependabot` già mergiata e cancellata, due `vercel/…`) più una voce spuria `origin` — mentre una branch pushata cinque minuti prima non sarebbe comparsa affatto. Il pannello si aggiorna da solo ogni 20 secondi, ha un pulsante per forzare il refresh, mostra il commit di ogni branch e segnala quando la copia locale è su un commit diverso da GitHub. Se GitHub non è raggiungibile ripiega sull'elenco locale, dicendolo esplicitamente
+- Il cambio branch ora esegue prima `git fetch`, così funziona anche verso una branch **mai clonata in locale**, e allinea con `git merge --ff-only`: se la copia locale ha commit che il remoto non ha, si ferma con un errore invece di scartarli o creare un merge. Opzionale `GITHUB_TOKEN` per alzare il limite di richieste all'API GitHub (60/ora per IP senza autenticazione)
+
 ### Added
 - **`npm run release <versione>`**: controlla che l'albero sia pulito e che la versione sia davvero successiva, data l'intestazione `## Non rilasciato` del changelog, scrive `package.json` e `VERSION` e crea gli stessi due commit di ogni rilascio. `npm run release -- --publish` fa il resto: push del branch, merge su `master`, tag **sul commit di merge** (dove stanno tutti i tag precedenti), push del tag e release GitHub con le note generate. Finora erano nove passaggi a mano, con il dettaglio non ovvio che un tag messo sul branch di sviluppo non sarebbe raggiungibile da `master` — vedi [Versioning](docs/wiki/Versioning.md)
 
