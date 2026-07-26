@@ -4,6 +4,8 @@ function firstHeaderValue(value: string | null): string | null {
 
 const LOCAL_HOSTS = /^(localhost|127\.0\.0\.1|::1|\[::1\])$/i;
 
+let warnedAboutMissingAppUrl = false;
+
 export function requestOrigin(req: Request): string {
   // APP_URL always wins when set: it lets self-hosted deployments behind a
   // reverse proxy (nginx, Caddy, Cloudflare Tunnel) declare their real
@@ -28,9 +30,14 @@ export function requestOrigin(req: Request): string {
   // that connects to the origin over localhost (e.g. cloudflared, nginx on the
   // same box) makes the Host header "localhost:PORT" — useless for building
   // links (password-reset emails, redirects) meant for the outside world.
+  // Warned once per process, not per request: requestOrigin() runs on every
+  // login redirect, so an error line each time would bury real errors in the
+  // logs — and on a plain local `next dev`, where no public origin exists to
+  // point at, it isn't even a misconfiguration.
   const hostname = host.split(":")[0];
-  if (LOCAL_HOSTS.test(hostname)) {
-    console.error(
+  if (LOCAL_HOSTS.test(hostname) && !warnedAboutMissingAppUrl) {
+    warnedAboutMissingAppUrl = true;
+    console.warn(
       "APP_URL is not set and the request comes from a local address — " +
         "set APP_URL to the public origin (e.g. https://perla.example.com) " +
         "so that links, webhooks, and redirects use the correct URL.",
