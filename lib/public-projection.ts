@@ -5,7 +5,7 @@
 // RouteStep's coordinates, and it only ever receives the session's CURRENT
 // step, never the full list.
 import { decryptCoord } from "@/lib/crypto";
-import { formatHHmm, notYetAvailableMessage, getStepHint } from "@/lib/constants";
+import { notYetAvailableMessage, getStepHint } from "@/lib/constants";
 import type { Event, RouteStep, Session } from "@/lib/generated/prisma/client";
 import type { Dictionary } from "@/lib/i18n/types";
 
@@ -70,9 +70,7 @@ export function projectPreSessionState(event: Event, t: Dictionary, participantC
       startsAt: event.startsAt.toISOString(),
       endsAt: event.endsAt ? event.endsAt.toISOString() : null,
       participantCode,
-      message: revealAt
-        ? notYetAvailableMessage(t, revealAt, event.region)
-        : t.participantFlow.notYetAvailable.replace("{time}", formatHHmm(event.startsAt, event.region)),
+      message: notYetAvailableMessage(t, revealAt ?? event.startsAt, event.region),
     };
   }
 

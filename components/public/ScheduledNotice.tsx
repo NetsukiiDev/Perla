@@ -11,7 +11,7 @@ export function ScheduledNotice({ region, startsAt, endsAt, message }: Scheduled
   return (
     <div className="flex flex-col gap-5 text-center">
       <EventInfoGrid region={region} startsAt={startsAt} endsAt={endsAt} />
-      <p className="text-sm text-muted">{message}</p>
+      <p className="whitespace-pre-line text-sm text-muted">{message}</p>
     </div>
   );
 }
