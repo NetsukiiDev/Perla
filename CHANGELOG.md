@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.2.6 — 2026-07-26
+
+### Added
+- Nuovo **bot Telegram** per creare e gestire i codici invito senza aprire il pannello admin: `/eventi`, `/usa`, `/nuovo`, `/pubblico`, `/lista`, `/revoca`, `/rigenera` — vedi [Telegram Bot](docs/wiki/Telegram-Bot.md) per la configurazione. Autenticazione tramite una nuova **API Key personale**, generabile da Account → API (admin e organizzatori), con gli stessi permessi già in vigore nel pannello (gli organizzatori vedono solo i propri eventi)
+- Impostazioni → nuova scheda **Telegram**: token del bot e secret del webhook si configurano da qui (cifrati nel database), non più solo tramite `.env`
+- Impostazioni → Telegram: sezione **Webhook** con pulsante **Registra webhook** (e Rimuovi), più lo stato letto da Telegram — se il webhook è registrato su questo indirizzo, su un altro, o non è registrato affatto. Prima la registrazione richiedeva un comando `curl` eseguito a mano, da ripetere a ogni cambio di URL pubblico
+
+### Fixed
+- **Il bot Telegram non rispondeva ai messaggi.** Due cause, entrambe silenziose: il secret del webhook era facoltativo nel form, quindi si poteva salvare una configurazione "abilitata" ma inutilizzabile (senza secret ogni chiamata di Telegram veniva rifiutata con 401, senza traccia nei log del perché); e la registrazione del webhook presso Telegram era un passaggio manuale non evidente, senza il quale Telegram non consegna nulla. Ora il secret viene generato automaticamente se lasciato vuoto, la registrazione si fa dal pannello, e una configurazione abilitata ma incompleta lo scrive nei log del server
+- Se una chiamata all'API di Telegram falliva (token revocato, chat inesistente, rete assente), l'errore veniva ignorato: `fetch` non solleva eccezioni sugli errori HTTP e la risposta non veniva controllata. Ora la descrizione dell'errore restituita da Telegram finisce nei log del server
+- La rigenerazione della chiave API (Account → API) non funzionava in alcuni casi: il pulsante usava la finestra di conferma nativa del browser (`window.confirm()`), inaffidabile in alcuni browser/ambienti. Sostituita con una conferma interna alla pagina
+- Il messaggio "Riprova alle {ora}" mostrato ai partecipanti prima dell'attivazione delle posizioni indicava solo l'orario, mai la data — per un'attivazione impostata su un giorno diverso da oggi (es. tra una settimana) sembrava riferirsi a "più tardi oggi". Ora mostra anche la data quando l'attivazione non è nel giorno corrente, su una riga separata dalla frase precedente per maggiore leggibilità
+
 ## 0.2.5 — 2026-07-18
 
 ### Fixed
