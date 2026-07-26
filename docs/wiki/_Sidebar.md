@@ -9,6 +9,7 @@
   - [Toll & Highway Estimate](Toll-Estimate)
   - [Internationalization](Internationalization)
   - [Versioning & Updates](Versioning)
+  - [Telegram Bot](Telegram-Bot)
 - [Deploy on Vercel](Deploy-on-Vercel)
 - [Security](Security)
 - [Troubleshooting](Troubleshooting)

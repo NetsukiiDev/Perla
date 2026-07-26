@@ -125,11 +125,41 @@ export interface Dictionary {
       table: { user: string; role: string; status: string };
       notConfigured: string;
     };
+    telegram: {
+      section: string;
+      description: string;
+      botTokenLabel: string;
+      botTokenHint: string;
+      webhookSecretLabel: string;
+      webhookSecretHint: string;
+      enabledLabel: string;
+      enabledHint: string;
+      save: string;
+      saving: string;
+      saved: string;
+      errors: { saveFailed: string };
+      webhook: {
+        title: string;
+        description: string;
+        statusRegistered: string;
+        statusOtherUrl: string;
+        statusMissing: string;
+        expectedUrl: string;
+        lastError: string;
+        register: string;
+        registering: string;
+        registered: string;
+        remove: string;
+        removing: string;
+        removed: string;
+        errors: { noToken: string; notPublic: string; statusFailed: string; registerFailed: string };
+      };
+    };
   };
 
   account: {
     title: string;
-    tabs: { profile: string; preferences: string };
+    tabs: { profile: string; preferences: string; api: string };
     email: string;
     currentPassword: string;
     newPassword: string;
@@ -137,6 +167,20 @@ export interface Dictionary {
     updateButton: string;
     success: string;
     errors: { tooShort: string; notMatch: string; wrongPassword: string; updateFailed: string; generic: string };
+    apiKey: {
+      description: string;
+      configured: string;
+      notConfigured: string;
+      lastUsed: string;
+      neverUsed: string;
+      revealWarning: string;
+      generate: string;
+      regenerate: string;
+      generating: string;
+      confirmRegenerate: string;
+      confirmRegenerateButton: string;
+      errors: { generateFailed: string };
+    };
   };
 
   events: {

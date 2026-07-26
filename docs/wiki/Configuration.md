@@ -38,6 +38,8 @@ openssl rand -hex 32      # the other secrets
 | `SELF_UPDATE_ENABLED` | `"true"` (self-update is the zero-config default) | Set to `"false"` to disable **"Update now"**'s built-in `git pull` + rebuild instead of using it (see [Versioning](Versioning)) |
 | `APP_URL` | — | Public origin (e.g. `https://example.com`) to use when building links (password-reset emails, redirects) if the app can't tell it from request headers — needed behind a reverse proxy that connects to the origin over `localhost` (e.g. Cloudflare Tunnel), where the `Host` header would otherwise be `localhost:PORT` |
 
+The [Telegram bot](Telegram-Bot)'s token and webhook secret are configured from the admin UI (Settings → Telegram), not environment variables — same pattern as SMTP/Turnstile.
+
 ## Database
 
 | Provider | `DATABASE_PROVIDER` | Adapter |

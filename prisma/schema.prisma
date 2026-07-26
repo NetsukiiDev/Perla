@@ -108,6 +108,8 @@ model AdminUser {
   passwordResetTokens PasswordResetToken[]
   events              Event[]
   ngrokConfig         NgrokConfig?
+  apiKey              ApiKey?
+  telegramLinks       TelegramLink[]
 
   @@map("admin_users")
 }
@@ -365,6 +367,19 @@ model TurnstileConfig {
   @@map("turnstile_config")
 }
 
+// Singleton Telegram bot configuration — one bot serves the whole app (unlike
+// the per-user ngrok config/API keys above), so it's admin-only Settings,
+// not Account. See lib/telegram/config.ts for how these are read/decrypted.
+model TelegramConfig {
+  id                     String   @id @default("default")
+  botTokenEncrypted      String?  @map("bot_token_encrypted") @db.VarChar(512)
+  webhookSecretEncrypted String?  @map("webhook_secret_encrypted") @db.VarChar(512)
+  enabled                Boolean  @default(false) @map("enabled")
+  updatedAt              DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("telegram_config")
+}
+
 // Singleton ngrok tunnel configuration for local dev testing — lets an admin
 // expose `next dev` over HTTPS to test the participant flow's geolocation
 // (which requires a secure context) from a real phone. The authtoken is
@@ -387,6 +402,33 @@ model NgrokConfig {
   updatedAt          DateTime  @default(now()) @updatedAt @map("updated_at")
 
   @@map("ngrok_config")
+}
+
+// One personal API key per admin/organizer, used by external integrations
+// (currently: the Telegram bot) to act with that user's own permissions.
+// Only a hash is stored — the plaintext is shown once, at generation time.
+model ApiKey {
+  id          String    @id @default(cuid())
+  adminUserId String    @unique @map("admin_user_id")
+  adminUser   AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  keyHash     String    @unique @map("key_hash")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  lastUsedAt  DateTime? @map("last_used_at")
+
+  @@map("api_keys")
+}
+
+// Links a Telegram chat to an admin/organizer account (via /start <api key>),
+// plus which event that chat's bot commands currently apply to.
+model TelegramLink {
+  id              String    @id @default(cuid())
+  chatId          String    @unique @map("chat_id")
+  adminUserId     String    @map("admin_user_id")
+  adminUser       AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  selectedEventId String?   @map("selected_event_id")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  @@map("telegram_links")
 }
 
 // One-time password reset token for admin account recovery. The raw token is

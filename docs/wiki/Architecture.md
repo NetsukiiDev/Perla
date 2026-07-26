@@ -58,6 +58,7 @@ sequenceDiagram
 | `lib/route-provider/` | Routing provider abstraction |
 | `lib/i18n/` | IT/EN dictionaries + language provider |
 | `proxy.ts` | HTTPS enforcement in prod + `/admin/*` gating |
+| `lib/telegram/` | [Telegram bot](Telegram-Bot) command router + Bot API client |
 
 ## Project structure
 

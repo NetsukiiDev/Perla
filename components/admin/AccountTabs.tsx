@@ -1,18 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { Radio, Sliders, UserCircle } from "lucide-react";
+import { KeyRound, Radio, Sliders, UserCircle } from "lucide-react";
 import { useT } from "@/lib/i18n/context";
 import { AccountForm } from "@/components/admin/AccountForm";
 import { PreferencesPanel } from "@/components/admin/PreferencesPanel";
 import { NgrokSettingsForm } from "@/components/admin/NgrokSettingsForm";
+import { ApiKeyForm } from "@/components/admin/ApiKeyForm";
 
-type AccountTab = "profile" | "preferences" | "ngrok";
+type AccountTab = "profile" | "preferences" | "ngrok" | "api";
 
 const tabIcons: Record<AccountTab, typeof UserCircle> = {
   profile: UserCircle,
   preferences: Sliders,
   ngrok: Radio,
+  api: KeyRound,
 };
 
 export function AccountTabs({ email }: { email: string }) {
@@ -23,6 +25,7 @@ export function AccountTabs({ email }: { email: string }) {
     profile: t.account.tabs.profile,
     preferences: t.account.tabs.preferences,
     ngrok: t.settings.ngrok.section,
+    api: t.account.tabs.api,
   };
 
   return (
@@ -53,6 +56,12 @@ export function AccountTabs({ email }: { email: string }) {
           <section className="flex flex-col gap-3">
             <p className="text-sm text-muted">{t.settings.ngrok.description}</p>
             <NgrokSettingsForm />
+          </section>
+        )}
+        {activeTab === "api" && (
+          <section className="flex flex-col gap-3">
+            <p className="text-sm text-muted">{t.account.apiKey.description}</p>
+            <ApiKeyForm />
           </section>
         )}
       </div>

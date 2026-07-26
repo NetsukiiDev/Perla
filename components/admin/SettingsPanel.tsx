@@ -10,6 +10,7 @@ import {
   Mail,
   Radio,
   RefreshCw,
+  Send,
   ShieldCheck,
   Tag,
   TriangleAlert,
@@ -19,6 +20,7 @@ import { SmtpSettingsForm } from "@/components/admin/SmtpSettingsForm";
 import { SiteLogSection } from "@/components/admin/SiteLogSection";
 import { TurnstileSettingsForm } from "@/components/admin/TurnstileSettingsForm";
 import { NgrokAdminPanel } from "@/components/admin/NgrokAdminPanel";
+import { TelegramSettingsForm } from "@/components/admin/TelegramSettingsForm";
 import { ConfirmButton } from "@/components/admin/ConfirmButton";
 
 type UpdateMode = "deploy-hook" | "self-update" | null;
@@ -40,12 +42,13 @@ interface VersionInfo {
 // and each user's own ngrok tunnel live on /admin/account instead, reachable
 // by every role; the "ngrokAdmin" tab here is the admin's oversight view of
 // everyone's tunnel, not a personal config form.
-type SettingsTab = "version" | "smtp" | "turnstile" | "ngrokAdmin" | "siteLog";
+type SettingsTab = "version" | "smtp" | "turnstile" | "telegram" | "ngrokAdmin" | "siteLog";
 
 const tabIcons: Record<SettingsTab, typeof Tag> = {
   version: Tag,
   smtp: Mail,
   turnstile: ShieldCheck,
+  telegram: Send,
   ngrokAdmin: Radio,
   siteLog: ClipboardList,
 };
@@ -112,6 +115,7 @@ export function SettingsPanel() {
     version: t.settings.version.section,
     smtp: t.settings.smtp.section,
     turnstile: t.settings.turnstile.section,
+    telegram: t.settings.telegram.section,
     ngrokAdmin: t.settings.ngrokAdmin.section,
     siteLog: t.settings.logs.section,
   };
@@ -249,6 +253,13 @@ export function SettingsPanel() {
           <section className="flex flex-col gap-3">
             <p className="text-sm text-muted">{t.settings.turnstile.description}</p>
             <TurnstileSettingsForm />
+          </section>
+        )}
+
+        {activeTab === "telegram" && (
+          <section className="flex flex-col gap-3">
+            <p className="text-sm text-muted">{t.settings.telegram.description}</p>
+            <TelegramSettingsForm />
           </section>
         )}
 
