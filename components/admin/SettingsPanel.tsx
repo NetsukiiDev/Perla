@@ -42,24 +42,25 @@ interface VersionInfo {
 
 // This whole panel is admin-only — see app/admin/settings/page.tsx
 // (requireAdminPage(["admin"])). Personal preferences (language, nav layout)
-// and each user's own ngrok tunnel live on /admin/account instead, reachable
-// by every role; the "ngrokAdmin" tab here is the admin's oversight view of
-// everyone's tunnel, not a personal config form.
-type SettingsTab = "version" | "smtp" | "turnstile" | "telegram" | "ngrokAdmin" | "cloudflareAdmin" | "siteLog";
+// and each user's own tunnels live on /admin/account instead, reachable by
+// every role; the "tunnels" tab here is the admin's oversight view of
+// everyone's tunnels (both providers, as sub-tabs), not a personal config form.
+type SettingsTab = "version" | "smtp" | "turnstile" | "telegram" | "tunnels" | "siteLog";
+type TunnelProvider = "ngrok" | "cloudflare";
 
 const tabIcons: Record<SettingsTab, typeof Tag> = {
   version: Tag,
   smtp: Mail,
   turnstile: ShieldCheck,
   telegram: Send,
-  ngrokAdmin: Radio,
-  cloudflareAdmin: Cloud,
+  tunnels: Radio,
   siteLog: ClipboardList,
 };
 
 export function SettingsPanel() {
   const t = useT();
   const [activeTab, setActiveTab] = useState<SettingsTab>("version");
+  const [activeTunnelProvider, setActiveTunnelProvider] = useState<TunnelProvider>("ngrok");
   const [info, setInfo] = useState<VersionInfo | null>(null);
   const [loadingVersion, setLoadingVersion] = useState(true);
   const [updating, setUpdating] = useState(false);
@@ -121,8 +122,7 @@ export function SettingsPanel() {
     smtp: t.settings.smtp.section,
     turnstile: t.settings.turnstile.section,
     telegram: t.settings.telegram.section,
-    ngrokAdmin: t.settings.ngrokAdmin.section,
-    cloudflareAdmin: t.settings.cloudflareAdmin.section,
+    tunnels: t.settings.ngrokAdmin.section,
     siteLog: t.settings.logs.section,
   };
 
@@ -149,7 +149,7 @@ export function SettingsPanel() {
         })}
       </div>
 
-      <div className={activeTab === "ngrokAdmin" || activeTab === "cloudflareAdmin" ? "max-w-3xl" : "max-w-xl"}>
+      <div className={activeTab === "tunnels" ? "max-w-3xl" : "max-w-xl"}>
         {activeTab === "version" && (
           <section className="flex flex-col gap-3">
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-surface-border p-3">
@@ -270,17 +270,42 @@ export function SettingsPanel() {
           </section>
         )}
 
-        {activeTab === "ngrokAdmin" && (
+        {activeTab === "tunnels" && (
           <section className="flex flex-col gap-3">
-            <p className="text-sm text-muted">{t.settings.ngrokAdmin.description}</p>
-            <NgrokAdminPanel />
-          </section>
-        )}
+            <div className="flex gap-1 rounded-lg border border-surface-border bg-surface p-1 self-start">
+              <button
+                type="button"
+                onClick={() => setActiveTunnelProvider("ngrok")}
+                className={`inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                  activeTunnelProvider === "ngrok" ? "bg-background text-foreground shadow-sm" : "text-muted hover:text-foreground"
+                }`}
+              >
+                <Radio size={14} aria-hidden="true" />
+                {t.settings.ngrok.section}
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTunnelProvider("cloudflare")}
+                className={`inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                  activeTunnelProvider === "cloudflare" ? "bg-background text-foreground shadow-sm" : "text-muted hover:text-foreground"
+                }`}
+              >
+                <Cloud size={14} aria-hidden="true" />
+                {t.settings.cloudflare.section}
+              </button>
+            </div>
 
-        {activeTab === "cloudflareAdmin" && (
-          <section className="flex flex-col gap-3">
-            <p className="text-sm text-muted">{t.settings.cloudflareAdmin.description}</p>
-            <CloudflareAdminPanel />
+            {activeTunnelProvider === "ngrok" ? (
+              <>
+                <p className="text-sm text-muted">{t.settings.ngrokAdmin.description}</p>
+                <NgrokAdminPanel />
+              </>
+            ) : (
+              <>
+                <p className="text-sm text-muted">{t.settings.cloudflareAdmin.description}</p>
+                <CloudflareAdminPanel />
+              </>
+            )}
           </section>
         )}
 
