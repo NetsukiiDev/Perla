@@ -130,6 +130,42 @@ export interface Dictionary {
       table: { user: string; role: string; status: string };
       notConfigured: string;
     };
+    cloudflare: {
+      section: string;
+      description: string;
+      tunnelTokenLabel: string;
+      tunnelTokenHint: string;
+      hostnameLabel: string;
+      hostnamePlaceholder: string;
+      hostnameHint: string;
+      save: string;
+      saving: string;
+      saved: string;
+      start: string;
+      starting: string;
+      stop: string;
+      stopping: string;
+      running: string;
+      stopped: string;
+      urlLabel: string;
+      shareHint: string;
+      quickTunnelHint: string;
+      errors: {
+        saveFailed: string;
+        vercelUnsupported: string;
+        decryptFailed: string;
+        notInstalled: string;
+        timeout: string;
+        startFailed: string;
+        startFailedWithDetail: string;
+      };
+    };
+    cloudflareAdmin: {
+      section: string;
+      description: string;
+      table: { user: string; role: string; status: string };
+      quickTunnel: string;
+    };
     telegram: {
       section: string;
       description: string;

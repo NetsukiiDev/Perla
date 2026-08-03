@@ -33,6 +33,12 @@ export const ngrokConfigSchema = z.object({
   domain: z.string().trim().max(255).optional().nullable(),
 });
 
+export const cloudflareTunnelConfigSchema = z.object({
+  // Empty string means "keep the existing stored token".
+  tunnelToken: z.string().trim().max(2048).optional().nullable(),
+  hostname: z.string().trim().max(255).optional().nullable(),
+});
+
 export const telegramConfigSchema = z.object({
   // Empty string means "keep the existing stored value" for both fields.
   botToken: z.string().trim().max(512).optional().nullable(),

@@ -1,5 +1,14 @@
 # Changelog
 
+## Non rilasciato
+
+### Added
+- **Tunnel Cloudflare**, come alternativa a ngrok per esporre il server di sviluppo in modo sicuro — utile quando la rete o l'antivirus blocca specificamente ngrok (vedi il fix qui sotto per il caso reale che ha portato a questa funzione). Nuove schede **Account → Tunnel Cloudflare** (avvia/ferma il proprio, con un token opzionale per un tunnel con nome — senza, parte un Quick Tunnel anonimo, nessun account richiesto) e **Impostazioni → Tutti i tunnel Cloudflare** (supervisione admin di tutti gli utenti), identiche nella forma alla coppia già esistente per ngrok. Il binario `cloudflared` non richiede installazione manuale: viene scaricato in automatico al primo avvio (pacchetto `cloudflared` su npm, stesso principio con cui `@ngrok/ngrok` include già il proprio binario)
+
+### Fixed
+- **Il tunnel ngrok non si avviava affatto su una rete con Norton 360 attivo**, con errore `tls handshake error`: Norton intercetta il traffico HTTPS con un proprio certificato (confermato con una prova diretta: una `SSLKEYLOGFILE` iniettata nell'ambiente puntava a una pipe di Norton), e il trust store imbustato nel binario ngrok non lo riconosce — nemmeno impostando `NGROK_ROOT_CAS=host`, perché il componente di rete di Norton resta attivo a livello di driver anche a servizio "Firewall" fermato, finché non si riavvia Windows. Il Tunnel Cloudflare qui sopra è la via d'uscita: binario diverso, stesso risultato
+- Lo stato di un tunnel (ngrok o Cloudflare) avviato in sviluppo poteva risultare "non attivo" nella richiesta immediatamente successiva a quella che lo aveva avviato, anche col processo perfettamente sano — `next dev` (Turbopack) può rivalutare il modulo di una route tra una richiesta e l'altra, azzerando silenziosamente una `Map` tenuta a livello di modulo invece che su `globalThis` (lo stesso motivo per cui `lib/db.ts` mette lì il client Prisma). Corretto per entrambi i provider
+
 ## 0.2.11 — 2026-07-26
 
 ### Changed

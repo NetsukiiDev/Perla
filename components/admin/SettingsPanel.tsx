@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import {
   Check,
   ClipboardList,
+  Cloud,
   Download,
   ExternalLink,
   Loader2,
@@ -20,6 +21,7 @@ import { SmtpSettingsForm } from "@/components/admin/SmtpSettingsForm";
 import { SiteLogSection } from "@/components/admin/SiteLogSection";
 import { TurnstileSettingsForm } from "@/components/admin/TurnstileSettingsForm";
 import { NgrokAdminPanel } from "@/components/admin/NgrokAdminPanel";
+import { CloudflareAdminPanel } from "@/components/admin/CloudflareAdminPanel";
 import { TelegramSettingsForm } from "@/components/admin/TelegramSettingsForm";
 import { BranchSwitcher } from "@/components/admin/BranchSwitcher";
 import { ConfirmButton } from "@/components/admin/ConfirmButton";
@@ -43,7 +45,7 @@ interface VersionInfo {
 // and each user's own ngrok tunnel live on /admin/account instead, reachable
 // by every role; the "ngrokAdmin" tab here is the admin's oversight view of
 // everyone's tunnel, not a personal config form.
-type SettingsTab = "version" | "smtp" | "turnstile" | "telegram" | "ngrokAdmin" | "siteLog";
+type SettingsTab = "version" | "smtp" | "turnstile" | "telegram" | "ngrokAdmin" | "cloudflareAdmin" | "siteLog";
 
 const tabIcons: Record<SettingsTab, typeof Tag> = {
   version: Tag,
@@ -51,6 +53,7 @@ const tabIcons: Record<SettingsTab, typeof Tag> = {
   turnstile: ShieldCheck,
   telegram: Send,
   ngrokAdmin: Radio,
+  cloudflareAdmin: Cloud,
   siteLog: ClipboardList,
 };
 
@@ -119,6 +122,7 @@ export function SettingsPanel() {
     turnstile: t.settings.turnstile.section,
     telegram: t.settings.telegram.section,
     ngrokAdmin: t.settings.ngrokAdmin.section,
+    cloudflareAdmin: t.settings.cloudflareAdmin.section,
     siteLog: t.settings.logs.section,
   };
 
@@ -145,7 +149,7 @@ export function SettingsPanel() {
         })}
       </div>
 
-      <div className={activeTab === "ngrokAdmin" ? "max-w-3xl" : "max-w-xl"}>
+      <div className={activeTab === "ngrokAdmin" || activeTab === "cloudflareAdmin" ? "max-w-3xl" : "max-w-xl"}>
         {activeTab === "version" && (
           <section className="flex flex-col gap-3">
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-surface-border p-3">
@@ -270,6 +274,13 @@ export function SettingsPanel() {
           <section className="flex flex-col gap-3">
             <p className="text-sm text-muted">{t.settings.ngrokAdmin.description}</p>
             <NgrokAdminPanel />
+          </section>
+        )}
+
+        {activeTab === "cloudflareAdmin" && (
+          <section className="flex flex-col gap-3">
+            <p className="text-sm text-muted">{t.settings.cloudflareAdmin.description}</p>
+            <CloudflareAdminPanel />
           </section>
         )}
 

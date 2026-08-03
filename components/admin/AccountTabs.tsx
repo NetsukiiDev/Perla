@@ -1,19 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { KeyRound, Radio, Sliders, UserCircle } from "lucide-react";
+import { Cloud, KeyRound, Radio, Sliders, UserCircle } from "lucide-react";
 import { useT } from "@/lib/i18n/context";
 import { AccountForm } from "@/components/admin/AccountForm";
 import { PreferencesPanel } from "@/components/admin/PreferencesPanel";
 import { NgrokSettingsForm } from "@/components/admin/NgrokSettingsForm";
+import { CloudflareSettingsForm } from "@/components/admin/CloudflareSettingsForm";
 import { ApiKeyForm } from "@/components/admin/ApiKeyForm";
 
-type AccountTab = "profile" | "preferences" | "ngrok" | "api";
+type AccountTab = "profile" | "preferences" | "ngrok" | "cloudflare" | "api";
 
 const tabIcons: Record<AccountTab, typeof UserCircle> = {
   profile: UserCircle,
   preferences: Sliders,
   ngrok: Radio,
+  cloudflare: Cloud,
   api: KeyRound,
 };
 
@@ -25,6 +27,7 @@ export function AccountTabs({ email }: { email: string }) {
     profile: t.account.tabs.profile,
     preferences: t.account.tabs.preferences,
     ngrok: t.settings.ngrok.section,
+    cloudflare: t.settings.cloudflare.section,
     api: t.account.tabs.api,
   };
 
@@ -56,6 +59,12 @@ export function AccountTabs({ email }: { email: string }) {
           <section className="flex flex-col gap-3">
             <p className="text-sm text-muted">{t.settings.ngrok.description}</p>
             <NgrokSettingsForm />
+          </section>
+        )}
+        {activeTab === "cloudflare" && (
+          <section className="flex flex-col gap-3">
+            <p className="text-sm text-muted">{t.settings.cloudflare.description}</p>
+            <CloudflareSettingsForm />
           </section>
         )}
         {activeTab === "api" && (

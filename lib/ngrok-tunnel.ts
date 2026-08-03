@@ -10,12 +10,20 @@
 //
 // Per-user: each admin/organizer has their own ngrok account/authtoken and
 // can run their own tunnel independently, all forwarding to the same local
-// server — keyed by adminUserId. State lives in this module's closure, not
-// the database — it describes the current listeners, not persisted
-// configuration (that's NgrokConfig).
+// server — keyed by adminUserId. State lives here, not the database — it
+// describes the current listeners, not persisted configuration (that's
+// NgrokConfig).
+//
+// Cached on globalThis, not a plain module-level const — same reason lib/db.ts
+// caches the Prisma client there: `next dev` (Turbopack) can re-evaluate a
+// route's module graph between requests, which would silently reset a plain
+// module-scope Map, making a tunnel started by one request look instantly
+// dead to the very next status check even though it's still running fine.
 import * as ngrok from "@ngrok/ngrok";
 
-const listeners = new Map<string, ngrok.Listener>();
+const globalForNgrok = globalThis as unknown as { ngrokListeners?: Map<string, ngrok.Listener> };
+const listeners = globalForNgrok.ngrokListeners ?? new Map<string, ngrok.Listener>();
+globalForNgrok.ngrokListeners = listeners;
 
 export function getTunnelStatus(userId: string): { running: boolean; url: string | null } {
   const listener = listeners.get(userId);

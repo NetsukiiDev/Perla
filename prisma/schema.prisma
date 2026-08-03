@@ -105,11 +105,12 @@ model AdminUser {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  passwordResetTokens PasswordResetToken[]
-  events              Event[]
-  ngrokConfig         NgrokConfig?
-  apiKey              ApiKey?
-  telegramLinks       TelegramLink[]
+  passwordResetTokens    PasswordResetToken[]
+  events                 Event[]
+  ngrokConfig            NgrokConfig?
+  cloudflareTunnelConfig CloudflareTunnelConfig?
+  apiKey                 ApiKey?
+  telegramLinks          TelegramLink[]
 
   @@map("admin_users")
 }
@@ -402,6 +403,29 @@ model NgrokConfig {
   updatedAt          DateTime  @default(now()) @updatedAt @map("updated_at")
 
   @@map("ngrok_config")
+}
+
+// Same purpose and shape as NgrokConfig (per-user dev tunnel, own credentials),
+// for admins/organizers whose network blocks ngrok specifically (some
+// antivirus/corporate TLS-inspection setups interfere with its bundled
+// client) — cloudflared is a different binary and protocol, unaffected by
+// the same block. The token is optional: without one, startTunnel() falls
+// back to an anonymous Cloudflare Quick Tunnel (no account needed, but a new
+// random *.trycloudflare.com hostname every time it starts). With one — from
+// a named tunnel created in the Cloudflare Zero Trust dashboard, already
+// pointed at this machine's port there — the hostname is stable.
+// `hostname` is purely informational (the ingress mapping lives in
+// Cloudflare's config, not passed on our command line) so the UI has
+// something to show for a running named tunnel.
+model CloudflareTunnelConfig {
+  id                   String    @id @default(cuid())
+  adminUserId          String    @unique @map("admin_user_id")
+  adminUser            AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  tunnelTokenEncrypted String?   @map("tunnel_token_encrypted") @db.VarChar(2048)
+  hostname             String?   @db.VarChar(255)
+  updatedAt            DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  @@map("cloudflare_tunnel_config")
 }
 
 // One personal API key per admin/organizer, used by external integrations
