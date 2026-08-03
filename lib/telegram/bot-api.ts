@@ -27,15 +27,72 @@ async function callTelegram<T>(token: string, method: string, params?: Record<st
   }
 }
 
-export async function sendTelegramMessage(chatId: string, text: string): Promise<void> {
+// One row of buttons in an inline keyboard. Menus are built as
+// TelegramKeyboard = TelegramButton[][] — see lib/telegram/menus.ts.
+export interface TelegramButton {
+  text: string;
+  callback_data: string;
+}
+export type TelegramKeyboard = TelegramButton[][];
+
+function replyMarkup(keyboard?: TelegramKeyboard) {
+  return keyboard && keyboard.length > 0 ? { reply_markup: { inline_keyboard: keyboard } } : {};
+}
+
+// Sends a new message — used for the chat's very first reply (e.g. right
+// after /start) and whenever there's no existing bot message left to edit.
+// Every other menu transition uses editTelegramMessage instead, so tapping
+// through the menu updates one message in place rather than spamming new
+// ones down the chat.
+export async function sendTelegramMessage(chatId: string, text: string, keyboard?: TelegramKeyboard): Promise<void> {
   const cfg = await getTelegramConfig();
   if (!cfg) {
     console.error("Telegram bot is not configured (Impostazioni → Telegram), cannot send message");
     return;
   }
-  const res = await callTelegram(cfg.botToken, "sendMessage", { chat_id: chatId, text });
+  const res = await callTelegram(cfg.botToken, "sendMessage", { chat_id: chatId, text, ...replyMarkup(keyboard) });
   if (!res.ok) {
     console.error("Failed to send Telegram message:", res.error);
+  }
+}
+
+// Edits an existing bot message in place — the button-tap path. Falls back
+// to sending a new message if the edit fails (message too old to edit,
+// deleted, or "message is not modified" when the text+keyboard are
+// unchanged), so a tap never silently does nothing from the chat's side.
+export async function editOrSendTelegramMessage(
+  chatId: string,
+  messageId: number,
+  text: string,
+  keyboard?: TelegramKeyboard,
+): Promise<void> {
+  const cfg = await getTelegramConfig();
+  if (!cfg) {
+    console.error("Telegram bot is not configured (Impostazioni → Telegram), cannot send message");
+    return;
+  }
+  const res = await callTelegram(cfg.botToken, "editMessageText", {
+    chat_id: chatId,
+    message_id: messageId,
+    text,
+    ...replyMarkup(keyboard),
+  });
+  if (!res.ok) {
+    if (res.error.includes("message is not modified")) return; // nothing to do, not a real failure
+    const sendRes = await callTelegram(cfg.botToken, "sendMessage", { chat_id: chatId, text, ...replyMarkup(keyboard) });
+    if (!sendRes.ok) console.error("Failed to send Telegram message (after edit failed):", res.error, sendRes.error);
+  }
+}
+
+// Stops the button's loading spinner. Telegram expects this within a few
+// seconds of every callback_query, independent of whether the edit above
+// succeeds — an un-acknowledged tap leaves the button visibly stuck spinning.
+export async function answerCallbackQuery(callbackQueryId: string, text?: string): Promise<void> {
+  const cfg = await getTelegramConfig();
+  if (!cfg) return;
+  const res = await callTelegram(cfg.botToken, "answerCallbackQuery", { callback_query_id: callbackQueryId, text });
+  if (!res.ok) {
+    console.error("Failed to answer Telegram callback query:", res.error);
   }
 }
 
@@ -50,14 +107,16 @@ export async function getWebhookInfo(token: string): Promise<TelegramResult<Tele
   return callTelegram<TelegramWebhookInfo>(token, "getWebhookInfo");
 }
 
-// `allowed_updates: ["message"]` keeps Telegram from delivering update types
-// the webhook route ignores anyway. drop_pending_updates discards whatever
-// piled up while the webhook was unregistered — those are stale by now.
+// `allowed_updates` keeps Telegram from delivering update types the webhook
+// route ignores anyway. "callback_query" is required for the button menu —
+// without it, taps are silently never sent to the webhook at all.
+// drop_pending_updates discards whatever piled up while the webhook was
+// unregistered — those are stale by now.
 export async function setWebhook(token: string, url: string, secret: string): Promise<TelegramResult<boolean>> {
   return callTelegram<boolean>(token, "setWebhook", {
     url,
     secret_token: secret,
-    allowed_updates: ["message"],
+    allowed_updates: ["message", "callback_query"],
     drop_pending_updates: true,
   });
 }

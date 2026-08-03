@@ -5,14 +5,15 @@
 // registration time), not by signature — this is the mechanism Telegram's
 // Bot API actually provides.
 //
-// The whole flow (parse → run the command → send the reply) is awaited
-// before responding, rather than firing the reply in the background after an
-// early 200 — on a serverless runtime (Vercel) the function can be frozen or
-// torn down right after the response is sent, which would silently drop the
-// outbound sendMessage call.
+// Two update shapes are handled: `message` (anything typed — mostly
+// /start <key>, see lib/telegram/commands.ts) and `callback_query` (a
+// button tap in the menu). Both are awaited to completion before responding
+// — on a serverless runtime (Vercel) the function can be frozen or torn
+// down right after the response is sent, which would silently drop the
+// outbound Telegram call.
 import { NextResponse } from "next/server";
-import { handleTelegramMessage } from "@/lib/telegram/commands";
-import { sendTelegramMessage } from "@/lib/telegram/bot-api";
+import { handleTelegramMessage, handleTelegramCallback } from "@/lib/telegram/commands";
+import { sendTelegramMessage, editOrSendTelegramMessage, answerCallbackQuery } from "@/lib/telegram/bot-api";
 import { getTelegramConfig } from "@/lib/telegram/config";
 
 export const runtime = "nodejs";
@@ -21,6 +22,14 @@ interface TelegramUpdate {
   message?: {
     chat: { id: number | string };
     text?: string;
+  };
+  callback_query?: {
+    id: string;
+    data?: string;
+    message?: {
+      message_id: number;
+      chat: { id: number | string };
+    };
   };
 }
 
@@ -40,6 +49,27 @@ export async function POST(req: Request) {
   }
 
   const body = (await req.json().catch(() => null)) as TelegramUpdate | null;
+
+  const callback = body?.callback_query;
+  if (callback) {
+    const chatId = callback.message ? String(callback.message.chat.id) : null;
+    const messageId = callback.message?.message_id;
+    if (!chatId || messageId === undefined || !callback.data) {
+      return NextResponse.json({});
+    }
+    try {
+      const screen = await handleTelegramCallback(chatId, callback.data);
+      await Promise.all([
+        editOrSendTelegramMessage(chatId, messageId, screen.text, screen.keyboard),
+        answerCallbackQuery(callback.id),
+      ]);
+    } catch (err) {
+      console.error("Telegram callback handling failed", err instanceof Error ? err.message : err);
+      await answerCallbackQuery(callback.id, "Si è verificato un errore.");
+    }
+    return NextResponse.json({});
+  }
+
   const message = body?.message;
   if (!message?.text) {
     return NextResponse.json({});
@@ -47,8 +77,8 @@ export async function POST(req: Request) {
 
   const chatId = String(message.chat.id);
   try {
-    const reply = await handleTelegramMessage(chatId, message.text);
-    await sendTelegramMessage(chatId, reply);
+    const screen = await handleTelegramMessage(chatId, message.text);
+    await sendTelegramMessage(chatId, screen.text, screen.keyboard);
   } catch (err) {
     console.error("Telegram webhook handling failed", err instanceof Error ? err.message : err);
     await sendTelegramMessage(chatId, "Si è verificato un errore. Riprova.");

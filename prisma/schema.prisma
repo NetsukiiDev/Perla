@@ -450,6 +450,11 @@ model TelegramLink {
   adminUserId     String    @map("admin_user_id")
   adminUser       AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
   selectedEventId String?   @map("selected_event_id")
+  // Set only while the button menu is waiting for the chat to type a number
+  // it can't offer as a preset button (a custom code quantity or public-code
+  // usage cap) — e.g. "new_qty" or "pub_max". Cleared as soon as that number
+  // is used or the action is cancelled. See lib/telegram/commands.ts.
+  pendingAction   String?   @map("pending_action")
   createdAt       DateTime  @default(now()) @map("created_at")
 
   @@map("telegram_links")
