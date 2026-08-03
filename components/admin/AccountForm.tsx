@@ -53,7 +53,7 @@ export function AccountForm({ email }: { email: string }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex max-w-md flex-col gap-4">
+    <form onSubmit={handleSubmit} method="post" className="flex max-w-md flex-col gap-4">
       <div className="flex flex-col gap-1">
         <label className={labelClass}>{t.account.email}</label>
         <input value={email} disabled className={`${inputClass} opacity-60`} />

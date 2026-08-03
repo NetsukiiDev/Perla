@@ -88,7 +88,7 @@ export function PublicCodesPanel({
         {t.codes.public.description}
       </p>
 
-      <form onSubmit={create} className="flex flex-wrap items-end gap-3 rounded-lg border border-surface-border p-4">
+      <form onSubmit={create} method="post" className="flex flex-wrap items-end gap-3 rounded-lg border border-surface-border p-4">
         <div className="flex flex-col gap-1">
           <label className="text-xs uppercase tracking-wide text-muted">{t.codes.public.maxUses}</label>
           <input

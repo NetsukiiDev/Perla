@@ -53,7 +53,13 @@ export function LoginForm({ nextPath, error }: { nextPath: string; error?: strin
   }
 
   return (
-    <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <form
+      ref={formRef}
+      onSubmit={handleSubmit}
+      method="post"
+      action="/api/admin/auth/login"
+      className="flex flex-col gap-4"
+    >
       <input type="hidden" name="next" value={nextPath} />
       <div className="flex flex-col gap-1">
         <label htmlFor="admin-email" className="text-xs uppercase tracking-wide text-muted">

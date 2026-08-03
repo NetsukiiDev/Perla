@@ -492,7 +492,7 @@ export function TicketGenerator({ eventId, event, initialBaseUrl, entries }: Tic
           </button>
         </div>
 
-        <form onSubmit={createBulk} className="grid gap-3 md:grid-cols-[130px_minmax(0,1fr)_auto]">
+        <form onSubmit={createBulk} method="post" className="grid gap-3 md:grid-cols-[130px_minmax(0,1fr)_auto]">
           <label className="flex flex-col gap-1">
             <span className="text-xs uppercase tracking-wide text-muted">{t.ticketGenerator.quantity}</span>
             <input type="number" min={1} max={200} value={count} onChange={(e) => setCount(Number(e.target.value))} className={inputClass} />

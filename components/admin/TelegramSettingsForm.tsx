@@ -180,7 +180,7 @@ export function TelegramSettingsForm() {
 
   return (
     <div className="flex max-w-md flex-col gap-6">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit} method="post" className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
           <label className={labelClass}>{t.settings.telegram.botTokenLabel}</label>
           <input

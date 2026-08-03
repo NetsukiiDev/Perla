@@ -167,7 +167,7 @@ export function ParticipantsManager({
 
   return (
     <div className="flex flex-col gap-6">
-      <form onSubmit={handleAdd} className="flex flex-wrap items-end gap-3 rounded-lg border border-surface-border p-4">
+      <form onSubmit={handleAdd} method="post" className="flex flex-wrap items-end gap-3 rounded-lg border border-surface-border p-4">
         <div className="flex flex-col gap-1">
           <label className="text-xs uppercase tracking-wide text-muted">{t.participants.manager.username}</label>
           <input autoFocus value={name} onChange={(e) => setName(e.target.value)} className={inputClass} placeholder={t.participants.manager.usernamePlaceholder} />

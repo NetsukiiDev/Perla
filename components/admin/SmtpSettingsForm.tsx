@@ -152,7 +152,7 @@ export function SmtpSettingsForm() {
   }
 
   return (
-    <form onSubmit={handleSave} className="flex max-w-md flex-col gap-4">
+    <form onSubmit={handleSave} method="post" className="flex max-w-md flex-col gap-4">
       <div className="flex flex-col gap-1">
         <label className={labelClass}>{t.settings.smtp.host}</label>
         <input

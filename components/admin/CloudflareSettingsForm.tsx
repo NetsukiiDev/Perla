@@ -165,7 +165,7 @@ export function CloudflareSettingsForm() {
 
   return (
     <div className="flex max-w-md flex-col gap-4">
-      <form onSubmit={handleSave} className="flex flex-col gap-4">
+      <form onSubmit={handleSave} method="post" className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
           <label className={labelClass}>{t.settings.cloudflare.tunnelTokenLabel}</label>
           <input

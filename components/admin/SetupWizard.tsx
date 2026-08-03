@@ -111,7 +111,7 @@ function DatabaseStep({ currentProvider, onDone }: { currentProvider: string; on
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <form onSubmit={handleSubmit} method="post" className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
         <label className={labelClass}>{t.setup.wizard.db.provider}</label>
         <select value={provider} onChange={(e) => setProvider(e.target.value)} className={inputClass}>
@@ -273,7 +273,7 @@ function AdminStep({ onDone }: { onDone: () => void }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <form onSubmit={handleSubmit} method="post" className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
         <label className={labelClass}>{t.setup.wizard.admin.email}</label>
         <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} />

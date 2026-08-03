@@ -79,7 +79,7 @@ export function TurnstileSettingsForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <form onSubmit={handleSubmit} method="post" className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
         <label htmlFor="turnstile-sitekey" className="text-xs uppercase tracking-wide text-muted">
           {t.settings.turnstile.siteKeyLabel}

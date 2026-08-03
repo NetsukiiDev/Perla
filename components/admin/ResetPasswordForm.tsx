@@ -102,7 +102,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <form onSubmit={handleSubmit} method="post" className="flex flex-col gap-4">
       <p className="text-sm text-muted">{t.login.resetPassword.description}</p>
       <div className="flex flex-col gap-1">
         <label className={labelClass}>{t.login.resetPassword.newPassword}</label>
