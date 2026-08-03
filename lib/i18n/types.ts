@@ -135,6 +135,7 @@ export interface Dictionary {
       description: string;
       tunnelTokenLabel: string;
       tunnelTokenHint: string;
+      tunnelTokenLinkLabel: string;
       hostnameLabel: string;
       hostnamePlaceholder: string;
       hostnameHint: string;

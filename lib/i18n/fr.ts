@@ -181,6 +181,7 @@ export const fr: Dictionary = {
       tunnelTokenLabel: "Jeton du tunnel (facultatif)",
       tunnelTokenHint:
         "Depuis un tunnel nommé créé dans le tableau de bord Cloudflare Zero Trust, déjà pointé vers ce port. Sans jeton, un Quick Tunnel anonyme est utilisé, avec une adresse différente à chaque démarrage.",
+      tunnelTokenLinkLabel: "Créer un tunnel sur Cloudflare →",
       hostnameLabel: "Adresse publique (facultatif)",
       hostnamePlaceholder: "votre-domaine.exemple.com",
       hostnameHint: "Purement informatif : l'adresse du tunnel nommé configurée sur Cloudflare, affichée ici une fois lancé.",

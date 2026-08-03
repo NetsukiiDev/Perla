@@ -181,6 +181,7 @@ export const nl: Dictionary = {
       tunnelTokenLabel: "Tunnel-token (optioneel)",
       tunnelTokenHint:
         "Van een benoemde tunnel aangemaakt in het Cloudflare Zero Trust-dashboard, al gericht op deze poort. Zonder token wordt een anonieme Quick Tunnel gebruikt, met elke keer een ander adres.",
+      tunnelTokenLinkLabel: "Tunnel aanmaken op Cloudflare →",
       hostnameLabel: "Openbaar adres (optioneel)",
       hostnamePlaceholder: "jouw-domein.voorbeeld.nl",
       hostnameHint: "Alleen informatief: het adres van de benoemde tunnel zoals geconfigureerd op Cloudflare, hier getoond zodra actief.",

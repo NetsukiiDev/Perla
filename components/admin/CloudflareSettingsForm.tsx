@@ -177,6 +177,14 @@ export function CloudflareSettingsForm() {
             autoComplete="new-password"
           />
           <p className="text-xs text-muted">{t.settings.cloudflare.tunnelTokenHint}</p>
+          <a
+            href="https://one.dash.cloudflare.com/?to=/:account/networks/tunnels"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-blue-400 hover:text-blue-300"
+          >
+            {t.settings.cloudflare.tunnelTokenLinkLabel}
+          </a>
         </div>
         <div className="flex flex-col gap-1">
           <label className={labelClass}>{t.settings.cloudflare.hostnameLabel}</label>
