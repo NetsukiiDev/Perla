@@ -37,9 +37,9 @@ Organizers create events with a **secret destination**, split them into **interm
 
 <table>
 <tr>
-<td width="33%"><img src="docs/screenshots/home.png" alt="Inserimento codice"><br><sub>Code entry — the only thing a participant sees before authenticating</sub></td>
-<td width="33%"><img src="docs/screenshots/participant-consent.png" alt="Consenso posizione"><br><sub>Location consent, with the region-silhouette hint instead of a map</sub></td>
-<td width="33%"><img src="docs/screenshots/participant-map.png" alt="Percorso in tempo reale"><br><sub>Current stop only — satellite/dark map toggle, distance, time, tolls</sub></td>
+<td align="center"><img src="docs/screenshots/home-mobile.png" alt="Inserimento codice" width="230"><br><sub>Code entry — the only thing a participant sees before authenticating</sub></td>
+<td align="center"><img src="docs/screenshots/participant-consent-mobile.png" alt="Consenso posizione" width="230"><br><sub>Location consent, with the region-silhouette hint instead of a map</sub></td>
+<td align="center"><img src="docs/screenshots/participant-map-mobile.png" alt="Percorso in tempo reale" width="230"><br><sub>Current stop only — satellite/dark map toggle, distance, time, tolls</sub></td>
 </tr>
 </table>
 
