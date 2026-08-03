@@ -31,6 +31,38 @@ Organizers create events with a **secret destination**, split them into **interm
 | 🗄️ | 4 databases (PostgreSQL · MySQL · MariaDB · MongoDB) + setup wizard |
 | ☁️ | **Vercel**-ready with an in-app guide and `.env` generator |
 
+## 📸 Screenshots
+
+**Participant experience**
+
+<table>
+<tr>
+<td align="center"><img src="docs/screenshots/home-mobile.png" alt="Inserimento codice" width="230"><br><sub>Code entry — the only thing a participant sees before authenticating</sub></td>
+<td align="center"><img src="docs/screenshots/participant-consent-mobile.png" alt="Consenso posizione" width="230"><br><sub>Location consent, with the region-silhouette hint instead of a map</sub></td>
+<td align="center"><img src="docs/screenshots/participant-map-mobile.png" alt="Percorso in tempo reale" width="230"><br><sub>Current stop only — satellite/dark map toggle, distance, time, tolls</sub></td>
+</tr>
+</table>
+
+**Admin dashboard**
+
+<table>
+<tr>
+<td width="33%"><img src="docs/screenshots/admin-login.png" alt="Accesso amministratore"><br><sub>Admin login</sub></td>
+<td width="33%"><img src="docs/screenshots/admin-events.png" alt="Elenco eventi"><br><sub>Events list</sub></td>
+<td width="33%"><img src="docs/screenshots/admin-event-new.png" alt="Nuovo evento"><br><sub>New event — map picker, geocoding, schedule</sub></td>
+</tr>
+<tr>
+<td width="33%"><img src="docs/screenshots/admin-event-overview.png" alt="Panoramica evento"><br><sub>Event overview — codes, route, destination</sub></td>
+<td width="33%"><img src="docs/screenshots/admin-event-participants.png" alt="Partecipanti e codici"><br><sub>Participants & codes — personal and public</sub></td>
+<td width="33%"><img src="docs/screenshots/admin-event-live.png" alt="Live tracking"><br><sub>Live dashboard — everyone's position in real time</sub></td>
+</tr>
+<tr>
+<td width="33%"><img src="docs/screenshots/admin-users.png" alt="Utenti amministratori"><br><sub>Admin/organizer users & roles</sub></td>
+<td width="33%"><img src="docs/screenshots/admin-account.png" alt="Account"><br><sub>Account — profile, preferences, ngrok tunnel, API key</sub></td>
+<td width="33%"><img src="docs/screenshots/admin-settings.png" alt="Impostazioni"><br><sub>Settings — version, updates, branch switcher, integrations</sub></td>
+</tr>
+</table>
+
 ## 🏗️ Architecture
 
 ```mermaid
