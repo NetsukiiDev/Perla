@@ -1,6 +1,6 @@
 # Changelog
 
-## Non rilasciato
+## 0.3.0 — 2026-08-04
 
 ### Added
 - **Il bot Telegram è ora guidato interamente da menu a bottoni**, non più da comandi digitati: selezionare un evento, creare codici, elencarli, revocarli o rigenerarli sono tutti tap, non testo da scrivere. Ogni tap modifica lo stesso messaggio invece di mandarne uno nuovo, così la chat resta una schermata che evolve invece di un muro di messaggi. Digitare serve solo per `/start <chiave>` (un segreto non può essere un bottone) e, come scappatoia, per un numero personalizzato quando nessun bottone preimpostato va bene (es. "37 codici" quando i bottoni offrono solo 1/5/10) — vedi [Telegram Bot](docs/wiki/Telegram-Bot.md). **Se aggiorni da una versione precedente, registra di nuovo il webhook** (Impostazioni → Telegram) dopo il deploy: ora serve anche il tipo di aggiornamento `callback_query` (i tap sui bottoni), che una registrazione precedente non chiedeva
