@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { CheckSquare, ChevronLeft, ChevronRight, ExternalLink, Link2, MapPin, QrCode, RotateCcw, Trash2, UserPlus, X } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { CopyButton } from "./CopyButton";
+import { ConfirmButton } from "./ConfirmButton";
 import { iconButtonClass } from "./IconButton";
 
 import { codeAccessPath } from "@/lib/code-access-link";
@@ -137,12 +138,6 @@ export function ParticipantsManager({
 
   async function deleteCodes(codeIds: string[], singleCodeId?: string) {
     if (codeIds.length === 0) return;
-    const ok = window.confirm(
-      codeIds.length === 1
-        ? t.participants.manager.confirmDelete
-        : t.participants.manager.confirmBulkDelete.replace("{count}", String(codeIds.length)),
-    );
-    if (!ok) return;
 
     if (singleCodeId) setDeleting(singleCodeId);
     else setBulkLoading(true);
@@ -163,6 +158,123 @@ export function ParticipantsManager({
       setBulkLoading(false);
       if (singleCodeId) setDeleting(null);
     }
+  }
+
+  // Full version for the desktop table's code column: code + copy + QR +
+  // open-link + location, all inline.
+  function CodeCell({ r }: { r: ParticipantRow }) {
+    if (!r.code) return <span className="italic text-muted">{t.participants.manager.na}</span>;
+    return (
+      <span className="flex flex-wrap items-center gap-2">
+        <CodeIdentity r={r} />
+        <button
+          type="button"
+          title={t.participants.manager.showQR}
+          aria-label={t.participants.manager.showQR}
+          onClick={() => setQrPreview({ code: r.code!, displayName: r.displayName })}
+          className={iconButtonClass()}
+        >
+          <QrCode size={16} aria-hidden="true" />
+          <span className="sr-only">{t.participants.manager.showQR}</span>
+        </button>
+        <a
+          href={accessUrlFor(r.code)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={iconButtonClass()}
+          title={t.participants.detail.access.openLink}
+          aria-label={t.participants.detail.access.openLink}
+        >
+          <Link2 size={16} aria-hidden="true" />
+          <span className="sr-only">{t.participants.detail.access.openLink}</span>
+        </a>
+      </span>
+    );
+  }
+
+  // Just the code + copy + location, no action buttons — used as the mobile
+  // card's compact header line, with QR/open-link moved into RowActions
+  // there instead (see includeCodeActions) so the header never wraps.
+  function CodeIdentity({ r }: { r: ParticipantRow }) {
+    if (!r.code) return <span className="italic text-muted">{t.participants.manager.na}</span>;
+    return (
+      <span className="flex items-center gap-2">
+        <Link href={`/admin/events/${eventId}/participants/${r.id}`} className="font-mono tracking-widest hover:underline">
+          {r.code}
+        </Link>
+        <CopyButton value={r.code} />
+        {r.lastLocation && (
+          <span className="text-emerald-400" title={`${r.lastLocation.lat}, ${r.lastLocation.lng}`}>
+            <MapPin size={14} aria-hidden="true" />
+          </span>
+        )}
+      </span>
+    );
+  }
+
+  function RowActions({ r, includeCodeActions = false }: { r: ParticipantRow; includeCodeActions?: boolean }) {
+    return (
+      <>
+        {includeCodeActions && r.code && (
+          <>
+            <button
+              type="button"
+              title={t.participants.manager.showQR}
+              aria-label={t.participants.manager.showQR}
+              onClick={() => setQrPreview({ code: r.code!, displayName: r.displayName })}
+              className={iconButtonClass()}
+            >
+              <QrCode size={16} aria-hidden="true" />
+              <span className="sr-only">{t.participants.manager.showQR}</span>
+            </button>
+            <a
+              href={accessUrlFor(r.code)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={iconButtonClass()}
+              title={t.participants.detail.access.openLink}
+              aria-label={t.participants.detail.access.openLink}
+            >
+              <Link2 size={16} aria-hidden="true" />
+              <span className="sr-only">{t.participants.detail.access.openLink}</span>
+            </a>
+          </>
+        )}
+        {r.codeId && (
+          <button
+            type="button"
+            title={t.participants.manager.actions.regenerate}
+            aria-label={t.participants.manager.actions.regenerate}
+            onClick={() => regenerate(r.codeId!, r.displayName ?? "codice")}
+            disabled={regenerating === r.codeId}
+            className={iconButtonClass()}
+          >
+            <RotateCcw size={16} aria-hidden="true" />
+            <span className="sr-only">{t.participants.manager.actions.regenerate}</span>
+          </button>
+        )}
+        <Link
+          href={`/admin/events/${eventId}/participants/${r.id}`}
+          title={t.participants.manager.actions.openParticipant}
+          aria-label={t.participants.manager.actions.openParticipant}
+          className={iconButtonClass()}
+        >
+          <ExternalLink size={16} aria-hidden="true" />
+          <span className="sr-only">{t.participants.manager.actions.openParticipant}</span>
+        </Link>
+        {r.codeId && (
+          <ConfirmButton
+            confirmMessage={t.participants.manager.confirmDelete}
+            onConfirm={() => void deleteCodes([r.codeId!], r.codeId!)}
+            disabled={Boolean(deleting === r.codeId || bulkLoading)}
+            icon={Trash2}
+            label={t.participants.manager.actions.delete}
+          >
+            {t.participants.manager.actions.delete}
+          </ConfirmButton>
+        )}
+      </>
+    );
   }
 
   return (
@@ -243,20 +355,68 @@ export function ParticipantsManager({
             <CheckSquare size={16} aria-hidden="true" />
             {t.participants.manager.selectedCount.replace("{count}", String(activeSelectedCodeIds.length))}
           </p>
-          <button
-            type="button"
-            onClick={() => void deleteCodes(activeSelectedCodeIds)}
+          <ConfirmButton
+            confirmMessage={t.participants.manager.confirmBulkDelete.replace("{count}", String(activeSelectedCodeIds.length))}
+            onConfirm={() => void deleteCodes(activeSelectedCodeIds)}
             disabled={bulkLoading}
             className="inline-flex h-9 items-center gap-2 rounded-lg border border-danger/40 bg-danger/10 px-3 text-sm text-danger hover:border-danger disabled:opacity-50"
           >
             <Trash2 size={16} aria-hidden="true" />
             {t.participants.manager.deleteSelected}
-          </button>
+          </ConfirmButton>
         </div>
       )}
       {bulkError && <p className="text-sm text-danger">{bulkError}</p>}
 
-      <div className="overflow-x-auto rounded-lg border border-surface-border">
+      {/* Mobile: one card per participant — a 6-column table (checkbox, code
+          + 3 inline actions, username, status, step, row actions) has no
+          room on a phone width. */}
+      <div className="flex flex-col gap-3 md:hidden">
+        {paginatedRows.length > 0 && (
+          <label className="flex items-center gap-2 text-xs text-muted">
+            <input
+              type="checkbox"
+              checked={allVisibleSelected}
+              disabled={visibleCodeIds.length === 0}
+              onChange={(e) => toggleVisibleCodes(e.target.checked)}
+              className="h-4 w-4 rounded border-surface-border bg-background"
+            />
+            Seleziona codici visibili
+          </label>
+        )}
+        {paginatedRows.map((r) => (
+          <div key={r.id} className="flex flex-col gap-3 rounded-lg border border-surface-border p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={Boolean(r.codeId && selectedSet.has(r.codeId))}
+                  disabled={!r.codeId}
+                  onChange={(e) => r.codeId && toggleCode(r.codeId, e.target.checked)}
+                  aria-label={r.code ? `Seleziona codice ${r.code}` : "Codice non selezionabile"}
+                  className="h-4 w-4 shrink-0 rounded border-surface-border bg-background"
+                />
+                <CodeIdentity r={r} />
+              </div>
+              <StatusBadge value={r.displayStatus} label={displayLabels[r.displayStatus]} />
+            </div>
+            <div className="flex items-center justify-between text-xs text-muted">
+              <span>{r.displayName ?? <span className="italic">{t.participants.manager.na}</span>}</span>
+              <span>{r.currentStep ? `${r.currentStep}/${r.stepsCount}` : <span className="italic">{t.participants.manager.na}</span>}</span>
+            </div>
+            <div className="flex flex-wrap gap-2 border-t border-surface-border pt-3">
+              <RowActions r={r} includeCodeActions />
+            </div>
+          </div>
+        ))}
+        {filtered.length === 0 && (
+          <p className="rounded-lg border border-surface-border px-4 py-8 text-center text-sm text-muted">
+            {initialParticipants.length === 0 ? t.participants.manager.empty : t.participants.manager.noResults}
+          </p>
+        )}
+      </div>
+
+      <div className="hidden overflow-x-auto rounded-lg border border-surface-border md:block">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-surface-border bg-surface text-xs uppercase tracking-wide text-muted">
             <tr>
@@ -291,42 +451,7 @@ export function ParticipantsManager({
                   />
                 </td>
                 <td className="px-4 py-3">
-                  {r.code ? (
-                    <span className="flex items-center gap-2">
-                      <Link href={`/admin/events/${eventId}/participants/${r.id}`} className="font-mono tracking-widest hover:underline">
-                        {r.code}
-                      </Link>
-                      <CopyButton value={r.code} />
-                      <button
-                        type="button"
-                        title={t.participants.manager.showQR}
-                        aria-label={t.participants.manager.showQR}
-                        onClick={() => setQrPreview({ code: r.code!, displayName: r.displayName })}
-                        className={iconButtonClass()}
-                      >
-                        <QrCode size={16} aria-hidden="true" />
-                        <span className="sr-only">{t.participants.manager.showQR}</span>
-                      </button>
-                      <a
-                        href={accessUrlFor(r.code)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={iconButtonClass()}
-                        title={t.participants.detail.access.openLink}
-                        aria-label={t.participants.detail.access.openLink}
-                      >
-                        <Link2 size={16} aria-hidden="true" />
-                        <span className="sr-only">{t.participants.detail.access.openLink}</span>
-                      </a>
-                      {r.lastLocation && (
-                        <span className="text-emerald-400" title={`${r.lastLocation.lat}, ${r.lastLocation.lng}`}>
-                          <MapPin size={14} aria-hidden="true" />
-                        </span>
-                      )}
-                    </span>
-                  ) : (
-                    <span className="text-muted italic">{t.participants.manager.na}</span>
-                  )}
+                  <CodeCell r={r} />
                 </td>
                 <td className="px-4 py-3 text-muted">{r.displayName ?? <span className="italic">{t.participants.manager.na}</span>}</td>
                 <td className="px-4 py-3">
@@ -335,41 +460,7 @@ export function ParticipantsManager({
                 <td className="px-4 py-3 text-muted">{r.currentStep ? `${r.currentStep}/${r.stepsCount}` : <span className="italic">{t.participants.manager.na}</span>}</td>
                 <td className="px-4 py-3 text-right">
                   <div className="flex justify-end gap-2">
-                    {r.codeId && (
-                      <button
-                        type="button"
-                        title={t.participants.manager.actions.regenerate}
-                        aria-label={t.participants.manager.actions.regenerate}
-                        onClick={() => regenerate(r.codeId!, r.displayName ?? "codice")}
-                        disabled={regenerating === r.codeId}
-                        className={iconButtonClass()}
-                      >
-                        <RotateCcw size={16} aria-hidden="true" />
-                        <span className="sr-only">{t.participants.manager.actions.regenerate}</span>
-                      </button>
-                    )}
-                    <Link
-                      href={`/admin/events/${eventId}/participants/${r.id}`}
-                      title={t.participants.manager.actions.openParticipant}
-                      aria-label={t.participants.manager.actions.openParticipant}
-                      className={iconButtonClass()}
-                    >
-                      <ExternalLink size={16} aria-hidden="true" />
-                      <span className="sr-only">{t.participants.manager.actions.openParticipant}</span>
-                    </Link>
-                    {r.codeId && (
-                      <button
-                        type="button"
-                        title={t.participants.manager.actions.delete}
-                        aria-label={t.participants.manager.actions.delete}
-                        onClick={() => void deleteCodes([r.codeId!], r.codeId!)}
-                        disabled={Boolean(deleting === r.codeId || bulkLoading)}
-                        className={iconButtonClass("danger")}
-                      >
-                        <Trash2 size={16} aria-hidden="true" />
-                        <span className="sr-only">{t.participants.manager.actions.delete}</span>
-                      </button>
-                    )}
+                    <RowActions r={r} />
                   </div>
                 </td>
               </tr>

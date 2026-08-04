@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { ExternalLink, Globe, QrCode, Trash2, X } from "lucide-react";
 import { CopyButton } from "./CopyButton";
+import { ConfirmButton } from "./ConfirmButton";
 import { iconButtonClass } from "./IconButton";
 import { codeAccessPath } from "@/lib/code-access-link";
 import { useT } from "@/lib/i18n/context";
@@ -61,9 +62,7 @@ export function PublicCodesPanel({
     }
   }
 
-  async function toggleActive(id: string, currentStatus: string) {
-    const turningOff = currentStatus !== "revoked";
-    if (turningOff && !window.confirm(t.codes.public.confirm.revoke)) return;
+  async function toggleActive(id: string, turningOff: boolean) {
     await fetch(`/api/admin/codes/${id}/status`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -73,9 +72,45 @@ export function PublicCodesPanel({
   }
 
   async function del(id: string) {
-    if (!window.confirm(t.codes.public.confirm.delete)) return;
     await fetch(`/api/admin/codes/${id}`, { method: "DELETE" });
     router.refresh();
+  }
+
+  // Reactivating is harmless and reversible, so only revoking (which stops
+  // the code from letting anyone else in) asks first.
+  function ToggleActive({ row }: { row: PublicCodeRow }) {
+    const switchClass = `inline-flex h-8 w-14 items-center rounded-full border px-1 transition-colors ${
+      row.status === "revoked"
+        ? "border-surface-border bg-surface text-muted"
+        : "border-emerald-500/40 bg-emerald-500/20 text-emerald-400"
+    }`;
+    const knob = (
+      <span
+        className={`h-5 w-5 rounded-full transition-transform ${
+          row.status === "revoked" ? "translate-x-0 bg-muted" : "translate-x-6 bg-emerald-400"
+        }`}
+      />
+    );
+    return row.status === "revoked" ? (
+      <button
+        type="button"
+        title={t.codes.public.actions.activate}
+        aria-label={t.codes.public.actions.activate}
+        onClick={() => void toggleActive(row.id, false)}
+        className={switchClass}
+      >
+        {knob}
+      </button>
+    ) : (
+      <ConfirmButton
+        confirmMessage={t.codes.public.confirm.revoke}
+        onConfirm={() => void toggleActive(row.id, true)}
+        label={t.codes.public.actions.revoke}
+        className={switchClass}
+      >
+        {knob}
+      </ConfirmButton>
+    );
   }
 
   return (
@@ -137,98 +172,143 @@ export function PublicCodesPanel({
       )}
 
       {initialCodes.length > 0 && (
-        <div className="overflow-x-auto rounded-lg border border-surface-border">
-          <table className="w-full text-left text-sm">
-            <thead className="border-b border-surface-border bg-surface text-xs uppercase tracking-wide text-muted">
-              <tr>
-                <th className="px-4 py-2">{t.codes.public.table.code}</th>
-                <th className="px-4 py-2">{t.codes.public.table.uses}</th>
-                <th className="px-4 py-2">{t.codes.public.table.status}</th>
-                <th className="px-4 py-2" />
-              </tr>
-            </thead>
-            <tbody>
-              {initialCodes.map((c) => (
-                <tr key={c.id} className="border-b border-surface-border last:border-0">
-                  <td className="px-4 py-2">
-                    {c.code ? (
-                      <span className="flex items-center gap-2">
-                        <span className="font-mono tracking-widest">{c.code}</span>
-                        <CopyButton value={c.code} />
-                        <button
-                          type="button"
-                          title={t.codes.public.actions.qr}
-                          aria-label={t.codes.public.actions.qr}
-                          onClick={() => setQrCode(c.code)}
-                          className={iconButtonClass()}
-                        >
-                          <QrCode size={16} aria-hidden="true" />
-                          <span className="sr-only">{t.codes.public.actions.qr}</span>
-                        </button>
-                        <a
-                          href={accessUrlFor(c.code)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={iconButtonClass()}
-                          title={t.codes.public.actions.openLink}
-                          aria-label={t.codes.public.actions.openLink}
-                        >
-                          <ExternalLink size={16} aria-hidden="true" />
-                          <span className="sr-only">{t.codes.public.actions.openLink}</span>
-                        </a>
-                      </span>
-                    ) : (
-                      <span className="text-muted">{t.common.na}</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-2 text-muted">
-                    {c.used}/{c.maxSessions}
-                  </td>
-                  <td className="px-4 py-2">
-                    {c.status === "revoked" ? (
-                      <span className="text-danger">{t.codes.public.statusRevoked}</span>
-                    ) : (
-                      <span className="text-emerald-400">{t.codes.public.statusActive}</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-2 text-right">
-                    <div className="flex justify-end gap-2">
+        <>
+          {/* Mobile: one card per code — code + QR/link/toggle/delete never
+              fit a single table row on a phone width. */}
+          <div className="flex flex-col gap-3 md:hidden">
+            {initialCodes.map((c) => (
+              <div key={c.id} className="flex flex-col gap-3 rounded-lg border border-surface-border p-4">
+                <div className="flex items-center justify-between gap-3">
+                  {c.code ? (
+                    <span className="flex items-center gap-2">
+                      <span className="font-mono tracking-widest">{c.code}</span>
+                      <CopyButton value={c.code} />
+                    </span>
+                  ) : (
+                    <span className="text-muted">{t.common.na}</span>
+                  )}
+                  {c.status === "revoked" ? (
+                    <span className="text-xs text-danger">{t.codes.public.statusRevoked}</span>
+                  ) : (
+                    <span className="text-xs text-emerald-400">{t.codes.public.statusActive}</span>
+                  )}
+                </div>
+                <p className="text-xs text-muted">
+                  {t.codes.public.table.uses}: {c.used}/{c.maxSessions}
+                </p>
+                <div className="flex flex-wrap items-center gap-2 border-t border-surface-border pt-3">
+                  {c.code && (
+                    <>
                       <button
                         type="button"
-                        title={c.status === "revoked" ? t.codes.public.actions.activate : t.codes.public.actions.revoke}
-                        aria-label={c.status === "revoked" ? t.codes.public.actions.activate : t.codes.public.actions.revoke}
-                        onClick={() => void toggleActive(c.id, c.status)}
-                        className={`inline-flex h-8 w-14 items-center rounded-full border px-1 transition-colors ${
-                          c.status === "revoked"
-                            ? "border-surface-border bg-surface text-muted"
-                            : "border-emerald-500/40 bg-emerald-500/20 text-emerald-400"
-                        }`}
+                        title={t.codes.public.actions.qr}
+                        aria-label={t.codes.public.actions.qr}
+                        onClick={() => setQrCode(c.code)}
+                        className={iconButtonClass()}
                       >
-                        <span
-                          className={`h-5 w-5 rounded-full transition-transform ${
-                            c.status === "revoked"
-                              ? "translate-x-0 bg-muted"
-                              : "translate-x-6 bg-emerald-400"
-                          }`}
-                        />
+                        <QrCode size={16} aria-hidden="true" />
+                        <span className="sr-only">{t.codes.public.actions.qr}</span>
                       </button>
-                      <button
-                        type="button"
-                        title={t.codes.public.actions.delete}
-                        aria-label={t.codes.public.actions.delete}
-                        onClick={() => void del(c.id)}
-                        className={iconButtonClass("danger")}
+                      <a
+                        href={accessUrlFor(c.code)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={iconButtonClass()}
+                        title={t.codes.public.actions.openLink}
+                        aria-label={t.codes.public.actions.openLink}
                       >
-                        <Trash2 size={16} aria-hidden="true" />
-                        <span className="sr-only">{t.codes.public.actions.delete}</span>
-                      </button>
-                    </div>
-                  </td>
+                        <ExternalLink size={16} aria-hidden="true" />
+                        <span className="sr-only">{t.codes.public.actions.openLink}</span>
+                      </a>
+                    </>
+                  )}
+                  <ToggleActive row={c} />
+                  <ConfirmButton
+                    confirmMessage={t.codes.public.confirm.delete}
+                    onConfirm={() => void del(c.id)}
+                    icon={Trash2}
+                    label={t.codes.public.actions.delete}
+                  >
+                    {t.codes.public.actions.delete}
+                  </ConfirmButton>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="hidden overflow-x-auto rounded-lg border border-surface-border md:block">
+            <table className="w-full text-left text-sm">
+              <thead className="border-b border-surface-border bg-surface text-xs uppercase tracking-wide text-muted">
+                <tr>
+                  <th className="px-4 py-2">{t.codes.public.table.code}</th>
+                  <th className="px-4 py-2">{t.codes.public.table.uses}</th>
+                  <th className="px-4 py-2">{t.codes.public.table.status}</th>
+                  <th className="px-4 py-2" />
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {initialCodes.map((c) => (
+                  <tr key={c.id} className="border-b border-surface-border last:border-0">
+                    <td className="px-4 py-2">
+                      {c.code ? (
+                        <span className="flex items-center gap-2">
+                          <span className="font-mono tracking-widest">{c.code}</span>
+                          <CopyButton value={c.code} />
+                          <button
+                            type="button"
+                            title={t.codes.public.actions.qr}
+                            aria-label={t.codes.public.actions.qr}
+                            onClick={() => setQrCode(c.code)}
+                            className={iconButtonClass()}
+                          >
+                            <QrCode size={16} aria-hidden="true" />
+                            <span className="sr-only">{t.codes.public.actions.qr}</span>
+                          </button>
+                          <a
+                            href={accessUrlFor(c.code)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={iconButtonClass()}
+                            title={t.codes.public.actions.openLink}
+                            aria-label={t.codes.public.actions.openLink}
+                          >
+                            <ExternalLink size={16} aria-hidden="true" />
+                            <span className="sr-only">{t.codes.public.actions.openLink}</span>
+                          </a>
+                        </span>
+                      ) : (
+                        <span className="text-muted">{t.common.na}</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-2 text-muted">
+                      {c.used}/{c.maxSessions}
+                    </td>
+                    <td className="px-4 py-2">
+                      {c.status === "revoked" ? (
+                        <span className="text-danger">{t.codes.public.statusRevoked}</span>
+                      ) : (
+                        <span className="text-emerald-400">{t.codes.public.statusActive}</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-2 text-right">
+                      <div className="flex justify-end gap-2">
+                        <ToggleActive row={c} />
+                        <ConfirmButton
+                          confirmMessage={t.codes.public.confirm.delete}
+                          onConfirm={() => void del(c.id)}
+                          icon={Trash2}
+                          label={t.codes.public.actions.delete}
+                        >
+                          {t.codes.public.actions.delete}
+                        </ConfirmButton>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
 
       {qrCode && (

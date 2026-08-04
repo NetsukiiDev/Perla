@@ -142,7 +142,42 @@ export function UsersPanel({
 
       {error && <p className="text-sm text-danger">{error}</p>}
 
-      <div className="overflow-x-auto rounded-lg border border-surface-border">
+      {/* Mobile: one card per user — email + role badge + 3 action icons
+          doesn't fit a phone width as a single table row, especially with a
+          long email address. */}
+      <div className="flex flex-col gap-3 md:hidden">
+        {users.map((u) => (
+          <div key={u.id} className="flex flex-col gap-3 rounded-lg border border-surface-border p-4">
+            <div className="flex items-start justify-between gap-3">
+              <span className="break-all text-sm">
+                {u.email}
+                {u.id === currentUserId && <span className="ml-2 text-xs text-muted">{t.users.you}</span>}
+              </span>
+              <StatusBadge value={u.role} label={ROLE_LABELS[u.role](t)} />
+            </div>
+            <div className="flex flex-wrap gap-2 border-t border-surface-border pt-3">
+              <IconButton
+                icon={u.role === "admin" ? UserCog : Shield}
+                label={u.role === "admin" ? t.users.roleActions.makeOrganizer : t.users.roleActions.makeAdmin}
+                onClick={() => changeRole(u.id, u.role === "admin" ? "organizer" : "admin")}
+              />
+              <IconButton icon={KeyRound} label={t.users.roleActions.resetPassword} onClick={() => resetPassword(u.id)} />
+              {u.id !== currentUserId && (
+                <ConfirmButton
+                  confirmMessage={t.users.confirmDelete.replace("{email}", u.email)}
+                  onConfirm={() => remove(u.id)}
+                  icon={Trash2}
+                  label={t.users.roleActions.delete}
+                >
+                  {t.users.roleActions.delete}
+                </ConfirmButton>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="hidden overflow-x-auto rounded-lg border border-surface-border md:block">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-surface-border bg-surface text-xs uppercase tracking-wide text-muted">
             <tr>
