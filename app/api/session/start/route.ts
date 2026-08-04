@@ -19,7 +19,7 @@ import type { InviteCodeStatus, Session } from "@/lib/generated/prisma/client";
 import { getOrCreateDeviceToken, issueParticipantSession, readCodeRef } from "@/lib/session-participant";
 import { projectActiveSession } from "@/lib/public-projection";
 import { evaluateInviteCodeState } from "@/lib/code-resolution";
-import { getErrorMessages, DEFAULTS } from "@/lib/constants";
+import { getErrorMessages, DEFAULTS, publicCodeCapReached } from "@/lib/constants";
 import { getLocale, getDictionary } from "@/lib/i18n/server";
 
 const CLAIMABLE_CODE_STATUSES: InviteCodeStatus[] = ["created", "valid", "scheduled"];
@@ -148,7 +148,7 @@ export async function POST(req: Request) {
     // Public code: reusable, never consumed. Enforce the usage cap, then spawn
     // a fresh guest participant + session bound to this device.
     const used = await prisma.session.count({ where: { inviteCodeId: inviteCode.id } });
-    if (used >= inviteCode.maxSessions) {
+    if (publicCodeCapReached(used, inviteCode.maxSessions)) {
       return NextResponse.json({ error: "not_available", message: E.CODE_NOT_AVAILABLE }, { status: 409 });
     }
     session = await prisma.$transaction(async (tx) => {

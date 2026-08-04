@@ -32,6 +32,7 @@ import {
   publicCodeResult,
   codesListMenu,
   codeDetailMenu,
+  forwardMessageScreen,
   confirmMenu,
   actionResult,
   errorScreen,
@@ -44,12 +45,15 @@ const MAX_ATTEMPTS = 5;
 const MAX_NEW_CODES_PER_COMMAND = 20;
 const MAX_PUBLIC_USES = 10000;
 const CODES_LIST_LIMIT = 10;
+const MAX_INVITE_MESSAGE_LENGTH = 1000;
 
 interface LinkedChat {
   chatId: string;
   adminUserId: string;
   selectedEventId: string | null;
   pendingAction: string | null;
+  pendingForwardCodes: string | null;
+  pendingForwardIndex: number;
   adminUser: AdminUser;
 }
 
@@ -68,7 +72,7 @@ function decryptCode(encrypted: string | null): string {
 
 // ── Entry points used by the webhook route ──────────────────────────────
 
-export async function handleTelegramMessage(chatId: string, text: string): Promise<TelegramScreen> {
+export async function handleTelegramMessage(chatId: string, text: string, baseUrl: string): Promise<TelegramScreen> {
   const trimmed = text.trim();
 
   if (/^\/start(\s|$)/.test(trimmed) || /^\/link(\s|$)/.test(trimmed)) {
@@ -83,13 +87,15 @@ export async function handleTelegramMessage(chatId: string, text: string): Promi
 
   // A pending custom-number prompt (tapped "Altro numero…") expects the next
   // message to be that number; anything else while linked just reopens the
-  // menu instead of erroring — typing isn't the interface here.
-  if (link.pendingAction) return handlePendingNumber(link, trimmed);
+  // menu instead of erroring — typing isn't the interface here. "invite_msg"
+  // is the one pending action that isn't a number, so it's routed separately.
+  if (link.pendingAction === "invite_msg") return handleSetInviteMessage(link, trimmed);
+  if (link.pendingAction) return handlePendingNumber(link, trimmed, baseUrl);
 
   return mainMenu(link.adminUser.email);
 }
 
-export async function handleTelegramCallback(chatId: string, data: string): Promise<TelegramScreen> {
+export async function handleTelegramCallback(chatId: string, data: string, baseUrl: string): Promise<TelegramScreen> {
   const link = await getLink(chatId);
   if (!link) return notLinkedScreen();
 
@@ -110,18 +116,29 @@ export async function handleTelegramCallback(chatId: string, data: string): Prom
   if (data === "backev") return handleBackToEvent(link);
 
   if (data === "newq") return withEvent(link, () => newCodeQtyMenu());
-  if (data.startsWith("newn:")) return handleCreateCodes(link, Number(data.slice(5)));
+  if (data.startsWith("newn:")) return handleCreateCodes(link, Number(data.slice(5)), baseUrl);
   if (data === "newc")
     return handleAskCustom(link, "new_qty", `Scrivi il numero di codici da creare (1-${MAX_NEW_CODES_PER_COMMAND}):`);
 
+  if (data === "fwdstart") return handleForwardStart(link, baseUrl);
+  if (data === "fwdnext") return handleForwardNext(link, baseUrl);
+
   if (data === "pubq") return withEvent(link, () => publicCodeMaxMenu());
-  if (data.startsWith("pubn:")) return handleCreatePublicCode(link, Number(data.slice(5)));
-  if (data === "pubc") return handleAskCustom(link, "pub_max", `Scrivi il numero massimo di utilizzi (1-${MAX_PUBLIC_USES}):`);
+  if (data.startsWith("pubn:")) return handleCreatePublicCode(link, Number(data.slice(5)), baseUrl);
+  if (data === "pubc")
+    return handleAskCustom(link, "pub_max", `Scrivi il numero massimo di utilizzi (0-${MAX_PUBLIC_USES}, 0 = illimitato):`);
+
+  if (data === "editmsg")
+    return handleAskCustom(
+      link,
+      "invite_msg",
+      'Scrivi il nuovo messaggio da inoltrare ai partecipanti.\nSegnaposto: {link} (link di accesso), {event} (nome evento), {code} (codice).\nScrivi "-" per tornare al messaggio predefinito.',
+    );
 
   if (data === "cancelp") return handleCancelPending(link);
 
   if (data === "list") return handleListCodes(link);
-  if (data.startsWith("code:")) return handleCodeDetail(link, data.slice(5));
+  if (data.startsWith("code:")) return handleCodeDetail(link, data.slice(5), baseUrl);
   if (data.startsWith("rvy:")) return handleRevoke(link, data.slice(4));
   if (data.startsWith("rv:")) return handleConfirmRevoke(link, data.slice(3));
   if (data.startsWith("rgy:")) return handleRegenerate(link, data.slice(4));
@@ -135,13 +152,14 @@ export async function handleTelegramCallback(chatId: string, data: string): Prom
 async function handleStart(chatId: string, trimmed: string): Promise<TelegramScreen> {
   // Blunts brute-forcing someone else's API key by trying keys against a chat.
   const limit = rateLimit(rateLimitKey("telegram-start", chatId), { windowMs: 15 * 60_000, max: 10 });
-  if (!limit.allowed) return { text: "Troppi tentativi. Riprova tra qualche minuto.", keyboard: [] };
+  if (!limit.allowed) return { text: "⚠️ Troppi tentativi. Riprova tra qualche minuto.", keyboard: [] };
 
   const key = trimmed.split(/\s+/)[1];
-  if (!key) return { text: "Uso: /start <la tua API Key> (la trovi in Perla → Account → API).", keyboard: [] };
+  if (!key)
+    return { text: "ℹ️ Uso: /start &lt;la tua API Key&gt; (la trovi in Perla → Account → API).", keyboard: [] };
 
   const adminUser = await verifyApiKey(key);
-  if (!adminUser) return { text: "Chiave non valida.", keyboard: [] };
+  if (!adminUser) return { text: "⚠️ Chiave non valida.", keyboard: [] };
 
   await prisma.telegramLink.upsert({
     where: { chatId },
@@ -205,9 +223,13 @@ async function handleBackToEvent(link: LinkedChat): Promise<TelegramScreen> {
   return "error" in resolved ? resolved.error : eventMenu(resolved.event);
 }
 
-// ── Custom-number prompts (the only typing beyond /start) ───────────────
+// ── Custom-input prompts (the only typing beyond /start) ────────────────
 
-async function handleAskCustom(link: LinkedChat, action: "new_qty" | "pub_max", prompt: string): Promise<TelegramScreen> {
+async function handleAskCustom(
+  link: LinkedChat,
+  action: "new_qty" | "pub_max" | "invite_msg",
+  prompt: string,
+): Promise<TelegramScreen> {
   const resolved = await requireSelectedEvent(link);
   if ("error" in resolved) return resolved.error;
   await prisma.telegramLink.update({ where: { chatId: link.chatId }, data: { pendingAction: action } });
@@ -219,7 +241,7 @@ async function handleCancelPending(link: LinkedChat): Promise<TelegramScreen> {
   return handleBackToEvent(link);
 }
 
-async function handlePendingNumber(link: LinkedChat, text: string): Promise<TelegramScreen> {
+async function handlePendingNumber(link: LinkedChat, text: string, baseUrl: string): Promise<TelegramScreen> {
   const n = Number(text.trim());
 
   if (link.pendingAction === "new_qty") {
@@ -227,26 +249,92 @@ async function handlePendingNumber(link: LinkedChat, text: string): Promise<Tele
       return askCustomNumber(`Numero non valido. Scrivi un numero tra 1 e ${MAX_NEW_CODES_PER_COMMAND}:`);
     }
     await prisma.telegramLink.update({ where: { chatId: link.chatId }, data: { pendingAction: null } });
-    return handleCreateCodes(link, n);
+    return handleCreateCodes(link, n, baseUrl);
   }
 
   if (link.pendingAction === "pub_max") {
-    if (!Number.isInteger(n) || n < 1 || n > MAX_PUBLIC_USES) {
-      return askCustomNumber(`Numero non valido. Scrivi un numero tra 1 e ${MAX_PUBLIC_USES}:`);
+    if (!Number.isInteger(n) || n < 0 || n > MAX_PUBLIC_USES) {
+      return askCustomNumber(`Numero non valido. Scrivi un numero tra 0 e ${MAX_PUBLIC_USES} (0 = illimitato):`);
     }
     await prisma.telegramLink.update({ where: { chatId: link.chatId }, data: { pendingAction: null } });
-    return handleCreatePublicCode(link, n);
+    return handleCreatePublicCode(link, n, baseUrl);
   }
 
   await prisma.telegramLink.update({ where: { chatId: link.chatId }, data: { pendingAction: null } });
   return mainMenu(link.adminUser.email);
 }
 
+// Mirrors app/api/admin/events/[id]/route.ts PATCH's inviteMessageTemplate
+// handling. "-" clears it back to the app-wide default (DEFAULT_INVITE_MESSAGE_TEMPLATE)
+// rather than requiring the admin to retype it from scratch.
+async function handleSetInviteMessage(link: LinkedChat, text: string): Promise<TelegramScreen> {
+  await prisma.telegramLink.update({ where: { chatId: link.chatId }, data: { pendingAction: null } });
+  const resolved = await requireSelectedEvent(link);
+  if ("error" in resolved) return resolved.error;
+
+  const trimmed = text.trim();
+  if (trimmed === "-") {
+    await prisma.event.update({ where: { id: resolved.event.id }, data: { inviteMessageTemplate: null } });
+    await writeAccessLog({
+      type: "admin_action",
+      eventId: resolved.event.id,
+      metadata: { action: "Messaggio di invito ripristinato al predefinito via Telegram" },
+    });
+    return actionResult("Messaggio predefinito ripristinato.", "backev", "🔙 Evento");
+  }
+
+  if (trimmed.length === 0 || trimmed.length > MAX_INVITE_MESSAGE_LENGTH) {
+    return errorScreen(`Messaggio non valido (1-${MAX_INVITE_MESSAGE_LENGTH} caratteri).`, "backev", "🔙 Evento");
+  }
+
+  await prisma.event.update({ where: { id: resolved.event.id }, data: { inviteMessageTemplate: trimmed } });
+  await writeAccessLog({
+    type: "admin_action",
+    eventId: resolved.event.id,
+    metadata: { action: "Messaggio di invito personalizzato via Telegram" },
+  });
+  return actionResult("Messaggio salvato.", "backev", "🔙 Evento");
+}
+
+// ── Forwardable message ("Crea messaggio inoltrabile") ──────────────────
+// Cycles through the codes just created (see handleCreateCodes, which stores
+// them on TelegramLink.pendingForwardCodes), one message at a time so each
+// one stays a single, cleanly forwardable Telegram message — no bot chrome
+// mixed into the text, since forwarding a message forwards its text only,
+// never the inline keyboard.
+
+async function handleForwardStart(link: LinkedChat, baseUrl: string): Promise<TelegramScreen> {
+  const resolved = await requireSelectedEvent(link);
+  if ("error" in resolved) return resolved.error;
+
+  const codes = link.pendingForwardCodes ? link.pendingForwardCodes.split(",") : [];
+  if (codes.length === 0) {
+    return errorScreen("Nessun codice pronto da inoltrare — crea prima dei codici.", "backev", "🔙 Evento");
+  }
+
+  await prisma.telegramLink.update({ where: { chatId: link.chatId }, data: { pendingForwardIndex: 0 } });
+  return forwardMessageScreen(resolved.event, codes[0], baseUrl, 0, codes.length);
+}
+
+async function handleForwardNext(link: LinkedChat, baseUrl: string): Promise<TelegramScreen> {
+  const resolved = await requireSelectedEvent(link);
+  if ("error" in resolved) return resolved.error;
+
+  const codes = link.pendingForwardCodes ? link.pendingForwardCodes.split(",") : [];
+  const nextIndex = link.pendingForwardIndex + 1;
+  if (codes.length === 0 || nextIndex >= codes.length) {
+    return handleBackToEvent(link);
+  }
+
+  await prisma.telegramLink.update({ where: { chatId: link.chatId }, data: { pendingForwardIndex: nextIndex } });
+  return forwardMessageScreen(resolved.event, codes[nextIndex], baseUrl, nextIndex, codes.length);
+}
+
 // ── Codes ────────────────────────────────────────────────────────────────
 
 // Mirrors app/api/admin/participants/route.ts POST — each personal code
 // needs its own Participant row (created here with no display name).
-async function handleCreateCodes(link: LinkedChat, count: number): Promise<TelegramScreen> {
+async function handleCreateCodes(link: LinkedChat, count: number, baseUrl: string): Promise<TelegramScreen> {
   const resolved = await requireSelectedEvent(link);
   if ("error" in resolved) return resolved.error;
   if (!Number.isInteger(count) || count < 1 || count > MAX_NEW_CODES_PER_COMMAND) {
@@ -288,15 +376,24 @@ async function handleCreateCodes(link: LinkedChat, count: number): Promise<Teleg
     eventId: resolved.event.id,
     metadata: { action: `${count} codice/i creato/i via Telegram` },
   });
-  return newCodesResult(resolved.event.internalName, codes);
+  // Ready for "📤 Crea messaggio inoltrabile" (handleForwardStart) whether or
+  // not the admin ever taps it — cheap to store, and codes never contain a
+  // comma (see CODE_ALPHABET in lib/hash.ts) so the join is unambiguous.
+  await prisma.telegramLink.update({
+    where: { chatId: link.chatId },
+    data: { pendingForwardCodes: codes.join(","), pendingForwardIndex: 0 },
+  });
+  return newCodesResult(resolved.event.internalName, codes, baseUrl);
 }
 
-// Mirrors app/api/admin/codes/public/route.ts POST.
-async function handleCreatePublicCode(link: LinkedChat, maxSessions: number): Promise<TelegramScreen> {
+// Mirrors app/api/admin/codes/public/route.ts POST. maxSessions === UNLIMITED_SESSIONS (0)
+// means no cap — see lib/constants.ts's publicCodeCapReached, which every enforcement
+// point (lib/code-resolution.ts, app/api/session/start/route.ts) already honors.
+async function handleCreatePublicCode(link: LinkedChat, maxSessions: number, baseUrl: string): Promise<TelegramScreen> {
   const resolved = await requireSelectedEvent(link);
   if ("error" in resolved) return resolved.error;
-  if (!Number.isInteger(maxSessions) || maxSessions < 1 || maxSessions > MAX_PUBLIC_USES) {
-    return errorScreen(`Numero non valido (1-${MAX_PUBLIC_USES}).`, "pubq", "🔙 Indietro");
+  if (!Number.isInteger(maxSessions) || maxSessions < 0 || maxSessions > MAX_PUBLIC_USES) {
+    return errorScreen(`Numero non valido (0-${MAX_PUBLIC_USES}, 0 = illimitato).`, "pubq", "🔙 Indietro");
   }
 
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
@@ -317,7 +414,7 @@ async function handleCreatePublicCode(link: LinkedChat, maxSessions: number): Pr
         eventId: resolved.event.id,
         metadata: { action: "Codice pubblico creato via Telegram" },
       });
-      return publicCodeResult(resolved.event.internalName, rec.code, maxSessions);
+      return publicCodeResult(resolved.event.internalName, rec.code, maxSessions, baseUrl);
     } catch {
       continue;
     }
@@ -358,10 +455,10 @@ async function findOwnedCode(
   return { event: resolved.event, code };
 }
 
-async function handleCodeDetail(link: LinkedChat, codeId: string): Promise<TelegramScreen> {
+async function handleCodeDetail(link: LinkedChat, codeId: string, baseUrl: string): Promise<TelegramScreen> {
   const found = await findOwnedCode(link, codeId);
   if ("error" in found) return found.error;
-  return codeDetailMenu(found.event.internalName, { ...found.code, plainCode: decryptCode(found.code.codeEncrypted) });
+  return codeDetailMenu(found.event.internalName, { ...found.code, plainCode: decryptCode(found.code.codeEncrypted) }, baseUrl);
 }
 
 // Mirrors app/api/admin/codes/[id]/revoke/route.ts POST.
@@ -369,7 +466,7 @@ async function handleConfirmRevoke(link: LinkedChat, codeId: string): Promise<Te
   const found = await findOwnedCode(link, codeId);
   if ("error" in found) return found.error;
   return confirmMenu(
-    `Revocare il codice ${decryptCode(found.code.codeEncrypted)}? Non sarà più utilizzabile.`,
+    `Revocare il codice <code>${decryptCode(found.code.codeEncrypted)}</code>? Non sarà più utilizzabile.`,
     `rvy:${codeId}`,
     `code:${codeId}`,
   );
@@ -396,7 +493,7 @@ async function handleConfirmRegenerate(link: LinkedChat, codeId: string): Promis
   const found = await findOwnedCode(link, codeId);
   if ("error" in found) return found.error;
   return confirmMenu(
-    `Rigenerare il codice ${decryptCode(found.code.codeEncrypted)}? Il vecchio smette subito di funzionare.`,
+    `Rigenerare il codice <code>${decryptCode(found.code.codeEncrypted)}</code>? Il vecchio smette subito di funzionare.`,
     `rgy:${codeId}`,
     `code:${codeId}`,
   );
@@ -431,7 +528,7 @@ async function handleRegenerate(link: LinkedChat, codeId: string): Promise<Teleg
         inviteCodeId: codeId,
         metadata: { action: "Codice rigenerato via Telegram" },
       });
-      return actionResult(`Nuovo codice: ${rec.code}`, "list");
+      return actionResult(`Nuovo codice: <code>${rec.code}</code>`, "list");
     } catch {
       continue;
     }

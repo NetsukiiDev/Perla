@@ -17,6 +17,7 @@ const eventBaseSchema = z.object({
   showTotalDuration: z.boolean().default(true),
   showTollInfo: z.boolean().default(false),
   notes: z.string().max(5000).optional().nullable(),
+  inviteMessageTemplate: z.string().trim().max(1000).optional().nullable(),
 });
 
 export function eventCreateSchema(t: Dictionary) {

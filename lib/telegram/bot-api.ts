@@ -1,7 +1,9 @@
-// Thin wrapper over the Telegram Bot API. Messages are plain text only (no
-// parse_mode) — event/participant names are user-controlled and escaping them
-// correctly for Telegram's HTML/Markdown subset isn't worth the risk of a
-// malformed-entity 400 breaking a reply.
+// Thin wrapper over the Telegram Bot API. Messages use parse_mode "HTML" so
+// codes can render as tappable monospace (<code>) and headers as bold — but
+// every interpolated user-controlled string (event/participant names, the
+// admin's email) MUST go through lib/telegram/menus.ts's escapeHtml first,
+// or a name containing "&"/"<"/">" turns into a malformed-entity 400 that
+// silently drops the reply.
 import { getTelegramConfig } from "@/lib/telegram/config";
 
 type TelegramResult<T> = { ok: true; result: T } | { ok: false; error: string };
@@ -29,10 +31,9 @@ async function callTelegram<T>(token: string, method: string, params?: Record<st
 
 // One row of buttons in an inline keyboard. Menus are built as
 // TelegramKeyboard = TelegramButton[][] — see lib/telegram/menus.ts.
-export interface TelegramButton {
-  text: string;
-  callback_data: string;
-}
+// Telegram accepts exactly one of callback_data (routed back through this
+// bot) or url (opens directly, e.g. the participant access link) per button.
+export type TelegramButton = { text: string } & ({ callback_data: string } | { url: string });
 export type TelegramKeyboard = TelegramButton[][];
 
 function replyMarkup(keyboard?: TelegramKeyboard) {
@@ -50,7 +51,12 @@ export async function sendTelegramMessage(chatId: string, text: string, keyboard
     console.error("Telegram bot is not configured (Impostazioni → Telegram), cannot send message");
     return;
   }
-  const res = await callTelegram(cfg.botToken, "sendMessage", { chat_id: chatId, text, ...replyMarkup(keyboard) });
+  const res = await callTelegram(cfg.botToken, "sendMessage", {
+    chat_id: chatId,
+    text,
+    parse_mode: "HTML",
+    ...replyMarkup(keyboard),
+  });
   if (!res.ok) {
     console.error("Failed to send Telegram message:", res.error);
   }
@@ -75,11 +81,17 @@ export async function editOrSendTelegramMessage(
     chat_id: chatId,
     message_id: messageId,
     text,
+    parse_mode: "HTML",
     ...replyMarkup(keyboard),
   });
   if (!res.ok) {
     if (res.error.includes("message is not modified")) return; // nothing to do, not a real failure
-    const sendRes = await callTelegram(cfg.botToken, "sendMessage", { chat_id: chatId, text, ...replyMarkup(keyboard) });
+    const sendRes = await callTelegram(cfg.botToken, "sendMessage", {
+      chat_id: chatId,
+      text,
+      parse_mode: "HTML",
+      ...replyMarkup(keyboard),
+    });
     if (!sendRes.ok) console.error("Failed to send Telegram message (after edit failed):", res.error, sendRes.error);
   }
 }
@@ -123,6 +135,19 @@ export async function setWebhook(token: string, url: string, secret: string): Pr
 
 export async function deleteWebhook(token: string): Promise<TelegramResult<boolean>> {
   return callTelegram<boolean>(token, "deleteWebhook", { drop_pending_updates: true });
+}
+
+export interface TelegramBotCommand {
+  command: string;
+  description: string;
+}
+
+// Populates Telegram's "/" command hint menu in the compose box — purely
+// discoverability, the commands work via handleTelegramMessage regardless.
+// Called once whenever the webhook is (re)registered, since that's already
+// the "the bot is being set up" moment.
+export async function setMyCommands(token: string, commands: TelegramBotCommand[]): Promise<TelegramResult<boolean>> {
+  return callTelegram<boolean>(token, "setMyCommands", { commands });
 }
 
 export interface TelegramBotIdentity {

@@ -50,6 +50,7 @@ export async function POST(req: Request) {
       showTotalDuration: data.showTotalDuration,
       showTollInfo: data.showTollInfo,
       notes: data.notes ?? null,
+      inviteMessageTemplate: data.inviteMessageTemplate || null,
       status: "draft",
       createdById: auth.session.userId,
     },

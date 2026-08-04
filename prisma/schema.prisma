@@ -139,6 +139,11 @@ model Event {
 
   notes String? @db.Text
 
+  // Optional per-event override for the forwardable participant message the
+  // Telegram bot builds (see lib/telegram/commands.ts). Free text with
+  // {link}/{event}/{code} placeholders; null means "use the app-wide default".
+  inviteMessageTemplate String? @map("invite_message_template") @db.Text
+
   // Nullable: events created before this field existed have no known owner
   // and are only visible/manageable by admins (see lib/admin-guard.ts
   // assertOwnsEvent). SetNull so deleting the creating user doesn't cascade
@@ -455,6 +460,12 @@ model TelegramLink {
   // usage cap) — e.g. "new_qty" or "pub_max". Cleared as soon as that number
   // is used or the action is cancelled. See lib/telegram/commands.ts.
   pendingAction   String?   @map("pending_action")
+  // Set while the chat is stepping through "Crea messaggio inoltrabile"
+  // (see handleForwardStart/handleForwardNext in lib/telegram/commands.ts):
+  // the plaintext codes just created, comma-joined (codes never contain a
+  // comma — see CODE_ALPHABET in lib/hash.ts), and which one is on screen.
+  pendingForwardCodes String? @map("pending_forward_codes")
+  pendingForwardIndex Int     @default(0) @map("pending_forward_index")
   createdAt       DateTime  @default(now()) @map("created_at")
 
   @@map("telegram_links")

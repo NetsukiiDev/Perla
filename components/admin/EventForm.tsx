@@ -5,6 +5,8 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { Plus, Save, Trash2 } from "lucide-react";
 import { useT } from "@/lib/i18n/context";
+import { ConfirmButton } from "./ConfirmButton";
+import { DEFAULT_INVITE_MESSAGE_TEMPLATE } from "@/lib/constants";
 
 const EventLocationPicker = dynamic(() => import("./EventLocationPicker").then((m) => m.EventLocationPicker), {
   ssr: false,
@@ -26,6 +28,7 @@ export interface EventFormValues {
   showTotalDuration: boolean;
   showTollInfo: boolean;
   notes: string | null;
+  inviteMessageTemplate: string | null;
   createdById: string | null;
 }
 
@@ -88,6 +91,7 @@ export function EventForm({
   const [showTotalDuration, setShowTotalDuration] = useState(initial?.showTotalDuration ?? true);
   const [showTollInfo, setShowTollInfo] = useState(initial?.showTollInfo ?? false);
   const [notes, setNotes] = useState(initial?.notes ?? "");
+  const [inviteMessageTemplate, setInviteMessageTemplate] = useState(initial?.inviteMessageTemplate ?? "");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -110,6 +114,7 @@ export function EventForm({
       showTotalDuration,
       showTollInfo,
       notes: notes || null,
+      inviteMessageTemplate: inviteMessageTemplate || null,
       ...(isEdit ? { status } : {}),
       ...(isEdit && canReassignOwner ? { createdById: createdById || null } : {}),
     };
@@ -140,9 +145,6 @@ export function EventForm({
 
   async function handleDelete() {
     if (!initial?.id) return;
-    if (!window.confirm(t.events.form.confirmDelete.replace("{name}", initial.internalName))) {
-      return;
-    }
     setDeleting(true);
     setError(null);
     try {
@@ -334,6 +336,19 @@ export function EventForm({
         />
       </div>
 
+      <div className="flex flex-col gap-1">
+        <label className={labelClass}>{t.events.form.labels.inviteMessageTemplate}</label>
+        <textarea
+          value={inviteMessageTemplate ?? ""}
+          onChange={(e) => setInviteMessageTemplate(e.target.value)}
+          rows={4}
+          maxLength={1000}
+          placeholder={DEFAULT_INVITE_MESSAGE_TEMPLATE}
+          className={`${inputClass} font-mono`}
+        />
+        <p className="text-xs text-muted">{t.events.form.labels.inviteMessageTemplateHint}</p>
+      </div>
+
       {error && <p className="text-sm text-danger">{error}</p>}
 
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -346,16 +361,16 @@ export function EventForm({
           {loading ? t.events.form.buttons.saving : isEdit ? t.events.form.buttons.save : t.events.form.buttons.create}
         </button>
 
-        {isEdit && (
-          <button
-            type="button"
-            onClick={handleDelete}
+        {isEdit && initial && (
+          <ConfirmButton
+            confirmMessage={t.events.form.confirmDelete.replace("{name}", initial.internalName)}
+            onConfirm={handleDelete}
             disabled={loading || deleting}
             className="inline-flex items-center gap-2 rounded-lg border border-danger/40 px-4 py-2.5 text-sm font-medium text-danger hover:bg-danger/10 disabled:opacity-50"
           >
             <Trash2 size={16} aria-hidden="true" />
             {deleting ? t.events.form.buttons.deleting : t.events.form.buttons.delete}
-          </button>
+          </ConfirmButton>
         )}
       </div>
     </form>

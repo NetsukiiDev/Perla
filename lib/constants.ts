@@ -35,6 +35,22 @@ export const DEFAULTS = {
   CODE_REF_TTL_MIN: 10,
 } as const;
 
+// Sentinel for InviteCode.maxSessions meaning "no cap" — 0 is otherwise
+// unreachable (every entry point that creates a public code enforces a
+// minimum of 1 use), so it's free to repurpose rather than adding a nullable
+// column for what's really a boolean-ish case.
+export const UNLIMITED_SESSIONS = 0;
+
+export function publicCodeCapReached(used: number, maxSessions: number): boolean {
+  return maxSessions !== UNLIMITED_SESSIONS && used >= maxSessions;
+}
+
+// Used by the Telegram bot's "Crea messaggio inoltrabile" (lib/telegram/commands.ts)
+// when the event has no Event.inviteMessageTemplate of its own. {link}/{event}/{code}
+// are substituted before sending — see buildForwardMessage.
+export const DEFAULT_INVITE_MESSAGE_TEMPLATE =
+  'Ciao! 👋\n\nEcco il tuo link per raggiungere "{event}":\n{link}\n\nAprilo quando sei pronto/a a partire: il tuo percorso si attiverà automaticamente.';
+
 export function formatHHmm(date: Date, region?: string | null): string {
   return new Intl.DateTimeFormat("it-IT", {
     hour: "2-digit",

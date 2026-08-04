@@ -3,6 +3,7 @@
 // component (which calls it directly instead of self-fetching the route).
 import { prisma } from "@/lib/db";
 import { generateRandomToken, sha256Hex } from "@/lib/hash";
+import { publicCodeCapReached } from "@/lib/constants";
 import {
   deviceTokenMatchesSession,
   getDeviceTokenHashFromCookie,
@@ -72,7 +73,7 @@ async function evaluatePublicCodeState(
 
   // New device: enforce the usage cap before offering consent.
   const used = await prisma.session.count({ where: { inviteCodeId: inviteCode.id } });
-  if (used >= inviteCode.maxSessions) return { kind: "not_available" };
+  if (publicCodeCapReached(used, inviteCode.maxSessions)) return { kind: "not_available" };
   return projectPreSessionState(event, t, participantCode);
 }
 

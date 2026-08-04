@@ -237,6 +237,7 @@ export interface Dictionary {
         activationTime: string; startTime: string; endTime: string; status: string;
         steps: string; unlockRadius: string; notes: string; owner: string;
         showTotalDistance: string; showTotalDuration: string; showTollInfo: string;
+        inviteMessageTemplate: string; inviteMessageTemplateHint: string;
       };
       buttons: { save: string; saving: string; create: string; creating: string; edit: string; delete: string; deleting: string };
       errors: { coordinate: string; saveFailed: string; generic: string; deleteFailed: string };

@@ -52,6 +52,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       ...(data.showTotalDuration !== undefined ? { showTotalDuration: data.showTotalDuration } : {}),
       ...(data.showTollInfo !== undefined ? { showTollInfo: data.showTollInfo } : {}),
       ...(data.notes !== undefined ? { notes: data.notes } : {}),
+      ...(data.inviteMessageTemplate !== undefined ? { inviteMessageTemplate: data.inviteMessageTemplate || null } : {}),
       ...(data.status !== undefined ? { status: data.status } : {}),
       // Organizers can edit their own event but never reassign its owner —
       // silently ignore the field rather than error, since the UI never

@@ -15,6 +15,7 @@ import { NextResponse } from "next/server";
 import { handleTelegramMessage, handleTelegramCallback } from "@/lib/telegram/commands";
 import { sendTelegramMessage, editOrSendTelegramMessage, answerCallbackQuery } from "@/lib/telegram/bot-api";
 import { getTelegramConfig } from "@/lib/telegram/config";
+import { requestOrigin } from "@/lib/request-url";
 
 export const runtime = "nodejs";
 
@@ -49,6 +50,7 @@ export async function POST(req: Request) {
   }
 
   const body = (await req.json().catch(() => null)) as TelegramUpdate | null;
+  const baseUrl = requestOrigin(req);
 
   const callback = body?.callback_query;
   if (callback) {
@@ -58,7 +60,7 @@ export async function POST(req: Request) {
       return NextResponse.json({});
     }
     try {
-      const screen = await handleTelegramCallback(chatId, callback.data);
+      const screen = await handleTelegramCallback(chatId, callback.data, baseUrl);
       await Promise.all([
         editOrSendTelegramMessage(chatId, messageId, screen.text, screen.keyboard),
         answerCallbackQuery(callback.id),
@@ -77,7 +79,7 @@ export async function POST(req: Request) {
 
   const chatId = String(message.chat.id);
   try {
-    const screen = await handleTelegramMessage(chatId, message.text);
+    const screen = await handleTelegramMessage(chatId, message.text, baseUrl);
     await sendTelegramMessage(chatId, screen.text, screen.keyboard);
   } catch (err) {
     console.error("Telegram webhook handling failed", err instanceof Error ? err.message : err);

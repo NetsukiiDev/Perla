@@ -316,6 +316,9 @@ export const it: Dictionary = {
         showTotalDistance: "Mostra distanza totale",
         showTotalDuration: "Mostra durata totale",
         showTollInfo: "Mostra autostrada e pedaggio stimato",
+        inviteMessageTemplate: "Messaggio di invito personalizzato",
+        inviteMessageTemplateHint:
+          "Usato dal bot Telegram per generare messaggi pronti da inoltrare ai partecipanti. Segnaposto disponibili: {link}, {event}, {code}. Lascia vuoto per usare il messaggio predefinito.",
       },
       buttons: {
         save: "Salva modifiche",

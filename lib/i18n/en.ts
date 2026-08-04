@@ -314,6 +314,9 @@ export const en: Dictionary = {
         showTotalDistance: "Show total distance",
         showTotalDuration: "Show total duration",
         showTollInfo: "Show highway & toll info",
+        inviteMessageTemplate: "Custom invite message",
+        inviteMessageTemplateHint:
+          "Used by the Telegram bot to generate forwardable messages for participants. Available placeholders: {link}, {event}, {code}. Leave empty to use the default message.",
       },
       buttons: {
         save: "Save changes",

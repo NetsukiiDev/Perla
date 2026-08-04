@@ -316,6 +316,9 @@ export const fr: Dictionary = {
         showTotalDistance: "Afficher la distance totale",
         showTotalDuration: "Afficher la durée totale",
         showTollInfo: "Afficher les infos autoroute et péage",
+        inviteMessageTemplate: "Message d'invitation personnalisé",
+        inviteMessageTemplateHint:
+          "Utilisé par le bot Telegram pour générer des messages transférables aux participants. Espaces réservés disponibles : {link}, {event}, {code}. Laissez vide pour utiliser le message par défaut.",
       },
       buttons: {
         save: "Enregistrer les modifications",

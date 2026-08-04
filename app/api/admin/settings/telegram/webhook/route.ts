@@ -13,7 +13,7 @@
 import { NextResponse } from "next/server";
 import { requireAdminUser } from "@/lib/admin-guard";
 import { getTelegramBotToken, ensureWebhookSecret } from "@/lib/telegram/config";
-import { getWebhookInfo, setWebhook, deleteWebhook, getBotIdentity } from "@/lib/telegram/bot-api";
+import { getWebhookInfo, setWebhook, deleteWebhook, getBotIdentity, setMyCommands } from "@/lib/telegram/bot-api";
 import { requestUrl } from "@/lib/request-url";
 import { writeAccessLog } from "@/lib/access-log";
 
@@ -68,6 +68,18 @@ export async function POST(req: Request) {
   if (!res.ok) {
     console.error("Telegram setWebhook failed:", res.error);
     return NextResponse.json({ error: "telegram_error", detail: res.error }, { status: 502 });
+  }
+
+  // Best-effort: the command hint menu is a UX nicety, not required for the
+  // bot to function, so a failure here shouldn't fail webhook registration.
+  const commandsRes = await setMyCommands(token, [
+    { command: "start", description: "Collega questa chat con la tua API Key" },
+    { command: "menu", description: "Apri il menu principale" },
+    { command: "help", description: "Apri il menu principale" },
+    { command: "logout", description: "Disconnetti questa chat" },
+  ]);
+  if (!commandsRes.ok) {
+    console.error("Telegram setMyCommands failed:", commandsRes.error);
   }
 
   await writeAccessLog({ type: "admin_action", metadata: { action: "Webhook Telegram registrato", url: url.toString() } });

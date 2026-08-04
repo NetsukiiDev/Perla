@@ -316,6 +316,9 @@ export const pl: Dictionary = {
         showTotalDistance: "Pokaż całkowity dystans",
         showTotalDuration: "Pokaż całkowity czas",
         showTollInfo: "Pokaż informacje o autostradzie i opłatach",
+        inviteMessageTemplate: "Niestandardowa wiadomość zaproszenia",
+        inviteMessageTemplateHint:
+          "Używana przez bota Telegram do generowania wiadomości do przekazania uczestnikom. Dostępne symbole zastępcze: {link}, {event}, {code}. Pozostaw puste, aby użyć domyślnej wiadomości.",
       },
       buttons: {
         save: "Zapisz zmiany",

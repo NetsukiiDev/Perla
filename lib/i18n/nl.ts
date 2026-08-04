@@ -316,6 +316,9 @@ export const nl: Dictionary = {
         showTotalDistance: "Totale afstand tonen",
         showTotalDuration: "Totale duur tonen",
         showTollInfo: "Snelweg- en tolinfo tonen",
+        inviteMessageTemplate: "Aangepast uitnodigingsbericht",
+        inviteMessageTemplateHint:
+          "Gebruikt door de Telegram-bot om doorstuurbare berichten voor deelnemers te genereren. Beschikbare placeholders: {link}, {event}, {code}. Laat leeg om het standaardbericht te gebruiken.",
       },
       buttons: {
         save: "Wijzigingen opslaan",
