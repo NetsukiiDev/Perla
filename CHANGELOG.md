@@ -1,6 +1,6 @@
 # Changelog
 
-## Non rilasciato
+## 0.3.1 — 2026-08-06
 
 ### Added
 - **I codici pubblici possono ora essere illimitati anche dal pannello web**, non solo dal bot Telegram: bottone "Illimitato" nella creazione, mostrato come "N (illimitato)" in tabella invece di "N/0"
