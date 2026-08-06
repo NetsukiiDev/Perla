@@ -85,12 +85,12 @@ function StatItem({
   sub: string;
 }) {
   return (
-    <div className="flex min-w-0 items-center gap-3">
+    <div className="flex min-w-0 flex-col gap-2 rounded-lg border border-surface-border p-3">
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-surface-border text-muted">
         <Icon size={16} aria-hidden="true" />
       </div>
       <div className="min-w-0">
-        <p className="text-xs uppercase tracking-wide text-muted">{label}</p>
+        <p className="truncate text-xs uppercase tracking-wide text-muted">{label}</p>
         <p className="truncate text-lg font-semibold">{value}</p>
         <p className="truncate text-xs text-muted">{sub}</p>
       </div>
@@ -153,7 +153,7 @@ export function EventOverview({ eventId, event, stats }: EventOverviewProps) {
 
   return (
     <div className="flex flex-col gap-7">
-      <section className="grid gap-x-6 gap-y-4 border-y border-surface-border py-4 sm:grid-cols-2 lg:grid-cols-6">
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         <StatItem icon={KeyRound} label={t.events.overview.stats.codes} value={stats.codes} sub={`${stats.activeCodes} attivi`} />
         <StatItem icon={EyeOff} label={t.events.overview.stats.inactive} value={stats.disabledCodes} sub="non utilizzabili" />
         <StatItem icon={Activity} label={t.events.overview.stats.live} value={stats.activeSessions} sub="sessioni attive" />
@@ -219,7 +219,7 @@ export function EventOverview({ eventId, event, stats }: EventOverviewProps) {
             ]}
           />
 
-          <div className="grid gap-4 pt-1 text-sm md:grid-cols-3">
+          <div className="grid grid-cols-2 gap-4 pt-1 text-sm md:grid-cols-3">
             <InfoItem icon={MapPin} label={t.events.overview.sections.region} value={event.region} />
             <InfoItem icon={Gauge} label={t.events.overview.sections.coordinates} value={<span className="font-mono">{coords}</span>} />
             <InfoItem

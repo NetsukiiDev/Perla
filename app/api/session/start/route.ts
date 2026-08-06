@@ -88,7 +88,7 @@ export async function POST(req: Request) {
       eventId: event.id,
       participantId: inviteCode.participantId,
       inviteCodeId: inviteCode.id,
-      metadata: { message: err instanceof RouteProviderError ? err.message : "unknown" },
+      metadata: { message: err instanceof RouteProviderError ? err.message : "unknown", ip },
     });
     return NextResponse.json({ error: "routing_failed", message: E.GENERIC }, { status: 502 });
   }
@@ -196,6 +196,7 @@ export async function POST(req: Request) {
     participantId: session.participantId,
     inviteCodeId: inviteCode.id,
     sessionId: session.id,
+    metadata: { ip },
   });
 
   const currentStep = await prisma.routeStep.findUnique({

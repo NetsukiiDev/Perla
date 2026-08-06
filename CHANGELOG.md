@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.3.2 — 2026-08-06
+
+### Fixed
+- **La barra dei tab di un evento (Panoramica/Modifica/Partecipanti/...) e l'intestazione con nome evento e stato allargavano l'intera pagina su schermi stretti**, invece di andare a capo o scorrere autonomamente: su telefono bisognava scorrere l'intera pagina in orizzontale per raggiungere le ultime tappe ("Live", "Annunci"). La barra dei tab ora scorre da sola; l'intestazione va a capo
+
+### Changed
+- **Ridisegnata la Panoramica di un evento**: le sei statistiche (codici, disattivati, live, in viaggio, arrivati, tappe) erano un elenco a colonna singola su telefono, con uno scroll lungo prima di arrivare alla mappa. Ora sono card in una griglia (2 colonne su telefono, 3 su tablet, 6 da desktop), e anche i dati sotto la mappa (regione, coordinate, monitoraggio) sono su 2 colonne invece di una su mobile
+
+## 0.3.1 — 2026-08-06
+
+### Added
+- **I codici pubblici possono ora essere illimitati anche dal pannello web**, non solo dal bot Telegram: bottone "Illimitato" nella creazione, mostrato come "N (illimitato)" in tabella invece di "N/0"
+- **Dalla scheda di un partecipante è ora possibile bloccarlo, sbloccarlo, resettarne il viaggio, mostrargli la destinazione, segnarlo come arrivato o cancellarne la posizione** — prima queste azioni erano disponibili solo dalla dashboard Live, non dalla pagina del singolo partecipante, che duplicava per conto proprio solo "mostra destinazione"
+- **I log del pannello admin sono ora filtrabili anche per l'utente che ha compiuto l'azione**, non solo per tipo/categoria: ogni voce registra chi l'ha generata (per le azioni admin) e l'indirizzo IP della richiesta; ogni riga è espandibile per vedere l'orario completo e ogni altro dettaglio grezzo registrato
+- **Gli eventi chiusi nell'elenco eventi sono ora raccolti in una sezione a comparsa**, separata da quelli ancora attivi/programmati, e un evento può ora essere chiuso da qualunque stato (non solo da attivo)
+
+### Changed
+- **Riscritta la UX della gestione partecipanti**: barra di riepilogo stati cliccabile come filtro rapido, 10 partecipanti per pagina invece di 5, tutte le azioni per riga (copia, QR, link, rigenera, apri, elimina) raggruppate in un'unica colonna a destra invece di essere divise tra la colonna del codice e quella delle azioni
+- **La conferma delle azioni distruttive mostra ora un popover con il messaggio per intero e pulsanti Conferma/Annulla**, invece del precedente doppio tap che nascondeva il messaggio in un tooltip invisibile su schermi touch
+
 ## 0.3.0 — 2026-08-04
 
 ### Added

@@ -167,7 +167,11 @@ async function handleStart(chatId: string, trimmed: string): Promise<TelegramScr
     update: { adminUserId: adminUser.id, selectedEventId: null, pendingAction: null },
   });
 
-  await writeAccessLog({ type: "admin_action", metadata: { action: "Collegamento bot Telegram", via: "telegram" } });
+  await writeAccessLog({
+    type: "admin_action",
+    actorEmail: adminUser.email,
+    metadata: { action: "Collegamento bot Telegram", via: "telegram" },
+  });
   return mainMenu(adminUser.email);
 }
 
@@ -278,6 +282,7 @@ async function handleSetInviteMessage(link: LinkedChat, text: string): Promise<T
     await writeAccessLog({
       type: "admin_action",
       eventId: resolved.event.id,
+      actorEmail: link.adminUser.email,
       metadata: { action: "Messaggio di invito ripristinato al predefinito via Telegram" },
     });
     return actionResult("Messaggio predefinito ripristinato.", "backev", "🔙 Evento");
@@ -291,6 +296,7 @@ async function handleSetInviteMessage(link: LinkedChat, text: string): Promise<T
   await writeAccessLog({
     type: "admin_action",
     eventId: resolved.event.id,
+    actorEmail: link.adminUser.email,
     metadata: { action: "Messaggio di invito personalizzato via Telegram" },
   });
   return actionResult("Messaggio salvato.", "backev", "🔙 Evento");
@@ -374,6 +380,7 @@ async function handleCreateCodes(link: LinkedChat, count: number, baseUrl: strin
   await writeAccessLog({
     type: "admin_action",
     eventId: resolved.event.id,
+    actorEmail: link.adminUser.email,
     metadata: { action: `${count} codice/i creato/i via Telegram` },
   });
   // Ready for "📤 Crea messaggio inoltrabile" (handleForwardStart) whether or
@@ -412,6 +419,7 @@ async function handleCreatePublicCode(link: LinkedChat, maxSessions: number, bas
       await writeAccessLog({
         type: "admin_action",
         eventId: resolved.event.id,
+        actorEmail: link.adminUser.email,
         metadata: { action: "Codice pubblico creato via Telegram" },
       });
       return publicCodeResult(resolved.event.internalName, rec.code, maxSessions, baseUrl);
@@ -483,6 +491,7 @@ async function handleRevoke(link: LinkedChat, codeId: string): Promise<TelegramS
     type: "admin_action",
     eventId: found.event.id,
     inviteCodeId: codeId,
+    actorEmail: link.adminUser.email,
     metadata: { action: "Codice revocato via Telegram" },
   });
   return actionResult("Codice revocato.", "list");
@@ -526,6 +535,7 @@ async function handleRegenerate(link: LinkedChat, codeId: string): Promise<Teleg
         type: "admin_action",
         eventId: found.event.id,
         inviteCodeId: codeId,
+        actorEmail: link.adminUser.email,
         metadata: { action: "Codice rigenerato via Telegram" },
       });
       return actionResult(`Nuovo codice: <code>${rec.code}</code>`, "list");

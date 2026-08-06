@@ -52,7 +52,7 @@ export function ParticipantsManager({
   const [deleting, setDeleting] = useState<string | null>(null);
   const [qrPreview, setQrPreview] = useState<{ code: string; displayName: string | null } | null>(null);
   const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState(5);
+  const [pageSize, setPageSize] = useState(10);
 
   // Reset to the first page whenever the filter changes (render-phase reset —
   // avoids a state-setting effect and its extra render).
@@ -72,6 +72,10 @@ export function ParticipantsManager({
     const matchesStatus = statusFilter === "all" || r.displayStatus === statusFilter;
     return matchesSearch && matchesStatus;
   });
+  const statusCounts = initialParticipants.reduce<Partial<Record<DisplayStatus, number>>>((acc, p) => {
+    acc[p.displayStatus] = (acc[p.displayStatus] ?? 0) + 1;
+    return acc;
+  }, {});
   const validCodeIds = new Set(initialParticipants.map((p) => p.codeId).filter(Boolean));
   const activeSelectedCodeIds = selectedCodeIds.filter((id) => validCodeIds.has(id));
   const selectedSet = new Set(activeSelectedCodeIds);
@@ -104,13 +108,13 @@ export function ParticipantsManager({
     }
   }
 
-  async function regenerate(codeId: string, participantName: string) {
+  async function regenerate(codeId: string, participantName: string | null) {
     setRegenerating(codeId);
     try {
       const res = await fetch(`/api/admin/codes/${codeId}/regenerate`, { method: "POST" });
       if (res.ok) {
         const data = await res.json();
-        setRevealed({ name: participantName === "codice" ? "" : participantName, code: data.code });
+        setRevealed({ name: participantName ?? "", code: data.code });
         router.refresh();
       }
     } finally {
@@ -160,41 +164,9 @@ export function ParticipantsManager({
     }
   }
 
-  // Full version for the desktop table's code column: code + copy + QR +
-  // open-link + location, all inline.
-  function CodeCell({ r }: { r: ParticipantRow }) {
-    if (!r.code) return <span className="italic text-muted">{t.participants.manager.na}</span>;
-    return (
-      <span className="flex flex-wrap items-center gap-2">
-        <CodeIdentity r={r} />
-        <button
-          type="button"
-          title={t.participants.manager.showQR}
-          aria-label={t.participants.manager.showQR}
-          onClick={() => setQrPreview({ code: r.code!, displayName: r.displayName })}
-          className={iconButtonClass()}
-        >
-          <QrCode size={16} aria-hidden="true" />
-          <span className="sr-only">{t.participants.manager.showQR}</span>
-        </button>
-        <a
-          href={accessUrlFor(r.code)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={iconButtonClass()}
-          title={t.participants.detail.access.openLink}
-          aria-label={t.participants.detail.access.openLink}
-        >
-          <Link2 size={16} aria-hidden="true" />
-          <span className="sr-only">{t.participants.detail.access.openLink}</span>
-        </a>
-      </span>
-    );
-  }
-
-  // Just the code + copy + location, no action buttons — used as the mobile
-  // card's compact header line, with QR/open-link moved into RowActions
-  // there instead (see includeCodeActions) so the header never wraps.
+  // Code + location, no action buttons — every per-row action (copy, QR,
+  // link, regenerate, open, delete) lives together in RowActions instead, so
+  // the identity column never competes with the action column for buttons.
   function CodeIdentity({ r }: { r: ParticipantRow }) {
     if (!r.code) return <span className="italic text-muted">{t.participants.manager.na}</span>;
     return (
@@ -202,7 +174,6 @@ export function ParticipantsManager({
         <Link href={`/admin/events/${eventId}/participants/${r.id}`} className="font-mono tracking-widest hover:underline">
           {r.code}
         </Link>
-        <CopyButton value={r.code} />
         {r.lastLocation && (
           <span className="text-emerald-400" title={`${r.lastLocation.lat}, ${r.lastLocation.lng}`}>
             <MapPin size={14} aria-hidden="true" />
@@ -212,11 +183,12 @@ export function ParticipantsManager({
     );
   }
 
-  function RowActions({ r, includeCodeActions = false }: { r: ParticipantRow; includeCodeActions?: boolean }) {
+  function RowActions({ r }: { r: ParticipantRow }) {
     return (
       <>
-        {includeCodeActions && r.code && (
+        {r.code && (
           <>
+            <CopyButton value={r.code} />
             <button
               type="button"
               title={t.participants.manager.showQR}
@@ -245,7 +217,7 @@ export function ParticipantsManager({
             type="button"
             title={t.participants.manager.actions.regenerate}
             aria-label={t.participants.manager.actions.regenerate}
-            onClick={() => regenerate(r.codeId!, r.displayName ?? "codice")}
+            onClick={() => regenerate(r.codeId!, r.displayName)}
             disabled={regenerating === r.codeId}
             className={iconButtonClass()}
           >
@@ -263,15 +235,18 @@ export function ParticipantsManager({
           <span className="sr-only">{t.participants.manager.actions.openParticipant}</span>
         </Link>
         {r.codeId && (
-          <ConfirmButton
-            confirmMessage={t.participants.manager.confirmDelete}
-            onConfirm={() => void deleteCodes([r.codeId!], r.codeId!)}
-            disabled={Boolean(deleting === r.codeId || bulkLoading)}
-            icon={Trash2}
-            label={t.participants.manager.actions.delete}
-          >
-            {t.participants.manager.actions.delete}
-          </ConfirmButton>
+          <>
+            <span aria-hidden="true" className="h-6 w-px shrink-0 self-center bg-surface-border" />
+            <ConfirmButton
+              confirmMessage={t.participants.manager.confirmDelete}
+              onConfirm={() => void deleteCodes([r.codeId!], r.codeId!)}
+              disabled={Boolean(deleting === r.codeId || bulkLoading)}
+              icon={Trash2}
+              label={t.participants.manager.actions.delete}
+            >
+              {t.participants.manager.actions.delete}
+            </ConfirmButton>
+          </>
         )}
       </>
     );
@@ -279,7 +254,7 @@ export function ParticipantsManager({
 
   return (
     <div className="flex flex-col gap-6">
-      <form onSubmit={handleAdd} method="post" className="flex flex-wrap items-end gap-3 rounded-lg border border-surface-border p-4">
+      <form onSubmit={handleAdd} method="post" className="flex flex-wrap items-end justify-between gap-3 rounded-lg border border-surface-border p-4">
         <div className="flex flex-col gap-1">
           <label className="text-xs uppercase tracking-wide text-muted">{t.participants.manager.username}</label>
           <input autoFocus value={name} onChange={(e) => setName(e.target.value)} className={inputClass} placeholder={t.participants.manager.usernamePlaceholder} />
@@ -320,6 +295,40 @@ export function ParticipantsManager({
         </div>
       )}
 
+      {initialParticipants.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2" role="group" aria-label={t.participants.manager.allStatuses}>
+          <button
+            type="button"
+            onClick={() => setStatusFilter("all")}
+            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+              statusFilter === "all"
+                ? "border-accent bg-accent/10 text-foreground"
+                : "border-surface-border text-muted hover:text-foreground"
+            }`}
+          >
+            {t.participants.manager.allStatuses}
+            <span className="font-mono tabular-nums">{initialParticipants.length}</span>
+          </button>
+          {(Object.keys(displayLabels) as DisplayStatus[]).map((status) => {
+            const count = statusCounts[status] ?? 0;
+            if (count === 0) return null;
+            return (
+              <button
+                key={status}
+                type="button"
+                onClick={() => setStatusFilter(status)}
+                aria-pressed={statusFilter === status}
+                className={`rounded-full transition-shadow ${
+                  statusFilter === status ? "ring-2 ring-accent ring-offset-2 ring-offset-background" : ""
+                }`}
+              >
+                <StatusBadge value={status} label={`${displayLabels[status]} (${count})`} />
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       <div className="flex flex-wrap items-center gap-3">
         <input
           placeholder={t.participants.manager.searchPlaceholder}
@@ -338,15 +347,6 @@ export function ParticipantsManager({
         <span className="text-xs text-muted">
           {filtered.length}/{initialParticipants.length} {t.participants.manager.participants}
         </span>
-        <select
-          value={pageSize}
-          onChange={(e) => { setPageSize(Number(e.target.value)); setPage(0); }}
-          className="rounded-lg border border-surface-border bg-background px-2 py-1.5 text-xs text-foreground"
-        >
-          {[5, 10, 25, 50].map((n) => (
-            <option key={n} value={n}>{n} per pagina</option>
-          ))}
-        </select>
       </div>
 
       {activeSelectedCodeIds.length > 0 && (
@@ -405,7 +405,7 @@ export function ParticipantsManager({
               <span>{r.currentStep ? `${r.currentStep}/${r.stepsCount}` : <span className="italic">{t.participants.manager.na}</span>}</span>
             </div>
             <div className="flex flex-wrap gap-2 border-t border-surface-border pt-3">
-              <RowActions r={r} includeCodeActions />
+              <RowActions r={r} />
             </div>
           </div>
         ))}
@@ -451,7 +451,7 @@ export function ParticipantsManager({
                   />
                 </td>
                 <td className="px-4 py-3">
-                  <CodeCell r={r} />
+                  <CodeIdentity r={r} />
                 </td>
                 <td className="px-4 py-3 text-muted">{r.displayName ?? <span className="italic">{t.participants.manager.na}</span>}</td>
                 <td className="px-4 py-3">
@@ -478,9 +478,20 @@ export function ParticipantsManager({
 
       {filtered.length > 0 && (
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-xs text-muted">
-            Mostrati da {from} a {to} di {filtered.length} risultati
-          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="text-xs text-muted">
+              Mostrati da {from} a {to} di {filtered.length} risultati
+            </p>
+            <select
+              value={pageSize}
+              onChange={(e) => { setPageSize(Number(e.target.value)); setPage(0); }}
+              className="rounded-lg border border-surface-border bg-background px-2 py-1.5 text-xs text-foreground"
+            >
+              {[5, 10, 25, 50].map((n) => (
+                <option key={n} value={n}>{n} per pagina</option>
+              ))}
+            </select>
+          </div>
           <div className="flex items-center gap-2">
             <button
               type="button"

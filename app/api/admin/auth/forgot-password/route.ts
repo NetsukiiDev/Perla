@@ -74,7 +74,8 @@ export async function POST(req: Request) {
 
   await writeAccessLog({
     type: AccessLogType.password_reset_request,
-    metadata: { userId: user.id, sent: sent.ok },
+    actorEmail: user.email,
+    metadata: { sent: sent.ok, ip },
   });
 
   return NextResponse.json({ ok: true });

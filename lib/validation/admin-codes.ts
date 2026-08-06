@@ -10,10 +10,11 @@ export const codeGenerateSchema = z.object({
 });
 
 // Public code: event-level, reusable by many guests, no expiry. maxSessions
-// is the usage cap (how many guests may start it).
+// is the usage cap (how many guests may start it); 0 means unlimited (see
+// UNLIMITED_SESSIONS in lib/constants.ts).
 export const codePublicCreateSchema = z.object({
   eventId: z.string().min(1),
-  maxSessions: z.coerce.number().int().min(1).max(10000).default(100),
+  maxSessions: z.coerce.number().int().min(0).max(10000).default(100),
 });
 
 // Custom code set by an admin. Normalized (uppercase, no spaces) server-side.

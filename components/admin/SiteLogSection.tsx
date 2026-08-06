@@ -1,27 +1,47 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Loader2, RefreshCw, Shield, User, Calendar, MapPin, Key, LogIn, AlertTriangle, CheckCircle, XCircle } from "lucide-react";
+import { Fragment, useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { Loader2, RefreshCw, Shield, User, Calendar, MapPin, Key, LogIn, AlertTriangle, CheckCircle, XCircle, Globe, ChevronDown, ExternalLink } from "lucide-react";
 import { useLocale, useT } from "@/lib/i18n/context";
+import { ADMIN_LOG_TYPES, EVENT_LOG_TYPES } from "@/lib/log-types";
 
 type LogCategory = "all" | "admin" | "event";
 type LogSeverity = "info" | "success" | "error";
 
 const PAGE_SIZE = 50;
 
+// Keys already rendered inline by LogMeta — left out of the expanded raw
+// dump below so the same value isn't shown twice.
+const INLINE_METADATA_KEYS = new Set(["action", "email", "detail", "ip"]);
+
 interface LogEntry {
   id: string;
   type: string;
   metadataJson: Record<string, unknown> | null;
   createdAt: string;
+  eventId: string | null;
+  participantId: string | null;
+  actorEmail: string | null;
   event?: { internalName: string } | null;
   participant?: { displayName: string | null } | null;
+}
+
+interface AdminUserOption {
+  id: string;
+  email: string;
 }
 
 const categoryIcons: Record<LogCategory, typeof Shield> = {
   all: Calendar,
   admin: Shield,
   event: MapPin,
+};
+
+const typesByCategory: Record<LogCategory, readonly string[]> = {
+  all: [...ADMIN_LOG_TYPES, ...EVENT_LOG_TYPES],
+  admin: ADMIN_LOG_TYPES,
+  event: EVENT_LOG_TYPES,
 };
 
 function typeIcon(type: string) {
@@ -80,20 +100,37 @@ export function SiteLogSection() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [total, setTotal] = useState(0);
   const [category, setCategory] = useState<LogCategory>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [actorFilter, setActorFilter] = useState<string>("all");
+  const [adminUsers, setAdminUsers] = useState<AdminUserOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [reloadToken, setReloadToken] = useState(0);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const reqId = useRef(0);
 
-  function buildParams(offset: number, cat: LogCategory): string {
+  function buildParams(offset: number, cat: LogCategory, type: string, actor: string): string {
     const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String(offset) });
-    if (cat !== "all") params.set("category", cat);
+    if (type !== "all") params.set("type", type);
+    else if (cat !== "all") params.set("category", cat);
+    if (actor !== "all") params.set("actor", actor);
     return params.toString();
   }
 
+  // Populates the "filter by user" dropdown — admin-only (matches this
+  // section's own visibility) but harmless to fetch alongside the logs.
+  useEffect(() => {
+    fetch("/api/admin/users")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data) setAdminUsers(data.users);
+      })
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     const id = ++reqId.current;
-    fetch(`/api/admin/logs?${buildParams(0, category)}`)
+    fetch(`/api/admin/logs?${buildParams(0, category, typeFilter, actorFilter)}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (id !== reqId.current || !data) return;
@@ -102,13 +139,13 @@ export function SiteLogSection() {
       })
       .catch(() => {})
       .finally(() => { if (id === reqId.current) setLoading(false); });
-  }, [category, reloadToken]);
+  }, [category, typeFilter, actorFilter, reloadToken]);
 
   async function loadMore() {
     if (loadingMore) return;
     setLoadingMore(true);
     try {
-      const res = await fetch(`/api/admin/logs?${buildParams(logs.length, category)}`);
+      const res = await fetch(`/api/admin/logs?${buildParams(logs.length, category, typeFilter, actorFilter)}`);
       if (res.ok) {
         const data = await res.json();
         setLogs((prev) => [...prev, ...data.logs]);
@@ -130,12 +167,119 @@ export function SiteLogSection() {
   function changeCategory(key: LogCategory) {
     if (key === category) return;
     setCategory(key);
+    setTypeFilter("all"); // the previous exact-type filter may not exist in the new category
+    setLoading(true);
+  }
+
+  function changeType(value: string) {
+    if (value === typeFilter) return;
+    setTypeFilter(value);
+    setLoading(true);
+  }
+
+  function changeActor(value: string) {
+    if (value === actorFilter) return;
+    setActorFilter(value);
     setLoading(true);
   }
 
   function refresh() {
     setReloadToken((n) => n + 1);
     setLoading(true);
+  }
+
+  function toggleExpanded(id: string) {
+    setExpandedId((current) => (current === id ? null : id));
+  }
+
+  function typeLabel(type: string): string {
+    return (t.settings.logs.types as Record<string, string>)[type] ?? type;
+  }
+
+  function LogMeta({ l }: { l: LogEntry }) {
+    const meta = l.metadataJson as Record<string, string | null> | null;
+    const hasAnything = (meta && (meta.action || meta.email || meta.detail || meta.ip)) || l.actorEmail;
+    if (!hasAnything && !l.event && !l.participant) {
+      return <span className="text-xs text-muted/50">&mdash;</span>;
+    }
+    return (
+      <>
+        {meta && (meta.action || meta.email || meta.detail) && (
+          <span className="text-xs text-muted">
+            {meta.action}
+            {meta.email && <span className="ml-1 font-mono text-[11px]">({meta.email})</span>}
+            {meta.detail && <span className="ml-1">— {meta.detail}</span>}
+          </span>
+        )}
+        {l.actorEmail && (
+          <span className="flex items-center gap-1 text-xs text-muted" title={t.settings.logs.actor}>
+            <User size={10} aria-hidden="true" />
+            {l.actorEmail}
+          </span>
+        )}
+        {l.event && (
+          <span className="flex items-center gap-1 text-xs text-muted">
+            <MapPin size={10} aria-hidden="true" />
+            {l.event.internalName}
+          </span>
+        )}
+        {l.participant && l.participant.displayName && (
+          <span className="flex items-center gap-1 text-xs text-muted">
+            <User size={10} aria-hidden="true" />
+            {l.participant.displayName}
+          </span>
+        )}
+        {meta?.ip && (
+          <span className="flex items-center gap-1 text-xs text-muted" title={t.settings.logs.ipAddress}>
+            <Globe size={10} aria-hidden="true" />
+            {meta.ip}
+          </span>
+        )}
+      </>
+    );
+  }
+
+  // Full timestamp, every other metadata field the type happens to carry
+  // (raw, so a field added to a future writeAccessLog call shows up here
+  // for free instead of needing a matching UI change), and links to the
+  // related event/participant admin pages when there are any.
+  function LogDetail({ l }: { l: LogEntry }) {
+    const meta = (l.metadataJson as Record<string, unknown> | null) ?? {};
+    const extraEntries = Object.entries(meta).filter(([key, value]) => !INLINE_METADATA_KEYS.has(key) && value !== null && value !== undefined);
+
+    return (
+      <div className="flex flex-col gap-2 rounded-lg bg-background/60 p-3 text-xs">
+        <span className="text-muted">{new Date(l.createdAt).toLocaleString(locale)}</span>
+        {extraEntries.length > 0 && (
+          <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+            {extraEntries.map(([key, value]) => (
+              <div key={key} className="contents">
+                <dt className="text-muted">{key}</dt>
+                <dd className="break-all font-mono text-[11px] text-foreground">{String(value)}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+        {(l.eventId || l.participantId) && (
+          <div className="flex flex-wrap gap-3 border-t border-surface-border pt-2">
+            {l.eventId && (
+              <Link href={`/admin/events/${l.eventId}`} className="inline-flex items-center gap-1 text-blue-400 hover:text-blue-300">
+                {t.settings.logs.viewEvent} <ExternalLink size={11} aria-hidden="true" />
+              </Link>
+            )}
+            {l.eventId && l.participantId && (
+              <Link
+                href={`/admin/events/${l.eventId}/participants/${l.participantId}`}
+                className="inline-flex items-center gap-1 text-blue-400 hover:text-blue-300"
+              >
+                {t.settings.logs.viewParticipant} <ExternalLink size={11} aria-hidden="true" />
+              </Link>
+            )}
+          </div>
+        )}
+        <span className="font-mono text-[10px] text-muted/60">{l.id}</span>
+      </div>
+    );
   }
 
   return (
@@ -162,25 +306,55 @@ export function SiteLogSection() {
         </button>
       </div>
 
-      <div className="flex gap-1 rounded-lg border border-surface-border bg-surface p-1">
-        {categories.map((c) => {
-          const Icon = categoryIcons[c.key];
-          return (
-            <button
-              key={c.key}
-              type="button"
-              onClick={() => changeCategory(c.key)}
-              className={`inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                category === c.key
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted hover:text-foreground"
-              }`}
-            >
-              <Icon size={14} aria-hidden="true" />
-              {c.label}
-            </button>
-          );
-        })}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex gap-1 rounded-lg border border-surface-border bg-surface p-1">
+          {categories.map((c) => {
+            const Icon = categoryIcons[c.key];
+            return (
+              <button
+                key={c.key}
+                type="button"
+                onClick={() => changeCategory(c.key)}
+                className={`inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                  category === c.key
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted hover:text-foreground"
+                }`}
+              >
+                <Icon size={14} aria-hidden="true" />
+                {c.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <select
+          value={typeFilter}
+          onChange={(e) => changeType(e.target.value)}
+          className="rounded-lg border border-surface-border bg-background px-2 py-1.5 text-xs text-foreground"
+        >
+          <option value="all">{t.settings.logs.allTypes}</option>
+          {typesByCategory[category].map((type) => (
+            <option key={type} value={type}>
+              {typeLabel(type)}
+            </option>
+          ))}
+        </select>
+
+        {adminUsers.length > 0 && (
+          <select
+            value={actorFilter}
+            onChange={(e) => changeActor(e.target.value)}
+            className="rounded-lg border border-surface-border bg-background px-2 py-1.5 text-xs text-foreground"
+          >
+            <option value="all">{t.settings.logs.allUsers}</option>
+            {adminUsers.map((u) => (
+              <option key={u.id} value={u.email}>
+                {u.email}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
       <div className="flex items-center gap-2 text-xs text-muted">
@@ -195,7 +369,46 @@ export function SiteLogSection() {
         <p className="text-sm text-muted">{t.settings.logs.empty}</p>
       ) : (
         <>
-          <div className="overflow-x-auto rounded-lg border border-surface-border">
+          {/* Mobile: one card per log entry — type/details/time in three
+              table columns doesn't leave room for a long action description
+              on a phone width. */}
+          <div className="flex flex-col gap-2 md:hidden">
+            {logs.map((l) => {
+              const Icon = typeIcon(l.type);
+              const severity = typeSeverity(l.type);
+              const expanded = expandedId === l.id;
+              return (
+                <div key={l.id} className="rounded-lg border border-surface-border">
+                  <button
+                    type="button"
+                    onClick={() => toggleExpanded(l.id)}
+                    className="flex w-full flex-col gap-1.5 p-3 text-left"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground">
+                        <Icon size={14} className={`shrink-0 ${severityClass[severity]}`} aria-hidden="true" />
+                        {typeLabel(l.type)}
+                      </span>
+                      <span className="flex shrink-0 items-center gap-1 whitespace-nowrap text-xs text-muted">
+                        {formatRelativeTime(l.createdAt, locale)}
+                        <ChevronDown size={14} className={`transition-transform ${expanded ? "rotate-180" : ""}`} aria-hidden="true" />
+                      </span>
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                      <LogMeta l={l} />
+                    </div>
+                  </button>
+                  {expanded && (
+                    <div className="border-t border-surface-border p-3 pt-2">
+                      <LogDetail l={l} />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="hidden overflow-x-auto rounded-lg border border-surface-border md:block">
             <table className="w-full text-left text-sm">
               <thead className="border-b border-surface-border bg-surface text-xs uppercase tracking-wide text-muted">
                 <tr>
@@ -207,48 +420,39 @@ export function SiteLogSection() {
               <tbody>
                 {logs.map((l) => {
                   const Icon = typeIcon(l.type);
-                  const typeLabel = (t.settings.logs.types as Record<string, string>)[l.type] ?? l.type;
-                  const meta = l.metadataJson as Record<string, string | null> | null;
                   const severity = typeSeverity(l.type);
+                  const expanded = expandedId === l.id;
 
                   return (
-                    <tr key={l.id} className="border-b border-surface-border last:border-0 hover:bg-surface/30 transition-colors">
-                      <td className="px-4 py-2.5">
-                        <span className="inline-flex items-center gap-1.5 font-medium text-foreground">
-                          <Icon size={14} className={`shrink-0 ${severityClass[severity]}`} aria-hidden="true" />
-                          {typeLabel}
-                        </span>
-                      </td>
-                      <td className="px-4 py-2.5">
-                        <div className="flex flex-col gap-0.5">
-                          {meta && (meta.action || meta.email || meta.ip || meta.detail) && (
-                            <span className="text-xs text-muted">
-                              {meta.action}
-                              {meta.email && <span className="ml-1 font-mono text-[11px]">({meta.email})</span>}
-                              {meta.detail && <span className="ml-1">— {meta.detail}</span>}
-                            </span>
-                          )}
-                          {l.event && (
-                            <span className="flex items-center gap-1 text-xs text-muted">
-                              <MapPin size={10} aria-hidden="true" />
-                              {l.event.internalName}
-                            </span>
-                          )}
-                          {l.participant && l.participant.displayName && (
-                            <span className="flex items-center gap-1 text-xs text-muted">
-                              <User size={10} aria-hidden="true" />
-                              {l.participant.displayName}
-                            </span>
-                          )}
-                          {!meta && !l.event && !l.participant && (
-                            <span className="text-xs text-muted/50">&mdash;</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-2.5 text-xs text-muted" title={new Date(l.createdAt).toLocaleString()}>
-                        {formatRelativeTime(l.createdAt, locale)}
-                      </td>
-                    </tr>
+                    <Fragment key={l.id}>
+                      <tr
+                        onClick={() => toggleExpanded(l.id)}
+                        className="cursor-pointer border-b border-surface-border last:border-0 hover:bg-surface/30 transition-colors"
+                      >
+                        <td className="px-4 py-2.5">
+                          <span className="inline-flex items-center gap-1.5 font-medium text-foreground">
+                            <ChevronDown size={14} className={`shrink-0 text-muted transition-transform ${expanded ? "rotate-180" : "-rotate-90"}`} aria-hidden="true" />
+                            <Icon size={14} className={`shrink-0 ${severityClass[severity]}`} aria-hidden="true" />
+                            {typeLabel(l.type)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <div className="flex flex-col gap-0.5">
+                            <LogMeta l={l} />
+                          </div>
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-2.5 text-xs text-muted" title={new Date(l.createdAt).toLocaleString()}>
+                          {formatRelativeTime(l.createdAt, locale)}
+                        </td>
+                      </tr>
+                      {expanded && (
+                        <tr className="border-b border-surface-border last:border-0">
+                          <td colSpan={3} className="bg-background/40 px-4 py-2">
+                            <LogDetail l={l} />
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
                   );
                 })}
               </tbody>

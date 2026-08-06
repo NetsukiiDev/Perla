@@ -2,11 +2,12 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { ExternalLink, Globe, QrCode, Trash2, X } from "lucide-react";
+import { ExternalLink, Globe, Infinity as InfinityIcon, Pause, Play, QrCode, Trash2, X } from "lucide-react";
 import { CopyButton } from "./CopyButton";
 import { ConfirmButton } from "./ConfirmButton";
 import { iconButtonClass } from "./IconButton";
 import { codeAccessPath } from "@/lib/code-access-link";
+import { UNLIMITED_SESSIONS } from "@/lib/constants";
 import { useT } from "@/lib/i18n/context";
 
 export interface PublicCodeRow {
@@ -31,6 +32,7 @@ export function PublicCodesPanel({
   const router = useRouter();
   const t = useT();
   const [maxSessions, setMaxSessions] = useState("100");
+  const [unlimited, setUnlimited] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [revealed, setRevealed] = useState<string | null>(null);
@@ -38,6 +40,12 @@ export function PublicCodesPanel({
 
   function accessUrlFor(code: string): string {
     return `${initialBaseUrl.replace(/\/$/, "")}${codeAccessPath(code)}`;
+  }
+
+  function formatUses(row: PublicCodeRow): string {
+    return row.maxSessions === UNLIMITED_SESSIONS
+      ? t.codes.public.unlimitedUses.replace("{count}", String(row.used))
+      : `${row.used}/${row.maxSessions}`;
   }
 
   async function create(e: FormEvent) {
@@ -48,7 +56,7 @@ export function PublicCodesPanel({
       const res = await fetch("/api/admin/codes/public", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ eventId, maxSessions: Number(maxSessions) || 100 }),
+        body: JSON.stringify({ eventId, maxSessions: unlimited ? UNLIMITED_SESSIONS : Number(maxSessions) || 100 }),
       });
       const data = await res.json().catch(() => null);
       if (res.ok) {
@@ -77,38 +85,30 @@ export function PublicCodesPanel({
   }
 
   // Reactivating is harmless and reversible, so only revoking (which stops
-  // the code from letting anyone else in) asks first.
+  // the code from letting anyone else in) asks first. Same icon-button shape
+  // as every other action in the row (QR, link, delete) — the pill-shaped
+  // switch this replaced was the only non-square control among them.
   function ToggleActive({ row }: { row: PublicCodeRow }) {
-    const switchClass = `inline-flex h-8 w-14 items-center rounded-full border px-1 transition-colors ${
-      row.status === "revoked"
-        ? "border-surface-border bg-surface text-muted"
-        : "border-emerald-500/40 bg-emerald-500/20 text-emerald-400"
-    }`;
-    const knob = (
-      <span
-        className={`h-5 w-5 rounded-full transition-transform ${
-          row.status === "revoked" ? "translate-x-0 bg-muted" : "translate-x-6 bg-emerald-400"
-        }`}
-      />
-    );
     return row.status === "revoked" ? (
       <button
         type="button"
         title={t.codes.public.actions.activate}
         aria-label={t.codes.public.actions.activate}
         onClick={() => void toggleActive(row.id, false)}
-        className={switchClass}
+        className={iconButtonClass()}
       >
-        {knob}
+        <Play size={16} aria-hidden="true" />
+        <span className="sr-only">{t.codes.public.actions.activate}</span>
       </button>
     ) : (
       <ConfirmButton
         confirmMessage={t.codes.public.confirm.revoke}
         onConfirm={() => void toggleActive(row.id, true)}
+        icon={Pause}
         label={t.codes.public.actions.revoke}
-        className={switchClass}
+        variant="neutral"
       >
-        {knob}
+        {t.codes.public.actions.revoke}
       </ConfirmButton>
     );
   }
@@ -123,7 +123,7 @@ export function PublicCodesPanel({
         {t.codes.public.description}
       </p>
 
-      <form onSubmit={create} method="post" className="flex flex-wrap items-end gap-3 rounded-lg border border-surface-border p-4">
+      <form onSubmit={create} method="post" className="flex flex-wrap items-end justify-between gap-3 rounded-lg border border-surface-border p-4">
         <div className="flex flex-col gap-1">
           <label className="text-xs uppercase tracking-wide text-muted">{t.codes.public.maxUses}</label>
           <input
@@ -132,17 +132,33 @@ export function PublicCodesPanel({
             max={10000}
             value={maxSessions}
             onChange={(e) => setMaxSessions(e.target.value)}
-            className={`${inputClass} w-32`}
+            disabled={unlimited}
+            className={`${inputClass} w-32 disabled:opacity-50`}
           />
         </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-accent-foreground disabled:opacity-50"
-        >
-          <Globe size={16} aria-hidden="true" />
-          {loading ? t.codes.public.creating : t.codes.public.createButton}
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setUnlimited((u) => !u)}
+            aria-pressed={unlimited}
+            className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
+              unlimited
+                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                : "border-surface-border bg-background text-muted hover:text-foreground"
+            }`}
+          >
+            <InfinityIcon size={16} aria-hidden="true" />
+            {t.codes.public.unlimited}
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-accent-foreground disabled:opacity-50"
+          >
+            <Globe size={16} aria-hidden="true" />
+            {loading ? t.codes.public.creating : t.codes.public.createButton}
+          </button>
+        </div>
       </form>
 
       {error && <p className="text-sm text-danger">{error}</p>}
@@ -180,10 +196,7 @@ export function PublicCodesPanel({
               <div key={c.id} className="flex flex-col gap-3 rounded-lg border border-surface-border p-4">
                 <div className="flex items-center justify-between gap-3">
                   {c.code ? (
-                    <span className="flex items-center gap-2">
-                      <span className="font-mono tracking-widest">{c.code}</span>
-                      <CopyButton value={c.code} />
-                    </span>
+                    <span className="font-mono tracking-widest">{c.code}</span>
                   ) : (
                     <span className="text-muted">{t.common.na}</span>
                   )}
@@ -194,11 +207,12 @@ export function PublicCodesPanel({
                   )}
                 </div>
                 <p className="text-xs text-muted">
-                  {t.codes.public.table.uses}: {c.used}/{c.maxSessions}
+                  {t.codes.public.table.uses}: {formatUses(c)}
                 </p>
                 <div className="flex flex-wrap items-center gap-2 border-t border-surface-border pt-3">
                   {c.code && (
                     <>
+                      <CopyButton value={c.code} />
                       <button
                         type="button"
                         title={t.codes.public.actions.qr}
@@ -251,38 +265,12 @@ export function PublicCodesPanel({
                   <tr key={c.id} className="border-b border-surface-border last:border-0">
                     <td className="px-4 py-2">
                       {c.code ? (
-                        <span className="flex items-center gap-2">
-                          <span className="font-mono tracking-widest">{c.code}</span>
-                          <CopyButton value={c.code} />
-                          <button
-                            type="button"
-                            title={t.codes.public.actions.qr}
-                            aria-label={t.codes.public.actions.qr}
-                            onClick={() => setQrCode(c.code)}
-                            className={iconButtonClass()}
-                          >
-                            <QrCode size={16} aria-hidden="true" />
-                            <span className="sr-only">{t.codes.public.actions.qr}</span>
-                          </button>
-                          <a
-                            href={accessUrlFor(c.code)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={iconButtonClass()}
-                            title={t.codes.public.actions.openLink}
-                            aria-label={t.codes.public.actions.openLink}
-                          >
-                            <ExternalLink size={16} aria-hidden="true" />
-                            <span className="sr-only">{t.codes.public.actions.openLink}</span>
-                          </a>
-                        </span>
+                        <span className="font-mono tracking-widest">{c.code}</span>
                       ) : (
                         <span className="text-muted">{t.common.na}</span>
                       )}
                     </td>
-                    <td className="px-4 py-2 text-muted">
-                      {c.used}/{c.maxSessions}
-                    </td>
+                    <td className="px-4 py-2 text-muted">{formatUses(c)}</td>
                     <td className="px-4 py-2">
                       {c.status === "revoked" ? (
                         <span className="text-danger">{t.codes.public.statusRevoked}</span>
@@ -292,6 +280,32 @@ export function PublicCodesPanel({
                     </td>
                     <td className="px-4 py-2 text-right">
                       <div className="flex justify-end gap-2">
+                        {c.code && (
+                          <>
+                            <CopyButton value={c.code} />
+                            <button
+                              type="button"
+                              title={t.codes.public.actions.qr}
+                              aria-label={t.codes.public.actions.qr}
+                              onClick={() => setQrCode(c.code)}
+                              className={iconButtonClass()}
+                            >
+                              <QrCode size={16} aria-hidden="true" />
+                              <span className="sr-only">{t.codes.public.actions.qr}</span>
+                            </button>
+                            <a
+                              href={accessUrlFor(c.code)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={iconButtonClass()}
+                              title={t.codes.public.actions.openLink}
+                              aria-label={t.codes.public.actions.openLink}
+                            >
+                              <ExternalLink size={16} aria-hidden="true" />
+                              <span className="sr-only">{t.codes.public.actions.openLink}</span>
+                            </a>
+                          </>
+                        )}
                         <ToggleActive row={c} />
                         <ConfirmButton
                           confirmMessage={t.codes.public.confirm.delete}
