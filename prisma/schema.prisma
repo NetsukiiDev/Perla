@@ -328,6 +328,14 @@ model AccessLog {
 
   type         AccessLogType
   metadataJson Json? @map("metadata_json")
+  // The email a log entry is "about": who performed an admin_action, who a
+  // login attempt (successful or not) named, whose password was reset. A
+  // real indexed column rather than a metadataJson key so admin/settings
+  // can filter by it — that needs to work identically across every
+  // supported DB provider (postgres/mysql/mariadb/mongodb), where JSON path
+  // filtering syntax differs. Null for participant-flow log types, which
+  // have no admin actor. See lib/access-log.ts.
+  actorEmail String? @map("actor_email") @db.VarChar(255)
 
   createdAt DateTime @default(now()) @map("created_at")
 
@@ -339,6 +347,7 @@ model AccessLog {
   @@index([eventId])
   @@index([type])
   @@index([createdAt])
+  @@index([actorEmail])
   @@map("access_logs")
 }
 

@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdminUser } from "@/lib/admin-guard";
+import { ADMIN_LOG_TYPES, EVENT_LOG_TYPES } from "@/lib/log-types";
 
 export const runtime = "nodejs";
-
-const adminTypes = ["admin_login", "admin_login_failed", "admin_action", "password_reset_request", "password_reset_success"] as const;
-const eventTypes = ["code_verify_success", "code_verify_invalid", "code_verify_already_used", "code_not_yet_available", "code_not_available", "site_opened", "geolocation_denied", "session_started", "location_update", "step_unlocked", "arrived", "routing_error"] as const;
 
 export async function GET(req: Request) {
   const auth = await requireAdminUser(["admin"]);
@@ -16,14 +14,20 @@ export async function GET(req: Request) {
   const offset = Math.max(Number(url.searchParams.get("offset")) || 0, 0);
   const type = url.searchParams.get("type") || undefined;
   const category = url.searchParams.get("category") || "all";
+  const actor = url.searchParams.get("actor") || undefined;
 
   const where: Record<string, unknown> = {};
   if (type) {
     where.type = type;
   } else if (category === "admin") {
-    where.type = { in: adminTypes };
+    where.type = { in: ADMIN_LOG_TYPES };
   } else if (category === "event") {
-    where.type = { in: eventTypes };
+    where.type = { in: EVENT_LOG_TYPES };
+  }
+  // Combines with the type/category filter above rather than replacing it —
+  // "only failed logins by this admin" is a reasonable thing to want.
+  if (actor) {
+    where.actorEmail = actor;
   }
 
   const [logs, total] = await Promise.all([

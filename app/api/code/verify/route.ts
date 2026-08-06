@@ -82,7 +82,7 @@ export async function POST(req: Request) {
   });
 
   if (!inviteCode) {
-    await writeAccessLog({ type: AccessLogType.code_verify_invalid });
+    await writeAccessLog({ type: AccessLogType.code_verify_invalid, metadata: { attemptedCode: normalizedCode, ip } });
     return failureResponse(req, codeReq, "invalid", E.INVALID_CODE);
   }
 
@@ -93,6 +93,7 @@ export async function POST(req: Request) {
     eventId: inviteCode.eventId,
     participantId: inviteCode.participantId,
     inviteCodeId: inviteCode.id,
+    metadata: { ip },
   });
 
   const state = await evaluateInviteCodeState(inviteCode, inviteCode.event, t, normalizedCode);
@@ -103,6 +104,7 @@ export async function POST(req: Request) {
       eventId: inviteCode.eventId,
       participantId: inviteCode.participantId,
       inviteCodeId: inviteCode.id,
+      metadata: { ip },
     });
     return failureResponse(req, codeReq, "not_available", E.CODE_NOT_AVAILABLE);
   }
@@ -113,6 +115,7 @@ export async function POST(req: Request) {
       eventId: inviteCode.eventId,
       participantId: inviteCode.participantId,
       inviteCodeId: inviteCode.id,
+      metadata: { ip },
     });
     return failureResponse(req, codeReq, "already_used", E.ALREADY_USED);
   }
@@ -123,6 +126,7 @@ export async function POST(req: Request) {
       eventId: inviteCode.eventId,
       participantId: inviteCode.participantId,
       inviteCodeId: inviteCode.id,
+      metadata: { ip },
     });
   }
 

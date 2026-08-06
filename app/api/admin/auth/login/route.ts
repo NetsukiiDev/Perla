@@ -129,12 +129,12 @@ export async function POST(req: Request) {
   const valid = await verifyPassword(parsed.data.password, user?.passwordHash ?? DUMMY_PASSWORD_HASH);
 
   if (!user || !valid) {
-    await writeAccessLog({ type: AccessLogType.admin_login_failed, metadata: { email: parsed.data.email } });
+    await writeAccessLog({ type: AccessLogType.admin_login_failed, actorEmail: parsed.data.email, metadata: { ip } });
     return errorResponse(req, loginReq, "invalid", 401);
   }
 
   await issueAdminSession({ id: user.id, role: user.role });
-  await writeAccessLog({ type: AccessLogType.admin_login, metadata: { userId: user.id } });
+  await writeAccessLog({ type: AccessLogType.admin_login, actorEmail: user.email, metadata: { ip } });
 
   if (loginReq.kind === "form") {
     return redirectAfterLogin(req, loginReq.next);

@@ -27,7 +27,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "invalid_token" }, { status: 400 });
   }
 
-  await prisma.$transaction([
+  const [updatedUser] = await prisma.$transaction([
     prisma.adminUser.update({
       where: { id: record.adminUserId },
       data: { passwordHash: await hashPassword(parsed.data.newPassword) },
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
 
   await writeAccessLog({
     type: AccessLogType.password_reset_success,
-    metadata: { userId: record.adminUserId },
+    actorEmail: updatedUser.email,
   });
 
   return NextResponse.json({ ok: true });
