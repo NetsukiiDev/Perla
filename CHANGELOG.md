@@ -1,5 +1,13 @@
 # Changelog
 
+## Non rilasciato
+
+### Fixed
+- **La barra dei tab di un evento (Panoramica/Modifica/Partecipanti/...) e l'intestazione con nome evento e stato allargavano l'intera pagina su schermi stretti**, invece di andare a capo o scorrere autonomamente: su telefono bisognava scorrere l'intera pagina in orizzontale per raggiungere le ultime tappe ("Live", "Annunci"). La barra dei tab ora scorre da sola; l'intestazione va a capo
+
+### Changed
+- **Ridisegnata la Panoramica di un evento**: le sei statistiche (codici, disattivati, live, in viaggio, arrivati, tappe) erano un elenco a colonna singola su telefono, con uno scroll lungo prima di arrivare alla mappa. Ora sono card in una griglia (2 colonne su telefono, 3 su tablet, 6 da desktop), e anche i dati sotto la mappa (regione, coordinate, monitoraggio) sono su 2 colonne invece di una su mobile
+
 ## 0.3.1 — 2026-08-06
 
 ### Added
