@@ -54,6 +54,12 @@ export interface Dictionary {
       empty: string;
       more: string;
       loadMore: string;
+      allTypes: string;
+      allUsers: string;
+      actor: string;
+      ipAddress: string;
+      viewEvent: string;
+      viewParticipant: string;
       table: { type: string; time: string; details: string; event: string; participant: string };
       categories: { all: string; admin: string; event: string };
       types: {
@@ -229,6 +235,7 @@ export interface Dictionary {
     title: string;
     newButton: string;
     empty: string;
+    closedSection: string;
     statusOptions: { draft: string; scheduled: string; active: string; closed: string; archived: string };
     table: { name: string; region: string; status: string; start: string };
     form: {
@@ -262,7 +269,7 @@ export interface Dictionary {
 
   codes: {
     public: {
-      title: string; description: string; maxUses: string; createButton: string; creating: string;
+      title: string; description: string; maxUses: string; unlimited: string; unlimitedUses: string; createButton: string; creating: string;
       created: string; hide: string; show: string;
       table: { code: string; uses: string; status: string };
       statusActive: string; statusRevoked: string;
@@ -289,15 +296,15 @@ export interface Dictionary {
       title: string; stepOf: string; notes: string; saved: string;
       access: {
         section: string; newCode: string; code: string; link: string; openLink: string;
-        noActiveCode: string; info: string; regenerate: string; edit: string; generate: string;
+        noActiveCode: string; info: string; regenerate: string; edit: string; editPlaceholder: string; generate: string;
       };
       network: { section: string; ip: string; isp: string };
       location: { section: string; current: string; showDestination: string; noData: string };
       actions: {
         block: string; unblock: string; reset: string; showDestination: string;
-        markArrived: string; deleteLocation: string; sessionNotActive: string;
+        markArrived: string; deleteLocation: string;
       };
-      errors: { codeInUse: string; sessionInactive: string; operationFailed: string; destinationShown: string };
+      errors: { codeInUse: string; sessionInactive: string; operationFailed: string };
     };
   };
 

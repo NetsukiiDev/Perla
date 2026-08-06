@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { ExternalLink, KeyRound, Link2, MapPin, Pencil, RotateCcw, Save, Wifi } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { CopyButton } from "./CopyButton";
-import { IconButton } from "./IconButton";
+import { IconButton, iconButtonClass } from "./IconButton";
 import { CodeStatusToggle } from "./CodeStatusToggle";
 import { AccessSharePanel } from "./AccessSharePanel";
+import { SessionActionsMenu } from "./SessionActionsMenu";
 import { getDisplayStatusLabels, inviteCodeStatusLabel, type DisplayStatus } from "@/lib/status";
 import { useT } from "@/lib/i18n/context";
 
@@ -46,12 +47,14 @@ export function ParticipantDetail({ accessUrl, participant: p }: Props) {
   const [name, setName] = useState(p.displayName ?? "");
   const [notes, setNotes] = useState(p.notes ?? "");
   const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [revealedCode, setRevealedCode] = useState<string | null>(null);
+  const [editingCode, setEditingCode] = useState(false);
+  const [codeInput, setCodeInput] = useState("");
 
   async function call(url: string, method: string, body?: unknown) {
     setBusy(true);
-    setMsg(null);
+    setFeedback(null);
     try {
       const res = await fetch(url, {
         method,
@@ -60,13 +63,15 @@ export function ParticipantDetail({ accessUrl, participant: p }: Props) {
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) {
-        setMsg(
-          data?.error === "code_taken"
-            ? t.participants.detail.errors.codeInUse
-            : data?.error === "not_active"
-              ? t.participants.detail.errors.sessionInactive
-              : t.participants.detail.errors.operationFailed,
-        );
+        setFeedback({
+          type: "error",
+          text:
+            data?.error === "code_taken"
+              ? t.participants.detail.errors.codeInUse
+              : data?.error === "not_active"
+                ? t.participants.detail.errors.sessionInactive
+                : t.participants.detail.errors.operationFailed,
+        });
         return null;
       }
       if (typeof data?.code === "string") {
@@ -80,21 +85,18 @@ export function ParticipantDetail({ accessUrl, participant: p }: Props) {
   }
 
   async function saveInfo() {
-    await call(`/api/admin/participants/${p.id}`, "PATCH", { displayName: name || null, notes: notes || null });
-    setMsg(t.participants.detail.saved);
+    const result = await call(`/api/admin/participants/${p.id}`, "PATCH", { displayName: name || null, notes: notes || null });
+    if (result) setFeedback({ type: "success", text: t.participants.detail.saved });
   }
 
-  async function setCustomCode() {
-    if (!p.codeId) return;
-    const code = window.prompt("Nuovo codice (4-32 caratteri, lettere/numeri):");
-    if (!code) return;
-    await call(`/api/admin/codes/${p.codeId}`, "PATCH", { code });
-  }
-
-  async function showDestination() {
-    if (!p.sessionId) return;
-    await call(`/api/admin/sessions/${p.sessionId}/show-destination`, "POST");
-    setMsg(t.participants.detail.errors.destinationShown);
+  async function submitCustomCode(e: FormEvent) {
+    e.preventDefault();
+    if (!p.codeId || !codeInput.trim()) return;
+    const result = await call(`/api/admin/codes/${p.codeId}`, "PATCH", { code: codeInput.trim() });
+    if (result) {
+      setEditingCode(false);
+      setCodeInput("");
+    }
   }
 
   const mapMarkers = p.lastLocation
@@ -103,12 +105,32 @@ export function ParticipantDetail({ accessUrl, participant: p }: Props) {
   const accessLink = accessUrl;
 
   return (
-    <div className="flex flex-col gap-8">
-      <section className="flex flex-col gap-4 border-t border-surface-border pt-6">
-        <div className="flex flex-wrap items-center gap-3">
-          <StatusBadge value={p.displayStatus} label={displayLabels[p.displayStatus]} />
-          {p.currentStep && <span className="text-sm text-muted">{t.participants.detail.stepOf.replace("{current}", String(p.currentStep)).replace("{total}", String(p.stepsCount))}</span>}
+    <div className="flex flex-col gap-6">
+      <section className="flex flex-col gap-3 rounded-lg border border-surface-border bg-surface/50 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <StatusBadge value={p.displayStatus} label={displayLabels[p.displayStatus]} />
+            {p.currentStep && (
+              <span className="text-sm text-muted">
+                {t.participants.detail.stepOf.replace("{current}", String(p.currentStep)).replace("{total}", String(p.stepsCount))}
+              </span>
+            )}
+          </div>
+          <SessionActionsMenu sessionId={p.sessionId} sessionStatus={p.sessionStatus} onChanged={() => router.refresh()} />
         </div>
+        {feedback && (
+          <p
+            role="status"
+            className={`rounded-lg border px-3 py-2 text-sm ${
+              feedback.type === "error" ? "border-danger/40 bg-danger/10 text-danger" : "border-accent/40 bg-accent/5 text-foreground"
+            }`}
+          >
+            {feedback.text}
+          </p>
+        )}
+      </section>
+
+      <section className="flex flex-col gap-4 rounded-lg border border-surface-border p-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="flex flex-col gap-1">
             <label className={labelClass}>{t.participants.manager.username}</label>
@@ -123,14 +145,14 @@ export function ParticipantDetail({ accessUrl, participant: p }: Props) {
           type="button"
           onClick={saveInfo}
           disabled={busy}
-          className="inline-flex items-center gap-2 self-start rounded-lg bg-accent px-4 py-2 text-sm font-medium text-accent-foreground disabled:opacity-50"
+          className="inline-flex items-center gap-2 self-end rounded-lg bg-accent px-4 py-2 text-sm font-medium text-accent-foreground disabled:opacity-50"
         >
           <Save size={16} aria-hidden="true" />
           {t.common.save}
         </button>
       </section>
 
-      <section className="flex flex-col gap-4 border-t border-surface-border pt-6">
+      <section className="flex flex-col gap-4 rounded-lg border border-surface-border p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <span className={labelClass}>{t.participants.detail.access.section}</span>
           {p.codeId && (
@@ -204,17 +226,57 @@ export function ParticipantDetail({ accessUrl, participant: p }: Props) {
           <p className="text-sm text-muted">{t.participants.detail.access.noActiveCode}</p>
         )}
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-2">
           {p.codeId ? (
-            <>
-              <IconButton
-                icon={RotateCcw}
-                label={t.participants.detail.access.regenerate}
-                disabled={busy}
-                onClick={() => call(`/api/admin/codes/${p.codeId}/regenerate`, "POST")}
-              />
-              <IconButton icon={Pencil} label={t.participants.detail.access.edit} disabled={busy} onClick={setCustomCode} />
-            </>
+            editingCode ? (
+              <form onSubmit={submitCustomCode} className="flex flex-wrap items-center justify-end gap-2">
+                <input
+                  autoFocus
+                  value={codeInput}
+                  onChange={(e) => setCodeInput(e.target.value)}
+                  placeholder={t.participants.detail.access.editPlaceholder}
+                  aria-label={t.participants.detail.access.edit}
+                  minLength={4}
+                  maxLength={32}
+                  className={`${inputClass} w-auto`}
+                />
+                <button
+                  type="submit"
+                  disabled={busy || !codeInput.trim()}
+                  className="inline-flex items-center gap-2 rounded-lg bg-accent px-3 py-2 text-sm font-medium text-accent-foreground disabled:opacity-50"
+                >
+                  {t.common.save}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingCode(false);
+                    setCodeInput("");
+                  }}
+                  className="rounded-lg border border-surface-border px-3 py-2 text-sm text-muted hover:text-foreground"
+                >
+                  {t.common.cancel}
+                </button>
+              </form>
+            ) : (
+              <>
+                <IconButton
+                  icon={RotateCcw}
+                  label={t.participants.detail.access.regenerate}
+                  disabled={busy}
+                  onClick={() => call(`/api/admin/codes/${p.codeId}/regenerate`, "POST")}
+                />
+                <IconButton
+                  icon={Pencil}
+                  label={t.participants.detail.access.edit}
+                  disabled={busy}
+                  onClick={() => {
+                    setCodeInput("");
+                    setEditingCode(true);
+                  }}
+                />
+              </>
+            )
           ) : (
             <IconButton
               icon={KeyRound}
@@ -229,7 +291,7 @@ export function ParticipantDetail({ accessUrl, participant: p }: Props) {
         {p.code && accessLink && <AccessSharePanel code={p.code} accessUrl={accessLink} />}
       </section>
 
-      <section className="flex flex-col gap-3 border-t border-surface-border pt-6">
+      <section className="flex flex-col gap-3 rounded-lg border border-surface-border p-4">
         <div className="flex items-center gap-2">
           <Wifi size={16} aria-hidden="true" className="text-muted" />
           <span className={labelClass}>{t.participants.detail.network.section}</span>
@@ -246,37 +308,33 @@ export function ParticipantDetail({ accessUrl, participant: p }: Props) {
         </div>
       </section>
 
-      <section className="flex flex-col gap-3 border-t border-surface-border pt-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <span className={labelClass}>{t.participants.detail.location.section}</span>
-          {p.sessionId && (
-            <button
-              type="button"
-              title={p.sessionStatus === "active" ? t.participants.detail.actions.showDestination : t.participants.detail.actions.sessionNotActive}
-              onClick={showDestination}
-              disabled={busy || p.sessionStatus !== "active"}
-              className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-accent-foreground disabled:opacity-50"
-            >
-              <MapPin size={16} aria-hidden="true" />
-              {t.participants.detail.actions.showDestination}
-            </button>
-          )}
-        </div>
+      <section className="flex flex-col gap-3 rounded-lg border border-surface-border p-4">
+        <span className={labelClass}>{t.participants.detail.location.section}</span>
         {p.lastLocation ? (
           <>
-            <p className="text-sm">
-              {p.lastLocation.lat.toFixed(5)}, {p.lastLocation.lng.toFixed(5)}
-              {p.lastSeenAt && <span className="text-muted"> - aggiornata {new Date(p.lastSeenAt).toLocaleString("it-IT")}</span>}
-            </p>
+            <div className="flex flex-wrap items-center gap-3 text-sm">
+              <span>
+                {p.lastLocation.lat.toFixed(5)}, {p.lastLocation.lng.toFixed(5)}
+                {p.lastSeenAt && <span className="text-muted"> - aggiornata {new Date(p.lastSeenAt).toLocaleString("it-IT")}</span>}
+              </span>
+              <a
+                href={`https://www.google.com/maps/dir/?api=1&destination=${p.lastLocation.lat},${p.lastLocation.lng}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={iconButtonClass()}
+                title={t.common.openInMaps}
+                aria-label={t.common.openInMaps}
+              >
+                <MapPin size={16} aria-hidden="true" />
+                <span className="sr-only">{t.common.openInMaps}</span>
+              </a>
+            </div>
             <LiveMap markers={mapMarkers} />
           </>
         ) : (
           <p className="text-sm text-muted">{t.participants.detail.location.noData}</p>
         )}
       </section>
-
-      {msg && <p className="text-sm text-muted">{msg}</p>}
-
     </div>
   );
 }
