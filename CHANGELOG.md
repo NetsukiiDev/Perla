@@ -1,6 +1,6 @@
 # Changelog
 
-## Non rilasciato
+## 0.3.2 — 2026-08-06
 
 ### Fixed
 - **La barra dei tab di un evento (Panoramica/Modifica/Partecipanti/...) e l'intestazione con nome evento e stato allargavano l'intera pagina su schermi stretti**, invece di andare a capo o scorrere autonomamente: su telefono bisognava scorrere l'intera pagina in orizzontale per raggiungere le ultime tappe ("Live", "Annunci"). La barra dei tab ora scorre da sola; l'intestazione va a capo
