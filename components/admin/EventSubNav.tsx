@@ -62,7 +62,7 @@ export function EventSubNav({ eventId, active, vertical }: { eventId: string; ac
   }
 
   return (
-    <nav className="mb-6 flex gap-4 border-b border-surface-border text-sm">
+    <nav className="mb-6 flex gap-4 overflow-x-auto border-b border-surface-border text-sm">
       {Object.keys(labelMap).map((key) => {
         const tabKey = key as TabKey;
         const Icon = iconMap[tabKey];
@@ -70,7 +70,7 @@ export function EventSubNav({ eventId, active, vertical }: { eventId: string; ac
           <Link
             key={tabKey}
             href={hrefMap[tabKey](eventId)}
-            className={`inline-flex items-center gap-2 border-b-2 pb-2 ${
+            className={`inline-flex shrink-0 items-center gap-2 whitespace-nowrap border-b-2 pb-2 ${
               active === tabKey
                 ? "border-foreground text-foreground"
                 : "border-transparent text-muted hover:border-foreground hover:text-foreground"

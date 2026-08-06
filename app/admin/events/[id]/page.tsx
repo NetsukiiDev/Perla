@@ -39,12 +39,12 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
       eventId={id}
       activeTab="overview"
       header={
-        <div className="mb-2 flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-xl font-semibold">{event.internalName}</h1>
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="truncate text-xl font-semibold">{event.internalName}</h1>
             <p className="text-sm text-muted">{event.region}</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <StatusBadge value={event.status} label={t.events.statusOptions[event.status as keyof typeof t.events.statusOptions] ?? event.status} />
             <EventStatusControl eventId={id} status={event.status} />
           </div>
